@@ -11,12 +11,24 @@ import Foundation
 import SwiftUI
 
 // The Swift calling convention is very similar to the C calling convention, but
-//  uses extra registers for returning value types that are 3 or 4 pointers in size.
-//  Thus, until mono supports this convention natively, we need some glue functions...
+//  varies in a couple ways. Thus, until mono supports this convention natively,
+//  we need some glue functions...
 
-@_silgen_name("swiftui_text_verbatim")
-public func NetUI_make_text(dest : UnsafeMutableRawPointer, verbatim : String) -> Void
+
+//
+// Extra registers are used for returning value types that are 3 or 4 pointers in size.
+//
+@_silgen_name("swiftui_Text_verbatim")
+public func Text_vderbatim(dest : UnsafeMutablePointer<Text>, verbatim : String) -> Void
 {
-    let txt = Text(verbatim: verbatim)
-    dest.storeBytes(of: txt, as: Text.self)
+    dest.initialize(to: Text(verbatim: verbatim))
+}
+
+//
+// Class methods: Context register is used for pointer to type metadata
+//
+@_silgen_name("swiftui_NSHostingView_rootView")
+public func NSHostingView_rootView<T: View>(root : T) -> NSHostingView<T>
+{
+    return NSHostingView(rootView: root)
 }

@@ -28,7 +28,7 @@ namespace SwiftUI
 
 		[DllImport ("libSwiftUIGlue.dylib",
 			CallingConvention = CallingConvention.Cdecl,
-			EntryPoint = "swiftui_text_verbatim")]
+			EntryPoint = "swiftui_Text_verbatim")]
 		static extern IntPtr Init_verbatim (out Text txt, SwiftString swiftStr);
 	}
 }

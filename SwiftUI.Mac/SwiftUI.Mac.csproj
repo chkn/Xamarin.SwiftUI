@@ -3,14 +3,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{24332183-3269-4D12-BC4B-F0C397E99E4C}</ProjectGuid>
+    <ProjectGuid>{9F07ACCC-8357-4E81-9EAA-E238752B7977}</ProjectGuid>
     <ProjectTypeGuids>{A3F8F2AB-B479-4A4A-A458-A89E7DC349F1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>XamMacSwiftUITest</RootNamespace>
-    <AssemblyName>XamMacSwiftUITest</AssemblyName>
+    <OutputType>Library</OutputType>
+    <RootNamespace>SwiftUI.Mac</RootNamespace>
+    <AssemblyName>SwiftUI.Mac</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
-    <MonoMacResourcePrefix>Resources</MonoMacResourcePrefix>
     <TargetFrameworkIdentifier>Xamarin.Mac</TargetFrameworkIdentifier>
+    <MonoMacResourcePrefix>Resources</MonoMacResourcePrefix>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,39 +21,32 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <EnableCodeSigning>false</EnableCodeSigning>
-    <CodeSigningKey>Mac Developer</CodeSigningKey>
     <CreatePackage>false</CreatePackage>
     <EnablePackageSigning>false</EnablePackageSigning>
     <IncludeMonoRuntime>false</IncludeMonoRuntime>
-    <UseSGen>true</UseSGen>
-    <UseRefCounting>true</UseRefCounting>
+    <UseSGen>false</UseSGen>
     <HttpClientHandler>HttpClientHandler</HttpClientHandler>
     <LinkMode>None</LinkMode>
     <XamMacArch></XamMacArch>
     <AOTMode>None</AOTMode>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageSigningKey>3rd Party Mac Developer Installer</PackageSigningKey>
-    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release</OutputPath>
     <DefineConstants></DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <EnableCodeSigning>false</EnableCodeSigning>
-    <CreatePackage>true</CreatePackage>
+    <CreatePackage>false</CreatePackage>
     <EnablePackageSigning>false</EnablePackageSigning>
-    <IncludeMonoRuntime>true</IncludeMonoRuntime>
-    <UseSGen>true</UseSGen>
-    <UseRefCounting>true</UseRefCounting>
-    <LinkMode>None</LinkMode>
+    <IncludeMonoRuntime>false</IncludeMonoRuntime>
+    <UseSGen>false</UseSGen>
     <HttpClientHandler>HttpClientHandler</HttpClientHandler>
+    <LinkMode>None</LinkMode>
     <XamMacArch></XamMacArch>
     <AOTMode>None</AOTMode>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -64,30 +57,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Resources\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Info.plist" />
-    <None Include="Entitlements.plist" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Main.cs" />
-    <Compile Include="AppDelegate.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <NativeReference Include="..\SwiftUIGlue\libSwiftUIGlue.dylib">
-      <Kind>Dynamic</Kind>
-      <SmartLink>False</SmartLink>
-    </NativeReference>
+    <Compile Include="NSHostingView.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SwiftUI\SwiftUI.csproj">
       <Project>{31E05277-F5C7-47C7-988B-EFA3A8057F07}</Project>
       <Name>SwiftUI</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SwiftUI.Mac\SwiftUI.Mac.csproj">
-      <Project>{9F07ACCC-8357-4E81-9EAA-E238752B7977}</Project>
-      <Name>SwiftUI.Mac</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
