@@ -26,9 +26,9 @@ namespace SwiftUI
 
 		public void Dispose () => SwiftType.Destroy (in this);
 
-		[DllImport ("libSwiftUIBackend.dylib",
+		[DllImport ("libSwiftUIGlue.dylib",
 			CallingConvention = CallingConvention.Cdecl,
-			EntryPoint = "_netui_make_text_verbatim")]
+			EntryPoint = "swiftui_text_verbatim")]
 		static extern IntPtr Init_verbatim (out Text txt, SwiftString swiftStr);
 	}
 }

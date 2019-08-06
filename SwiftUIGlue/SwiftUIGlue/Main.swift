@@ -1,6 +1,6 @@
 //
 //  Main.swift
-//  SwiftUIBackend
+//  SwiftUIGlue
 //
 //  Created by Alex Corrado on 7/23/19.
 //  Copyright © 2019 Alex Corrado. All rights reserved.

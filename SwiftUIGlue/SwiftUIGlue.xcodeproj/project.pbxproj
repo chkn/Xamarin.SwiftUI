@@ -17,7 +17,7 @@
 		FA274AEB22E6D1740031B143 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		FA274AF222E6D2300031B143 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		FA274AF422E6D4550031B143 /* Main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Main.swift; sourceTree = "<group>"; };
-		FAA3C6F422ED00D2005D437F /* Glue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Glue.swift; path = ../../../../../../../../System/Volumes/Data/Users/alex/Projects/NetUI/Backends/SwiftUI/SwiftUIBackend/SwiftUIBackend/Glue.swift; sourceTree = "<group>"; };
+		FAA3C6F422ED00D2005D437F /* Glue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glue.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -34,7 +34,7 @@
 		FA274ADD22E6D1730031B143 = {
 			isa = PBXGroup;
 			children = (
-				FA274AE922E6D1740031B143 /* SwiftUIBackend */,
+				FA274AE922E6D1740031B143 /* SwiftUIGlue */,
 				FA274AE822E6D1740031B143 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -47,7 +47,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		FA274AE922E6D1740031B143 /* SwiftUIBackend */ = {
+		FA274AE922E6D1740031B143 /* SwiftUIGlue */ = {
 			isa = PBXGroup;
 			children = (
 				FA274AEB22E6D1740031B143 /* Info.plist */,
@@ -55,7 +55,7 @@
 				FA274AF422E6D4550031B143 /* Main.swift */,
 				FAA3C6F422ED00D2005D437F /* Glue.swift */,
 			);
-			path = SwiftUIBackend;
+			path = SwiftUIGlue;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -79,13 +79,14 @@
 				FA274AE322E6D1740031B143 /* Sources */,
 				FA274AE422E6D1740031B143 /* Frameworks */,
 				FA274AE522E6D1740031B143 /* Resources */,
+				FA1CB76322F865E800BBCC6A /* ShellScript */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = SwiftUIGlue;
-			productName = SwiftUIBackend;
+			productName = SwiftUIGlue;
 			productReference = FA274AE722E6D1740031B143 /* SwiftUIGlue.framework */;
 			productType = "com.apple.product-type.framework";
 		};
@@ -131,6 +132,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		FA1CB76322F865E800BBCC6A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\ncp \"$CODESIGNING_FOLDER_PATH/$EXECUTABLE_NAME\" \"$PROJECT_DIR/${EXECUTABLE_NAME}.$EXECUTABLE_EXTENSION\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		FA274AE322E6D1740031B143 /* Sources */ = {
@@ -277,14 +298,14 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				EXECUTABLE_EXTENSION = dylib;
 				EXECUTABLE_PREFIX = lib;
-				INFOPLIST_FILE = SwiftUIBackend/Info.plist;
+				INFOPLIST_FILE = SwiftUIGlue/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = foo.SwiftUIBackend;
+				PRODUCT_BUNDLE_IDENTIFIER = foo.SwiftUIGlue;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -304,14 +325,14 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				EXECUTABLE_EXTENSION = dylib;
 				EXECUTABLE_PREFIX = lib;
-				INFOPLIST_FILE = SwiftUIBackend/Info.plist;
+				INFOPLIST_FILE = SwiftUIGlue/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = foo.SwiftUIBackend;
+				PRODUCT_BUNDLE_IDENTIFIER = foo.SwiftUIGlue;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;

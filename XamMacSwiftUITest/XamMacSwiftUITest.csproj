@@ -60,7 +60,7 @@
     <Reference Include="System.Core" />
     <Reference Include="Xamarin.Mac" />
     <Reference Include="netstandard">
-      <HintPath>..\..\..\..\..\..\..\System\Volumes\Data\Library\Frameworks\Xamarin.Mac.framework\Versions\5.16.0.5\lib\mono\4.5\Facades\netstandard.dll</HintPath>
+      <HintPath>/Library/Frameworks/Xamarin.Mac.framework/Versions/Current/lib/mono/4.5/Facades/netstandard.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -74,10 +74,16 @@
     <Compile Include="Main.cs" />
   </ItemGroup>
   <ItemGroup>
-    <NativeReference Include="..\..\..\..\..\..\..\System\Volumes\Data\Users\alex\Projects\NetUI\Backends\SwiftUI\XamMacSwiftUITest\libSwiftUIBackend.dylib">
+    <NativeReference Include="..\SwiftUIGlue\libSwiftUIGlue.dylib">
       <Kind>Dynamic</Kind>
       <SmartLink>False</SmartLink>
     </NativeReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SwiftUI\SwiftUI.csproj">
+      <Project>{31E05277-F5C7-47C7-988B-EFA3A8057F07}</Project>
+      <Name>SwiftUI</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>

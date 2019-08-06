@@ -15,15 +15,24 @@ namespace XamMacSwiftUITest
 
 			var txt = new Text ("HELLO SwiftUI FROM C#!");
 
-			return NetUIMain (&txt);
+			return NetUIMain (txt);
 		}
 
 		unsafe static int NetUIMain (View view) => NetUIMain (view.NativeData);
 
-		unsafe static int NetUIMain<T> (T* view) where T : unmanaged, IView<T>
-			=> NetUIMain (view, view->SwiftType.Metadata, view->SwiftType.ViewConformance);
+		unsafe static int NetUIMain<T> (in T view) where T : unmanaged, IView<T>
+		{
+			fixed (T* viewPtr = &view)
+				return NetUIMain (viewPtr);
+		}
 
-		[DllImport ("libSwiftUIBackend.dylib",
+		unsafe static int NetUIMain<T> (T* view) where T : unmanaged, IView<T>
+		{
+			var swiftType = view->SwiftType;
+			return NetUIMain (view, swiftType.Metadata, swiftType.ViewConformance);
+		}
+
+		[DllImport ("libSwiftUIGlue.dylib",
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "_netui_main")]
 		static extern unsafe int NetUIMain (void* viewData, TypeMetadata* viewType, IntPtr viewConformance);
