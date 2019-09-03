@@ -4,19 +4,28 @@ using System.Runtime.InteropServices;
 using AppKit;
 using Foundation;
 
-using SwiftUI.Interop;
+using Swift.Interop;
 
 namespace SwiftUI
 {
 	public unsafe class NSHostingView : NSView, /*INSUserInterfaceValidations,*/ INSDraggingSource
 	{
-		public static NSHostingView Create (View view) => Create (view.NativeData);
+
+		public static NSHostingView Create (IView view)
+		{
+			var swiftType = view.SwiftType;
+			using var handle = view.Handle;
+			return new NSHostingView (handle.Pointer, swiftType.Metadata, swiftType.ViewConformance);
+		}
 
 		public static NSHostingView Create<T> (in T view)
 			where T : unmanaged, IView<T>
 		{
-			fixed (T* viewPtr = &view)
-				return Create (viewPtr);
+			if (view.IsBlittable ()) {
+				fixed (T* viewPtr = &view)
+					return Create (viewPtr);
+			}
+			return Create ((IView)view);
 		}
 
 		public static NSHostingView Create<T> (T* view)
@@ -26,7 +35,7 @@ namespace SwiftUI
 			return new NSHostingView (view, swiftType.Metadata, swiftType.ViewConformance);
 		}
 
-		protected unsafe NSHostingView (void* viewData, TypeMetadata* viewType, IntPtr viewConformance)
+		protected unsafe NSHostingView (void* viewData, TypeMetadata* viewType, WitnessTable* viewConformance)
 			: base (Init (viewData, viewType, viewConformance))
 		{
 		}
@@ -34,6 +43,6 @@ namespace SwiftUI
 		[DllImport ("libSwiftUIGlue.dylib",
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "swiftui_NSHostingView_rootView")]
-		static extern IntPtr Init (void* viewData, TypeMetadata* viewType, IntPtr viewConformance);
+		static extern IntPtr Init (void* viewData, TypeMetadata* viewType, WitnessTable* viewConformance);
 	}
 }

@@ -19,7 +19,7 @@ import SwiftUI
 // Extra registers are used for returning value types that are 3 or 4 pointers in size.
 //
 @_silgen_name("swiftui_Text_verbatim")
-public func Text_vderbatim(dest : UnsafeMutablePointer<Text>, verbatim : String) -> Void
+public func Text_verbatim(dest : UnsafeMutablePointer<Text>, verbatim : String) -> Void
 {
     dest.initialize(to: Text(verbatim: verbatim))
 }

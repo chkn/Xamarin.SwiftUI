@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace SwiftUI.Interop
+namespace Swift.Interop
 {
 	using static MetadataFlags;
 
@@ -63,7 +63,7 @@ namespace SwiftUI.Interop
 
 		public static MetadataKinds OfType (Type type)
 		{
-			if (type.IsValueType)
+			if (type.IsValueType && !type.IsEnum)
 				return MetadataKinds.Struct;
 			//FIXME:
 			throw new NotImplementedException ();
@@ -71,9 +71,21 @@ namespace SwiftUI.Interop
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
-	public readonly unsafe struct TypeMetadata
+	public unsafe struct TypeMetadata
 	{
-		public readonly MetadataKinds Kind;
-		public readonly NominalTypeDescriptor* TypeDescriptor;
+		public MetadataKinds Kind;
+		public NominalTypeDescriptor* TypeDescriptor;
+
+#if DEBUG
+		public override string ToString ()
+		{
+			var str = Kind.ToString ();
+			if (Kind == MetadataKinds.Struct)
+				str += ((StructDescriptor*)TypeDescriptor)->ToString ();
+			else
+				str += TypeDescriptor->ToString ();
+			return str;
+		}
+#endif
 	}
 }

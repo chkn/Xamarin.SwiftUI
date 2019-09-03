@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace SwiftUI.Interop
+namespace Swift.Interop
 {
 	public class NativeLib : IDisposable
 	{
@@ -28,6 +28,10 @@ namespace SwiftUI.Interop
 				throw new EntryPointNotFoundException (symbol);
 			return sym;
 		}
+
+		// FIXME: Does this belong somewhere else?
+		public IntPtr GetProtocol (string module, string name)
+			=> RequireSymbol ("$s" + SwiftType.MangleTypeName (module, name) + "Mp");
 
 		public void Dispose ()
 		{

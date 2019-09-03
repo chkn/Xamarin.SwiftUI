@@ -1,6 +1,6 @@
 using System;
 
-namespace SwiftUI.Interop
+namespace Swift.Interop
 {
 	// Can't marshal generic Func<_,_> or Action<_> so we need to define the specific delegate
 	//  types we need...
