@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29123.89
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwiftUI", "SwiftUI\SwiftUI.csproj", "{31E05277-F5C7-47C7-988B-EFA3A8057F07}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Swift", "Swift\Swift.csproj", "{31E05277-F5C7-47C7-988B-EFA3A8057F07}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XamMacSwiftUITest", "XamMacSwiftUITest\XamMacSwiftUITest.csproj", "{24332183-3269-4D12-BC4B-F0C397E99E4C}"
 EndProject

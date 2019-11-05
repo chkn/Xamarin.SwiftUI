@@ -63,9 +63,9 @@
     <Compile Include="NSHostingView.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SwiftUI\SwiftUI.csproj">
+    <ProjectReference Include="..\Swift\Swift.csproj">
       <Project>{31E05277-F5C7-47C7-988B-EFA3A8057F07}</Project>
-      <Name>SwiftUI</Name>
+      <Name>Swift</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
