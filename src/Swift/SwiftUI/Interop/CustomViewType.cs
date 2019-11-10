@@ -4,46 +4,73 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 
+using Microsoft.FSharp.Core;
+using Microsoft.FSharp.Reflection;
+
 using Swift.Interop;
 
 namespace SwiftUI.Interop
 {
 	unsafe class CustomViewType : ViewType, IDisposable
 	{
-		public static CustomViewType Create (Type bodyType, Type? closureType = null)
+		readonly Type bodyType;
+		readonly Type [] stateFieldTypes;
+
+		internal int NativeDataSize { get; }
+
+		internal static CustomViewType For (Type bodyType, Type stateType)
 		{
-			var bodySwiftType = SwiftType.Of (bodyType);
-			if (bodySwiftType is null)
-				throw new ArgumentException ($"{bodyType.FullName} is not a Swift type");
+			Type [] stateFieldTypes;
+
+			if (stateType == typeof (Unit))
+				stateFieldTypes = Array.Empty<Type> ();
+			else if (typeof (ITuple).IsAssignableFrom (stateType))
+				stateFieldTypes = FSharpType.GetTupleElements (stateType);
+			else
+				stateFieldTypes = new[] { stateType };
+
+			return new CustomViewType (bodyType, stateFieldTypes);
 		}
 
-		CustomViewType (TypeMetadata* metadata) : base (metadata)
+		CustomViewType (Type bodyType, Type [] stateFieldTypes)
+			: base (AllocTypeMetadata ())
 		{
-			ViewConformance = CreateViewConformance ();
-		}
-
-		static TypeMetadata* CreateTypeMetadata (Type viewType)
-		{
-			TypeMetadata* metadata;
-
-			// Pointer to ValueWitnessTable* is at offset - 1
-			var valueWitnessTable = (ValueWitnessTable**)Marshal.AllocHGlobal (IntPtr.Size + sizeof (TypeMetadata));
 			try {
-				*valueWitnessTable = CreateValueWitnessTable (viewType);
+				this.bodyType = bodyType;
+				this.stateFieldTypes = stateFieldTypes;
+				NativeDataSize = CalculateNativeDataSize ();
 
-				metadata = (TypeMetadata*)(valueWitnessTable + 1);
-				metadata->Kind = MetadataKinds.Struct;
-				metadata->TypeDescriptor = (NominalTypeDescriptor*)CreateTypeDescriptor (viewType);
+				var valueWitnessTable = (ValueWitnessTable**)Metadata - 1;
+				*valueWitnessTable = CreateValueWitnessTable ();
+
+				ViewConformance = CreateViewConformance ();
+
+				Metadata->Kind = MetadataKinds.Struct;
+				Metadata->TypeDescriptor = (NominalTypeDescriptor*)CreateTypeDescriptor ();
 			} catch {
-				Marshal.FreeHGlobal ((IntPtr)valueWitnessTable);
+				// Ensure we don't leak allocated unmanaged memory
+				Dispose (true);
 				throw;
 			}
-			return metadata;
+		}
+
+		static TypeMetadata* AllocTypeMetadata ()
+		{
+			// Pointer to ValueWitnessTable* is at offset - 1 from metadata
+			return (TypeMetadata*)(Marshal.AllocHGlobal (IntPtr.Size + sizeof (TypeMetadata)) + IntPtr.Size);
+		}
+
+		int CalculateNativeDataSize ()
+		{
+			if (stateFieldTypes.Length == 0)
+				return sizeof (View.Data);
+
+			throw new NotImplementedException ();
 		}
 
 		#region Value Witness Table
 
-		static ValueWitnessTable* CreateValueWitnessTable (Type viewType)
+		ValueWitnessTable* CreateValueWitnessTable ()
 		{
 			var vwt = (ValueWitnessTable*)Marshal.AllocHGlobal (sizeof (ValueWitnessTable));
 			try {
@@ -55,9 +82,8 @@ namespace SwiftUI.Interop
 				vwt->InitWithTake = Marshal.GetFunctionPointerForDelegate (InitWithTakeDel);
 				vwt->AssignWithTake = Marshal.GetFunctionPointerForDelegate (AssignWithTakeDel);
 
-				var sz = (IntPtr)View.GetNativeDataSize (viewType);
-				vwt->Size = sz;
-				vwt->Stride = sz;
+				vwt->Size = (IntPtr)NativeDataSize;
+				vwt->Stride = (IntPtr)NativeDataSize; // FIXME: alignment
 				vwt->Flags = ValueWitnessFlags.IsNonPOD;
 			} catch {
 				Marshal.FreeHGlobal ((IntPtr)vwt);
@@ -115,12 +141,12 @@ namespace SwiftUI.Interop
 
 		#endregion
 
-		static StructDescriptor* CreateTypeDescriptor (Type viewType)
+		StructDescriptor* CreateTypeDescriptor ()
 		{
 			//FIXME: Fields
-			// Need to alloc enough for name and fields relative to this ptr..
-			var name = Encoding.ASCII.GetBytes (viewType.Name);
-			var ns = Encoding.ASCII.GetBytes (viewType.Namespace);
+			// FIXME: Is this a good way to name these?
+			var name = Encoding.ASCII.GetBytes (Guid.NewGuid ().ToString ());
+			var ns = Encoding.ASCII.GetBytes (Guid.NewGuid ().ToString ());
 
 			StructDescriptor* desc;
 			var modDesc = (ModuleDescriptor*)Marshal.AllocHGlobal
@@ -134,7 +160,6 @@ namespace SwiftUI.Interop
 				Marshal.Copy (ns, 0, nsPtr, ns.Length);
 				Marshal.WriteByte (nsPtr, ns.Length, 0);
 				modDesc->NamePtr.Target = (void*)nsPtr;
-				Debug.Assert (modDesc->Name == viewType.Namespace);
 
 				desc = (StructDescriptor*)((byte*)nsPtr + ns.Length + 1);
 				desc->NominalType = default;
@@ -148,7 +173,6 @@ namespace SwiftUI.Interop
 				Marshal.Copy (name, 0, namePtr, name.Length);
 				Marshal.WriteByte (namePtr, name.Length, 0);
 				desc->NominalType.NamePtr.Target = (void*)namePtr;
-				Debug.Assert (desc->NominalType.Name == viewType.Name);
 
 				desc->NumberOfFields = 0;
 				desc->FieldOffsetVectorOffset = 0;
@@ -159,8 +183,7 @@ namespace SwiftUI.Interop
 			return desc;
 		}
 
-		// FIXME: Share a single instance across all views?
-		static ProtocolWitnessTable* CreateViewConformance ()
+		ProtocolWitnessTable* CreateViewConformance ()
 		{
 			var vtable = (ProtocolWitnessTable*)Marshal.AllocHGlobal (sizeof (ProtocolWitnessTable) + IntPtr.Size);
 			try {
@@ -178,10 +201,14 @@ namespace SwiftUI.Interop
 		protected virtual void Dispose (bool disposing)
 		{
 			if (Metadata != null) {
-				Marshal.FreeHGlobal ((IntPtr)ViewConformance);
 				Marshal.FreeHGlobal ((IntPtr)Metadata->TypeDescriptor->Context.Parent);
 				Marshal.FreeHGlobal ((IntPtr)((ValueWitnessTable**)Metadata - 1));
 				Metadata = null;
+			}
+
+			if (ViewConformance != null) {
+				Marshal.FreeHGlobal ((IntPtr)ViewConformance);
+				ViewConformance = null;
 			}
 		}
 

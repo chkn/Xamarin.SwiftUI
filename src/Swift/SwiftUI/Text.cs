@@ -16,9 +16,6 @@ namespace SwiftUI
 		// Opaque data
 		readonly IntPtr p1, p2, p3, p4;
 
-		// FIXME: DIM
-		MemoryHandle ISwiftValue.Handle => new MemoryHandle (this);
-
 		public Text (string verbatim) : this (new Swift.String (verbatim))
 		{
 		}

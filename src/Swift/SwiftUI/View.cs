@@ -1,7 +1,7 @@
 using System;
+using System.Buffers;
 using System.Threading;
 using System.Diagnostics;
-using System.ComponentModel;
 using System.Runtime.InteropServices;
 
 using Swift.Interop;
@@ -9,8 +9,6 @@ using SwiftUI.Interop;
 
 namespace SwiftUI
 {
-	public delegate T ViewBody<T> () where T : IView;
-
 	public unsafe abstract class View : IView
 	{
 		Data* handle;
@@ -19,22 +17,12 @@ namespace SwiftUI
 		public MemoryHandle Handle
 			=> new MemoryHandle (handle == null ? (handle = CreateNativeData ()) : handle);
 
-		internal abstract ViewType ViewType { get; }
+		internal abstract CustomViewType ViewType { get; }
 		SwiftType ISwiftValue.SwiftType => ViewType;
 		ViewType IView.SwiftType => ViewType;
 
 		internal View ()
 		{
-		}
-
-		protected T SetBody<T> (ViewBody<T> body) where T : IView
-		{
-
-		}
-
-		internal static int GetNativeDataSize (Type closureType)
-		{
-			return sizeof (Data); //FIXME
 		}
 
 		/// <summary>
@@ -55,7 +43,7 @@ namespace SwiftUI
 			Debug.Assert (refCount == 0);
 
 			// Allocate memory
-			var result = (Data*)Marshal.AllocHGlobal (GetNativeDataSize (GetType ()));
+			var result = (Data*)Marshal.AllocHGlobal (ViewType.NativeDataSize);
 
 			// Assign fields
 			result->GcHandleToView = GCHandle.ToIntPtr (GCHandle.Alloc (this));
@@ -72,39 +60,27 @@ namespace SwiftUI
 				return;
 
 			if (handle != null) {
+				GCHandle.FromIntPtr (handle->GcHandleToView).Free ();
 				Marshal.FreeHGlobal ((IntPtr)handle);
 				handle = null;
 			}
 		}
 	}
 
-	public class View<TBody> : View where TBody : IView
+	/// <summary>
+	/// A custom view.
+	/// </summary>
+	/// <typeparam name="TBody">The type of body view this custom view has</typeparam>
+	public abstract class View<TBody, TState> : View where TBody : IView
 	{
-#pragma warning disable RECS0108 // Warns about static fields in generic types
-		static ViewType _swiftType;
-		public static ViewType SwiftType {
-			get => _swiftType ?? (_swiftType = CustomViewType.Create (typeof (TBody)));
-			protected set => _swiftType = value;
-		}
-		internal override ViewType ViewType => SwiftType;
-#pragma warning restore RECS0108 // Warns about static fields in generic types
+		static CustomViewType CreateViewType () => CustomViewType.For (typeof (TBody), typeof (TState));
 
-		ViewBody<TBody> body;
-		public TBody Body => body ();
+		private protected static Lazy<CustomViewType> swiftType
+			= new Lazy<CustomViewType> (CreateViewType, LazyThreadSafetyMode.ExecutionAndPublication);
 
-		private protected View (ViewBody<TBody> body)
-		{
-			this.body = body ?? throw new ArgumentNullException (nameof (body));
-		}
-	}
+		internal override CustomViewType ViewType => swiftType.Value;
+		public static ViewType SwiftType => swiftType.Value;
 
-	sealed class View<TBody,TClosure> : View<TBody> where TBody : IView
-	{
-		static View ()
-			=> SwiftType = CustomViewType.Create (typeof (TBody), typeof (TClosure));
-
-		public View (ViewBody<TBody> body) : base (body)
-		{
-		}
+		public abstract TBody Body { get; }
 	}
 }

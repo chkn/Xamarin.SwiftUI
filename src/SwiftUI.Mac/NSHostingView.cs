@@ -21,11 +21,8 @@ namespace SwiftUI
 		public static NSHostingView Create<T> (in T view)
 			where T : unmanaged, IView<T>
 		{
-			if (view.IsBlittable ()) {
-				fixed (T* viewPtr = &view)
-					return Create (viewPtr);
-			}
-			return Create ((IView)view);
+			fixed (T* viewPtr = &view)
+				return Create (viewPtr);
 		}
 
 		public static NSHostingView Create<T> (T* view)
@@ -35,7 +32,7 @@ namespace SwiftUI
 			return new NSHostingView (view, swiftType.Metadata, swiftType.ViewConformance);
 		}
 
-		protected unsafe NSHostingView (void* viewData, TypeMetadata* viewType, WitnessTable* viewConformance)
+		protected unsafe NSHostingView (void* viewData, TypeMetadata* viewType, ProtocolWitnessTable* viewConformance)
 			: base (Init (viewData, viewType, viewConformance))
 		{
 		}
@@ -43,6 +40,6 @@ namespace SwiftUI
 		[DllImport ("libSwiftUIGlue.dylib",
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "swiftui_NSHostingView_rootView")]
-		static extern IntPtr Init (void* viewData, TypeMetadata* viewType, WitnessTable* viewConformance);
+		static extern IntPtr Init (void* viewData, TypeMetadata* viewType, ProtocolWitnessTable* viewConformance);
 	}
 }

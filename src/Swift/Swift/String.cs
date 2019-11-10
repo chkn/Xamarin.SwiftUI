@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Buffers;
 using System.Runtime.InteropServices;
 
 using Swift.Interop;
@@ -7,15 +8,12 @@ using Swift.Interop;
 namespace Swift
 {
 	[StructLayout (LayoutKind.Sequential)]
-	public readonly unsafe struct String : ISwiftValue<String>
+	public readonly unsafe struct String : ISwiftBlittableStruct<String>
 	{
 		public static SwiftType SwiftType => SwiftCoreLib.Types.String;
 		SwiftType ISwiftValue.SwiftType => SwiftCoreLib.Types.String;
 
 		public static String Empty => default;
-
-		// FIXME: DIM
-		MemoryHandle ISwiftValue.Handle => new MemoryHandle (this);
 
 		[StructLayout (LayoutKind.Sequential)]
 		readonly struct Data {

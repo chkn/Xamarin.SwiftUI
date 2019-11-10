@@ -10,7 +10,7 @@ namespace SwiftUI
 		new ViewType SwiftType { get; }
 	}
 
-	public interface IView<T> : IView, ISwiftValue<T>
+	public interface IView<T> : IView, ISwiftBlittableStruct<T>
 		where T : unmanaged, IView<T>
 	{
 	}

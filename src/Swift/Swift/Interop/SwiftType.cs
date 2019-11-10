@@ -61,7 +61,7 @@ namespace Swift.Interop
 		/// <remarks>
 		/// By convention, types that are exposed to Swift must have a public static SwiftType property.
 		/// </remarks>
-		public static SwiftType Of (Type type)
+		public static SwiftType? Of (Type type)
 			=> type.GetProperty ("SwiftType", BindingFlags.Public | BindingFlags.Static)?.GetValue (null) as SwiftType;
 
 		/// <summary>
