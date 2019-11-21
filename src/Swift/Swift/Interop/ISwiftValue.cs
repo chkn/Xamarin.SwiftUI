@@ -41,6 +41,8 @@ namespace Swift.Interop
 	public interface ISwiftBlittableStruct<T> : ISwiftValue
 		where T : unmanaged, ISwiftBlittableStruct<T>
 	{
+		// FIXME: Disabled to workaround https://github.com/mono/mono/issues/17869
+#if false
 		/// <remarks>
 		/// This is a fallback that should be avoided because it causes boxing.
 		///  Methods that deal with Swift values should provide a generic overload
@@ -54,5 +56,6 @@ namespace Swift.Interop
 				return new MemoryHandle ((void*)gch.AddrOfPinnedObject (), gch);
 			}
 		}
+#endif
 	}
 }

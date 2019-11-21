@@ -23,6 +23,14 @@ namespace Swift
 
 		public int Length => checked ((int)GetLength (data));
 
+		// FIXME: Remove when this is fixed: https://github.com/mono/mono/issues/17869
+		MemoryHandle ISwiftValue.Handle {
+			get {
+				var gch = GCHandle.Alloc (this, GCHandleType.Pinned);
+				return new MemoryHandle ((void*)gch.AddrOfPinnedObject (), gch);
+			}
+		}
+
 		public String (string str)
 		{
 			data = Create (str, (IntPtr)str.Length, (IntPtr)1);

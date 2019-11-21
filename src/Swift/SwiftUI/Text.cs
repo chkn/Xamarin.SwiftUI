@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Runtime.InteropServices;
 
 using Swift;
@@ -16,6 +17,14 @@ namespace SwiftUI
 
 		// Opaque data
 		readonly IntPtr p1, p2, p3, p4;
+
+		// FIXME: Remove when this is fixed: https://github.com/mono/mono/issues/17869
+		unsafe MemoryHandle ISwiftValue.Handle {
+			get {
+				var gch = GCHandle.Alloc (this, GCHandleType.Pinned);
+				return new MemoryHandle ((void*)gch.AddrOfPinnedObject (), gch);
+			}
+		}
 
 		public Text (string verbatim) : this (new Swift.String (verbatim))
 		{
