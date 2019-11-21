@@ -4,46 +4,64 @@ using System.Threading;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
+using Swift;
 using Swift.Interop;
 using SwiftUI.Interop;
 
 namespace SwiftUI
 {
-	public unsafe abstract class View : IView
+	interface ICustomView : IView
 	{
-		Data* handle;
+		IView Body { get; }
+
+		/// <summary>
+		/// Called by Swift to add a reference to our native data.
+		/// </summary>
+		void AddRef ();
+	}
+
+	/// <summary>
+	/// The native data, a pointer to which is passed to Swift.
+	/// </summary>
+	[StructLayout (LayoutKind.Sequential)]
+	struct CustomViewData
+	{
+		internal IntPtr GcHandleToView; // < MUST be first (see ThunkView in SwiftUIGlue)
+		public ICustomView View => (ICustomView)GCHandle.FromIntPtr (GcHandleToView).Target;
+	}
+
+	/// <summary>
+	/// A custom view.
+	/// </summary>
+	/// <typeparam name="TBody">The type of body view this custom view has</typeparam>
+	public unsafe abstract class View<TBody, TState> : ICustomView
+		where TBody : IView
+	{
+		static CustomViewType CreateViewType ()
+			=> CustomViewType.For (typeof (TBody), typeof (TState));
+
+		readonly static Lazy<CustomViewType> swiftType
+			= new Lazy<CustomViewType> (CreateViewType, LazyThreadSafetyMode.ExecutionAndPublication);
+
+		public static ViewType SwiftType => swiftType.Value;
+		SwiftType ISwiftValue.SwiftType => SwiftType;
+		ViewType IView.SwiftType => SwiftType;
+
+		CustomViewData* handle;
 		long refCount;
 
 		public MemoryHandle Handle
 			=> new MemoryHandle (handle == null ? (handle = CreateNativeData ()) : handle);
 
-		internal abstract CustomViewType ViewType { get; }
-		SwiftType ISwiftValue.SwiftType => ViewType;
-		ViewType IView.SwiftType => ViewType;
+		public abstract TBody Body { get; }
+		IView ICustomView.Body => Body;
 
-		internal View ()
-		{
-		}
-
-		/// <summary>
-		/// The native data, a pointer to which is passed to Swift.
-		/// </summary>
-		internal struct Data {
-			internal IntPtr GcHandleToView;
-			// .. the rest of the fields here ..
-
-			public View View => (View)GCHandle.FromIntPtr (GcHandleToView).Target;
-		}
-
-		internal void AddRef ()
-			=> Interlocked.Increment (ref refCount);
-
-		Data* CreateNativeData ()
+		CustomViewData* CreateNativeData ()
 		{
 			Debug.Assert (refCount == 0);
 
 			// Allocate memory
-			var result = (Data*)Marshal.AllocHGlobal (ViewType.NativeDataSize);
+			var result = (CustomViewData*)Marshal.AllocHGlobal (swiftType.Value.NativeDataSize);
 
 			// Assign fields
 			result->GcHandleToView = GCHandle.ToIntPtr (GCHandle.Alloc (this));
@@ -53,6 +71,9 @@ namespace SwiftUI
 
 			return result;
 		}
+
+		void AddRef () => Interlocked.Increment (ref refCount);
+		void ICustomView.AddRef () => AddRef ();
 
 		public void Dispose ()
 		{
@@ -65,22 +86,5 @@ namespace SwiftUI
 				handle = null;
 			}
 		}
-	}
-
-	/// <summary>
-	/// A custom view.
-	/// </summary>
-	/// <typeparam name="TBody">The type of body view this custom view has</typeparam>
-	public abstract class View<TBody, TState> : View where TBody : IView
-	{
-		static CustomViewType CreateViewType () => CustomViewType.For (typeof (TBody), typeof (TState));
-
-		private protected static Lazy<CustomViewType> swiftType
-			= new Lazy<CustomViewType> (CreateViewType, LazyThreadSafetyMode.ExecutionAndPublication);
-
-		internal override CustomViewType ViewType => swiftType.Value;
-		public static ViewType SwiftType => swiftType.Value;
-
-		public abstract TBody Body { get; }
 	}
 }

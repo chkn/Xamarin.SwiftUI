@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
+using Swift;
 using Swift.Interop;
 using SwiftUI.Interop;
 
@@ -22,11 +23,11 @@ namespace SwiftUI
 
 		public Text (Swift.String verbatim) => Init (out this, verbatim);
 
-		public Text Copy () => SwiftType.Copy (in this);
+		public Text Copy () => SwiftType.Transfer (in this, SwiftType.CopyInitFunc);
 
 		public void Dispose () => SwiftType.Destroy (in this);
 
-		[DllImport ("libSwiftUIGlue.dylib",
+		[DllImport (SwiftGlueLib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "swiftui_Text_verbatim")]
 		static extern void Init (out Text txt, Swift.String verbatim);

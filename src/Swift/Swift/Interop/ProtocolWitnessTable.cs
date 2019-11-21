@@ -4,7 +4,7 @@ namespace Swift.Interop
 {
 	public unsafe struct ProtocolWitnessTable
 	{
-		public ProtocolConformanceDescriptor* ProtocolDescriptor;
+		public ProtocolConformanceDescriptor* ConformanceDescriptor;
 		// .. vtable follows ..
 	}
 }

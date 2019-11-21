@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace Swift.Interop
 {
-	public class NativeLib : IDisposable
+	public unsafe class NativeLib : IDisposable
 	{
 		const string LibDL = "/usr/lib/libdl.dylib";
 
@@ -30,8 +30,8 @@ namespace Swift.Interop
 		}
 
 		// FIXME: Does this belong somewhere else?
-		public IntPtr GetProtocol (string module, string name)
-			=> RequireSymbol ("$s" + SwiftType.MangleTypeName (module, name) + "Mp");
+		public ProtocolDescriptor* GetProtocol (string module, string name)
+			=> (ProtocolDescriptor*)RequireSymbol ("$s" + SwiftType.MangleTypeName (module, name) + "Mp");
 
 		public void Dispose ()
 		{

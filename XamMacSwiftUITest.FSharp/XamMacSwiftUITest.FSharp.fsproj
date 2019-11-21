@@ -25,10 +25,10 @@
     <IncludeMonoRuntime>false</IncludeMonoRuntime>
     <UseSGen>true</UseSGen>
     <UseRefCounting>true</UseRefCounting>
-    <PlatformTarget></PlatformTarget>
     <HttpClientHandler></HttpClientHandler>
     <LinkMode></LinkMode>
     <XamMacArch></XamMacArch>
+    <AOTMode>None</AOTMode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -46,6 +46,7 @@
     <PlatformTarget></PlatformTarget>
     <HttpClientHandler></HttpClientHandler>
     <XamMacArch></XamMacArch>
+    <AOTMode>None</AOTMode>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

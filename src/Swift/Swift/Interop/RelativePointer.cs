@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace Swift.Interop
@@ -19,7 +20,9 @@ namespace Swift.Interop
 					return (byte*)ptr + offset;
 			}
 			set {
-				fixed (void* ptr = &this)
+				if (value == null)
+					offset = 0;
+				else fixed (void* ptr = &this)
 					offset = checked ((int)((byte*)value - (byte*)ptr));
 			}
 		}
@@ -50,6 +53,18 @@ namespace Swift.Interop
 					return (offsetPlusIndirect & 1) == 1 ? *(void**)address : address;
 				}
 			}
+		}
+
+		// FIXME: Should be able to freely take &this without fixed as this is a ref struct
+		public void SetTarget (void* value, bool indirect)
+		{
+			if (value == null)
+				offsetPlusIndirect = 0;
+			else fixed (void* ptr = &this)
+				offsetPlusIndirect = checked((int)((byte*)value - (byte*)ptr));
+			Debug.Assert ((offsetPlusIndirect & 1) == 0);
+			if (indirect)
+				offsetPlusIndirect |= 1;
 		}
 	}
 }

@@ -9,25 +9,15 @@ namespace SwiftUI.Interop
 	/// </summary>
 	public unsafe class ViewType : SwiftType
 	{
-		public ProtocolWitnessTable* ViewConformance {
-			get {
-				if (_viewConformance == null)
-					_viewConformance = base.GetProtocolConformance (SwiftUILib.Types.View);
-				return _viewConformance;
-			}
-			protected set {
-				_viewConformance = value;
-			}
-		}
 		ProtocolWitnessTable* _viewConformance;
+		public ProtocolWitnessTable* ViewConformance
+			=> _viewConformance == null ? (_viewConformance = CreateViewConformance ()) : _viewConformance;
 
-		public override ProtocolWitnessTable* GetProtocolConformance (IntPtr descriptor)
-		{
-			if (descriptor == SwiftUILib.Types.View)
-				return ViewConformance;
+		public override ProtocolWitnessTable* GetProtocolConformance (ProtocolDescriptor* descriptor)
+			=> descriptor == SwiftUILib.Types.View ? ViewConformance : base.GetProtocolConformance (descriptor);
 
-			return base.GetProtocolConformance (descriptor);
-		}
+		protected virtual ProtocolWitnessTable* CreateViewConformance ()
+			=> base.GetProtocolConformance (SwiftUILib.Types.View);
 
 		public ViewType (NativeLib lib, string name, Type? managedType = null)
 			: this (lib, "SwiftUI", name, managedType)
@@ -39,7 +29,8 @@ namespace SwiftUI.Interop
 		{
 		}
 
-		unsafe private protected ViewType (TypeMetadata* metadata) : base (metadata)
+		unsafe private protected ViewType (FullTypeMetadata* fullMetadata)
+			: base (fullMetadata)
 		{
 		}
 	}

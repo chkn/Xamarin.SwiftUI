@@ -297,6 +297,14 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"-Xlinker",
+					"-alias",
+					"-Xlinker",
+					_$s11SwiftUIGlue9ThunkViewVyxG0A2UI0D0AaeFP4body4BodyQzvgTW,
+					"-Xlinker",
+					_swiftui_ThunkView_body,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = foo.SwiftUIGlue;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -323,6 +331,14 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"-Xlinker",
+					"-alias",
+					"-Xlinker",
+					_$s11SwiftUIGlue9ThunkViewVyxG0A2UI0D0AaeFP4body4BodyQzvgTW,
+					"-Xlinker",
+					_swiftui_ThunkView_body,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = foo.SwiftUIGlue;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";

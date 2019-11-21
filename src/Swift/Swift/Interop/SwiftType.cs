@@ -17,15 +17,23 @@ namespace Swift.Interop
 	public unsafe class SwiftType
 	{
 		readonly NativeLib? lib;
+		protected FullTypeMetadata* fullMetadata;
 
 		// Delegates from the value witness table...
 		DestroyFunc? _destroy;
 		TransferFunc? _copyInit;
-		//TransferFunc? _moveInit;
+		TransferFunc? _moveInit;
 
-		public TypeMetadata* Metadata { get; protected set; }
+		// FIXME: Optimization: Return null from these if type is POD
+		internal TransferFunc CopyInitFunc
+			=> _copyInit ??= Marshal.GetDelegateForFunctionPointer<TransferFunc> (ValueWitnessTable->InitWithCopy);
 
-		public ValueWitnessTable* ValueWitnessTable => *((ValueWitnessTable**)Metadata - 1);
+		internal TransferFunc MoveInitFunc
+			=> _moveInit ??= Marshal.GetDelegateForFunctionPointer<TransferFunc> (ValueWitnessTable->InitWithTake);
+
+		public TypeMetadata* Metadata => &fullMetadata->Metadata;
+
+		public ValueWitnessTable* ValueWitnessTable => fullMetadata->ValueWitnessTable;
 
 		/// <summary>
 		/// Creates a new <see cref="SwiftType"/> that references a type from a native library.
@@ -33,7 +41,7 @@ namespace Swift.Interop
 		public SwiftType (NativeLib lib, string mangledName, Type? managedType = null)
 		{
 			this.lib = lib;
-			Metadata = (TypeMetadata*)lib.RequireSymbol ("$s" + mangledName + "N");
+			this.fullMetadata = (FullTypeMetadata*)(lib.RequireSymbol ("$s" + mangledName + "N") - IntPtr.Size);
 
 			// Assert assumed invariants..
 			Debug.Assert (!ValueWitnessTable->IsNonBitwiseTakable, $"expected bitwise movable: {mangledName}");
@@ -67,49 +75,45 @@ namespace Swift.Interop
 		/// <summary>
 		/// Creates a new <see cref="SwiftType"/> for a managed type.
 		/// </summary>
-		private protected SwiftType (TypeMetadata* metadata)
+		private protected SwiftType (FullTypeMetadata* fullMetadata)
 		{
-			Metadata = metadata;
+			this.fullMetadata = fullMetadata;
 		}
 
 		internal static string MangleTypeName (string module, string name)
 			=> (module == "Swift" ? "s" : module.Length + module) + name.Length + name;
 
-		public virtual ProtocolWitnessTable* GetProtocolConformance (IntPtr descriptor)
+		public virtual ProtocolWitnessTable* GetProtocolConformance (ProtocolDescriptor* descriptor)
 		{
-			if (lib is null || descriptor == IntPtr.Zero)
+			if (lib is null || descriptor == null)
 				return null;
 
-			var conformance = SwiftCoreLib.GetProtocolConformance (Metadata, descriptor);
-			Debug.Assert (conformance->ProtocolDescriptor == (ProtocolConformanceDescriptor*)descriptor);
-			return conformance;
+			return SwiftCoreLib.GetProtocolConformance (Metadata, descriptor);
 		}
 
-#if DEBUG
+#if DEBUG_TOSTRING
 		public override string ToString ()
 			=> Metadata->ToString ();
 #endif
 
-		internal void Copy (void* dest, void* src)
+		internal void Transfer (void* dest, void* src, TransferFunc func)
 		{
 			var witness = ValueWitnessTable;
 			if (witness->IsNonPOD) {
 				// In this case, one or more fields is a reference-counted reference,
 				//  so we need to make sure the proper references are incremented
-				if (_copyInit is null)
-					_copyInit = Marshal.GetDelegateForFunctionPointer<TransferFunc> (witness->InitWithCopy);
-				_copyInit (dest, src, Metadata);
+				func (dest, src, Metadata);
 			} else {
 				var bytes = (long)witness->Size;
 				Buffer.MemoryCopy (src, dest, bytes, bytes);
 			}
 		}
-		internal T Copy<T> (in T src) where T : unmanaged
+		internal T Transfer<T> (in T src, TransferFunc func) where T : unmanaged
 		{
 			T result;
 			if (ValueWitnessTable->IsNonPOD) {
 				fixed (void* srcPtr = &src)
-					Copy (&result, srcPtr);
+					Transfer (&result, srcPtr, func);
 			} else {
 				result = src;
 			}

@@ -76,7 +76,7 @@ namespace Swift.Interop
 		public MetadataKinds Kind;
 		public NominalTypeDescriptor* TypeDescriptor;
 
-#if DEBUG
+#if DEBUG_TOSTRING
 		public override string ToString ()
 		{
 			var str = Kind.ToString ();
@@ -87,5 +87,12 @@ namespace Swift.Interop
 			return str;
 		}
 #endif
+	}
+
+	[StructLayout (LayoutKind.Sequential)]
+	public unsafe struct FullTypeMetadata
+	{
+		public ValueWitnessTable* ValueWitnessTable;
+		public TypeMetadata Metadata;
 	}
 }

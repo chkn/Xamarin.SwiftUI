@@ -6,7 +6,7 @@ using SwiftUI.Interop;
 
 namespace SwiftUI
 {
-	public class SwiftUILib : NativeLib
+	public unsafe class SwiftUILib : NativeLib
 	{
 		public const string Path = "/System/Library/Frameworks/SwiftUI.framework/SwiftUI";
 
@@ -18,8 +18,8 @@ namespace SwiftUI
 
 		#region Protocols
 
-		IntPtr _view;
-		public IntPtr View => (_view == IntPtr.Zero)? (_view = GetProtocol ("SwiftUI", "View")) : _view;
+		ProtocolDescriptor* _view;
+		public ProtocolDescriptor* View => _view == null ? (_view = GetProtocol ("SwiftUI", "View")) : _view;
 
 		#endregion
 

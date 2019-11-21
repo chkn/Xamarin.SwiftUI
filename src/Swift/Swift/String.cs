@@ -50,7 +50,7 @@ namespace Swift
 			return str!;
 		}
 
-		public String Copy () => SwiftType.Copy (in this);
+		public String Copy () => SwiftType.Transfer (in this, SwiftType.CopyInitFunc);
 
 		public void Dispose () => SwiftType.Destroy (in this);
 

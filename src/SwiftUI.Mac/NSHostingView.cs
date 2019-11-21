@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using AppKit;
 using Foundation;
 
+using Swift;
 using Swift.Interop;
 
 namespace SwiftUI
@@ -37,7 +38,7 @@ namespace SwiftUI
 		{
 		}
 
-		[DllImport ("libSwiftUIGlue.dylib",
+		[DllImport (SwiftGlueLib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "swiftui_NSHostingView_rootView")]
 		static extern IntPtr Init (void* viewData, TypeMetadata* viewType, ProtocolWitnessTable* viewConformance);

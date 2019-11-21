@@ -32,3 +32,25 @@ public func NSHostingView_rootView<T: View>(root : T) -> NSHostingView<T>
 {
     return NSHostingView(rootView: root)
 }
+
+//
+// Protocol witness gets self in context register
+//
+public struct ThunkView<T: View>: View {
+	var gcHandle: UnsafeRawPointer
+
+	public var body: T {
+		let result = UnsafeMutablePointer<T>.allocate(capacity: 1)
+		bodyFn!(UnsafeRawPointer(result), gcHandle)
+		return result.pointee
+	}
+}
+
+public typealias BodyFn = @convention(c) (UnsafeRawPointer, UnsafeRawPointer) -> Void // (TBody*, GCHandle*) -> Void
+var bodyFn: BodyFn?
+
+@_silgen_name("swiftui_ThunkView_setBodyFn")
+public func SetBodyFn(value : @escaping BodyFn)
+{
+	bodyFn = value
+}
