@@ -40,9 +40,10 @@ public struct ThunkView<T: View>: View {
 	var gcHandle: UnsafeRawPointer
 
 	public var body: T {
-		let result = UnsafeMutablePointer<T>.allocate(capacity: 1)
-		bodyFn!(UnsafeRawPointer(result), gcHandle)
-		return result.pointee
+		let resultPtr = UnsafeMutablePointer<T>.allocate(capacity: 1)
+		defer { resultPtr.deallocate() }
+		bodyFn!(UnsafeRawPointer(resultPtr), gcHandle)
+		return resultPtr.move()
 	}
 }
 
