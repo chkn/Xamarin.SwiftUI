@@ -26,8 +26,20 @@ namespace SwiftUI
 		#region Types
 
 		ViewType? _text;
-		public ViewType Text => _text ?? (_text = new ViewType (this, "Text", typeof (Text)));
+		public ViewType Text => _text ??= new ViewType (this, typeof (Text));
+
+		public ViewType Button (ViewType label)
+			=> new ViewType (GetButtonType (0, label.Metadata, label.ViewConformance));
 
 		#endregion
+
+		// Generic type metadata accessors:
+		//  For values for the first arg, see https://github.com/apple/swift/blob/ffc0f6f783a53573eb79440f16584e0422378b16/include/swift/ABI/MetadataValues.h#L1594
+		//  (generally we pass 0 for complete metadata)
+
+		[DllImport (Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "$s7SwiftUI6ButtonVMa")]
+		static extern IntPtr GetButtonType (long metadataReq, TypeMetadata* labelType, ProtocolWitnessTable* labelViewConformance);
 	}
 }

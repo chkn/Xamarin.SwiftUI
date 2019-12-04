@@ -34,7 +34,7 @@ namespace SwiftUI
 	/// A custom view.
 	/// </summary>
 	/// <typeparam name="TBody">The type of body view this custom view has</typeparam>
-	public unsafe abstract class View<TBody, TState> : ICustomView
+	public unsafe abstract class CustomView<TBody, TState> : ICustomView
 		where TBody : IView
 	{
 		static CustomViewType CreateViewType ()
@@ -50,11 +50,11 @@ namespace SwiftUI
 		CustomViewData* handle;
 		long refCount;
 
-		public MemoryHandle Handle
-			=> new MemoryHandle (handle == null ? (handle = CreateNativeData ()) : handle);
-
 		public abstract TBody Body { get; }
 		IView ICustomView.Body => Body;
+
+		public MemoryHandle GetHandle ()
+			=> new MemoryHandle (handle == null ? (handle = CreateNativeData ()) : handle);
 
 		CustomViewData* CreateNativeData ()
 		{

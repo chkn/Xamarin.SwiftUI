@@ -15,7 +15,7 @@ namespace SwiftUI.Tests
 		[Theory]
 		[InlineData (typeof (SwiftCoreLib))]
 		[InlineData (typeof (SwiftUILib))]
-		public void CreateAllTypes (Type libType)
+		public void CreateAllNonGenericTypes (Type libType)
 		{
 			var lib = Activator.CreateInstance (libType, nonPublic: true);
 			Assert.NotNull (lib);

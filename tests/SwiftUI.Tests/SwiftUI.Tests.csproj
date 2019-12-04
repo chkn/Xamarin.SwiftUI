@@ -13,6 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Swift\Swift.csproj" />
+    <ProjectReference Include="..\..\src\Swift\Swift.csproj" />
   </ItemGroup>
 </Project>

@@ -15,8 +15,8 @@ namespace SwiftUI
 		public static NSHostingView Create (IView view)
 		{
 			var swiftType = view.SwiftType;
-			using var handle = view.Handle;
-			return new NSHostingView (handle.Pointer, swiftType.Metadata, swiftType.ViewConformance);
+			using (var handle = view.GetHandle ())
+				return new NSHostingView (handle.Pointer, swiftType.Metadata, swiftType.ViewConformance);
 		}
 
 		public static NSHostingView Create<T> (in T view)

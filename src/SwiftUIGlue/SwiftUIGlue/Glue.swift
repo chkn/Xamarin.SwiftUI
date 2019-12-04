@@ -19,9 +19,19 @@ import SwiftUI
 // Extra registers are used for returning value types that are 3 or 4 pointers in size.
 //
 @_silgen_name("swiftui_Text_verbatim")
-public func Text_verbatim(dest : UnsafeMutablePointer<Text>, verbatim : String) -> Void
+public func Text_verbatim(dest : UnsafeMutablePointer<Text>, verbatim : String)
 {
-    dest.initialize(to: Text(verbatim: verbatim))
+	dest.initialize(to: Text(verbatim: verbatim))
+}
+
+//
+// Struct return pointer is passed in rax.
+// Closure contexts passed in r13
+//
+@_silgen_name("swiftui_Button_action_label")
+public func Button_action_label<T: View>(dest : UnsafeMutablePointer<Button<T>>, action : @escaping @convention(c) (UnsafeRawPointer) -> Void, actionCtx : UnsafeRawPointer, label : T)
+{
+	dest.initialize(to: Button<T>(action: { action(actionCtx) }, label: { label }))
 }
 
 //
@@ -30,7 +40,7 @@ public func Text_verbatim(dest : UnsafeMutablePointer<Text>, verbatim : String) 
 @_silgen_name("swiftui_NSHostingView_rootView")
 public func NSHostingView_rootView<T: View>(root : T) -> NSHostingView<T>
 {
-    return NSHostingView(rootView: root)
+	return NSHostingView(rootView: root)
 }
 
 //

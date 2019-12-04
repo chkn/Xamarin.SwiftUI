@@ -5,5 +5,7 @@ open SwiftUI
 
 let HelloView() =
     View {
-        body (Text("HELLO WORLD"))
+        body (
+            Text("HELLO WORLD")
+        )
     }

@@ -16,7 +16,6 @@ namespace Swift.Interop
 
 	public unsafe class SwiftType
 	{
-		readonly NativeLib? lib;
 		protected FullTypeMetadata* fullMetadata;
 
 		// Delegates from the value witness table...
@@ -36,30 +35,46 @@ namespace Swift.Interop
 		public ValueWitnessTable* ValueWitnessTable => fullMetadata->ValueWitnessTable;
 
 		/// <summary>
-		/// Creates a new <see cref="SwiftType"/> that references a type from a native library.
+		/// Creates a new <see cref="SwiftType"/> for a managed type.
 		/// </summary>
-		public SwiftType (NativeLib lib, string mangledName, Type? managedType = null)
+		internal SwiftType (FullTypeMetadata* fullMetadata, Type? managedType = null)
 		{
-			this.lib = lib;
-			this.fullMetadata = (FullTypeMetadata*)(lib.RequireSymbol ("$s" + mangledName + "N") - IntPtr.Size);
+			this.fullMetadata = fullMetadata;
 
 			// Assert assumed invariants..
-			Debug.Assert (!ValueWitnessTable->IsNonBitwiseTakable, $"expected bitwise movable: {mangledName}");
+			Debug.Assert (!ValueWitnessTable->IsNonBitwiseTakable, $"expected bitwise movable: {managedType?.Name}");
 			if (managedType is null)
 				return;
 			checked {
-				Debug.Assert (Metadata->TypeDescriptor->Name == managedType.Name, $"unexpected name: {Metadata->TypeDescriptor->Name}");
+				Debug.Assert (Metadata->TypeDescriptor->Name == GetSwiftTypeName (managedType), $"unexpected name: {Metadata->TypeDescriptor->Name}");
 				Debug.Assert (Metadata->Kind == MetadataKind.OfType (managedType), $"unexpected kind: {Metadata->Kind}");
 				Debug.Assert ((int)ValueWitnessTable->Size == Marshal.SizeOf (managedType), $"unexpected size: {ValueWitnessTable->Size}");
 			}
 		}
 
+		public SwiftType (IntPtr typeMetadata, Type? managedType = null)
+			: this ((FullTypeMetadata*)(typeMetadata - IntPtr.Size), managedType)
+		{
+		}
+
+		/// <summary>
+		/// Creates a new <see cref="SwiftType"/> that references a type from a native library.
+		/// </summary>
+		public SwiftType (NativeLib lib, string mangledName, Type? managedType = null)
+			: this (lib.RequireSymbol ("$s" + mangledName + "N"), managedType)
+		{
+		}
+
 		/// <summary>
 		/// Creates a new <see cref="SwiftType"/> that references a type with a simple mangling from a native library.
 		/// </summary>
-		public SwiftType (NativeLib lib, string module, string name, Type? managedType = null,
-						  SwiftTypeCode code = SwiftTypeCode.Struct)
-			: this (lib, MangleTypeName (module, name) + ((char)code), managedType)
+		public SwiftType (NativeLib lib, string module, string name, SwiftTypeCode code, Type? managedType = null)
+			: this (lib, Mangle (module, name, code), managedType)
+		{
+		}
+
+		public SwiftType (NativeLib lib, Type managedType)
+			: this (lib, managedType.Namespace, GetSwiftTypeName (managedType), GetSwiftTypeCode (managedType), managedType)
 		{
 		}
 
@@ -72,20 +87,34 @@ namespace Swift.Interop
 		public static SwiftType? Of (Type type)
 			=> type.GetProperty ("SwiftType", BindingFlags.Public | BindingFlags.Static)?.GetValue (null) as SwiftType;
 
-		/// <summary>
-		/// Creates a new <see cref="SwiftType"/> for a managed type.
-		/// </summary>
-		private protected SwiftType (FullTypeMetadata* fullMetadata)
+		internal static string Mangle (string module, string name)
+			=> (module == "Swift" ? "s" : module.Length + module) + name.Length + name;
+
+		internal static string Mangle (string module, string name, SwiftTypeCode code)
+			=> Mangle (module, name) + ((char) code);
+
+		internal static string GetSwiftTypeName (Type ty)
 		{
-			this.fullMetadata = fullMetadata;
+			if (ty.IsConstructedGenericType)
+				ty = ty.GetGenericTypeDefinition ();
+			if (ty.IsGenericTypeDefinition) {
+				// strip off the "`N" from the end of the type name
+				var name = ty.Name;
+				return name.Substring (0, name.Length - 2);
+			}
+			return ty.Name;
 		}
 
-		internal static string MangleTypeName (string module, string name)
-			=> (module == "Swift" ? "s" : module.Length + module) + name.Length + name;
+		internal static SwiftTypeCode GetSwiftTypeCode (Type ty)
+		{
+			if (ty.IsClass) return SwiftTypeCode.Class;
+			if (ty.IsValueType) return SwiftTypeCode.Struct;
+			throw new NotSupportedException (ty.FullName);
+		}
 
 		public virtual ProtocolWitnessTable* GetProtocolConformance (ProtocolDescriptor* descriptor)
 		{
-			if (lib is null || descriptor == null)
+			if (descriptor == null)
 				return null;
 
 			return SwiftCoreLib.GetProtocolConformance (Metadata, descriptor);

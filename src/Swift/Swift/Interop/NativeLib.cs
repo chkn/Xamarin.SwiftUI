@@ -31,7 +31,7 @@ namespace Swift.Interop
 
 		// FIXME: Does this belong somewhere else?
 		public ProtocolDescriptor* GetProtocol (string module, string name)
-			=> (ProtocolDescriptor*)RequireSymbol ("$s" + SwiftType.MangleTypeName (module, name) + "Mp");
+			=> (ProtocolDescriptor*)RequireSymbol ("$s" + SwiftType.Mangle (module, name) + "Mp");
 
 		public void Dispose ()
 		{

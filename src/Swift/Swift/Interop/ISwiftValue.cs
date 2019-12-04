@@ -19,9 +19,12 @@ namespace Swift.Interop
 		SwiftType SwiftType { get; }
 
 		/// <summary>
-		/// A <see cref="MemoryHandle"/> to the native data.
+		/// Gets a <see cref="MemoryHandle"/> to the native data.
 		/// </summary>
-		MemoryHandle Handle { get; }
+		/// <remarks>
+		/// The returned <see cref="MemoryHandle"/> must be disposed when no longer needed.
+		/// </remarks>
+		MemoryHandle GetHandle ();
 
 		// Note: this interface doesn't implement IDisposable because this causes
 		//  F# to require the use of the 'new' operator, which harshes our DSL.

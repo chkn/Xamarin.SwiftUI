@@ -15,7 +15,7 @@ type CustomViewBuilder internal () =
 
     [<CustomOperation("body")>]
     member inline __.Body(state : 'tstate, [<ProjectionParameter>] fn : 'tstate -> 'tbody) =
-        { new View<'tbody,'tstate>() with
+        { new CustomView<'tbody,'tstate>() with
             override __.Body = fn state
         }
 

@@ -18,7 +18,7 @@ namespace Swift
 		#region Types
 
 		SwiftType? _int8;
-		public SwiftType Int8 => _int8 ?? (_int8 = new SwiftType (this, "Swift", "Int8"));
+		public SwiftType Int8 => _int8 ?? (_int8 = new SwiftType (this, "Swift", "Int8", SwiftTypeCode.Struct));
 
 		SwiftType? _string;
 		public SwiftType String => _string ?? (_string = new SwiftType (this, "SS", typeof (String)));

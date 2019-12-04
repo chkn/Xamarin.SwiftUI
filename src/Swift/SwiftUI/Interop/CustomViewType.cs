@@ -60,7 +60,7 @@ namespace SwiftUI.Interop
 
 				var swiftBodyType = SwiftType.Of (bodyType) as ViewType;
 				if (swiftBodyType is null)
-					throw new ArgumentException ("Expected Swift View type", nameof (bodyType));
+					throw new ArgumentException ("Expected ViewType", nameof (bodyType));
 
 				var thunkMetadata = (CustomViewMetadata*)fullMetadata;
 				thunkMetadata->ThunkViewT = swiftBodyType.Metadata;
@@ -253,7 +253,7 @@ namespace SwiftUI.Interop
 			var view = (ICustomView)GCHandle.FromIntPtr ((IntPtr)gcHandle).Target;
 			var body = view.Body;
 			var swiftType = body.SwiftType;
-			using (var handle = body.Handle)
+			using (var handle = body.GetHandle ())
 				swiftType.Transfer (dest, handle.Pointer, swiftType.MoveInitFunc);
 		}
 		static readonly PtrPtrFunc bodyFn = Body;

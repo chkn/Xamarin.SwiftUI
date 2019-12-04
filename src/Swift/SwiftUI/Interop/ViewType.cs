@@ -19,18 +19,28 @@ namespace SwiftUI.Interop
 		protected virtual ProtocolWitnessTable* CreateViewConformance ()
 			=> base.GetProtocolConformance (SwiftUILib.Types.View);
 
+		internal ViewType (FullTypeMetadata* fullMetadata, Type? managedType = null)
+			: base (fullMetadata, managedType)
+		{
+		}
+
+		public ViewType (IntPtr typeMetadata, Type? managedType = null)
+			: base (typeMetadata, managedType)
+		{
+		}
+
 		public ViewType (NativeLib lib, string name, Type? managedType = null)
 			: this (lib, "SwiftUI", name, managedType)
 		{
 		}
 
 		public ViewType (NativeLib lib, string module, string name, Type? managedType = null)
-			: base (lib, module, name, managedType)
+			: base (lib, module, name, SwiftTypeCode.Struct, managedType)
 		{
 		}
 
-		unsafe private protected ViewType (FullTypeMetadata* fullMetadata)
-			: base (fullMetadata)
+		public ViewType (NativeLib lib, Type managedType)
+			: base (lib, managedType.Namespace, GetSwiftTypeName (managedType), SwiftTypeCode.Struct, managedType)
 		{
 		}
 	}

@@ -16,5 +16,5 @@ type AppDelegate() =
         let window = new NSWindow(CGRect(0., 0., 480., 300.), flags, NSBackingStore.Buffered, false)
         window.Center()
 
-        window.ContentView <- NSHostingView.Create(HelloView())
+        window.ContentView <- NSHostingView.Create(Button((fun () -> printfn "CLICKED!"), Text("Click me")))
         window.MakeKeyAndOrderFront(self)
