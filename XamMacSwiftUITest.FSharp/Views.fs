@@ -1,11 +1,7 @@
-﻿module Views
+﻿namespace XamMacSwiftUITest.FSharp
 
 open SwiftUI
 
-
-let HelloView() =
-    View {
-        body (
-            Button((fun () -> printfn "CLICKED"), Text("HELLO WORLD"))
-        )
-    }
+type HelloView() =
+    inherit CustomView<HelloView>()
+    member __.Body = Button((fun () -> printfn "CLICKED"), Text("HELLO WORLD"))

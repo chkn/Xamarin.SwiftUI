@@ -46,5 +46,13 @@ namespace SwiftUI.Interop
 			: base (lib, managedType.Namespace, GetSwiftTypeName (managedType), SwiftTypeCode.Struct, managedType)
 		{
 		}
+
+		/// <summary>
+		/// Returns the <see cref="ViewType"/> of the given <see cref="Type"/>.
+		/// </summary>
+		/// <remarks>
+		/// By convention, types that are exposed to Swift must have a public static SwiftType property.
+		/// </remarks>
+		public new static ViewType? Of (Type type) => SwiftType.Of (type) as ViewType;
 	}
 }

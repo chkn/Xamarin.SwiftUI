@@ -80,10 +80,6 @@
       <Project>{31E05277-F5C7-47C7-988B-EFA3A8057F07}</Project>
       <Name>Swift</Name>
     </ProjectReference>
-    <ProjectReference Include="..\src\SwiftUI\SwiftUI.fsproj">
-      <Project>{C3EA0457-F856-49BD-B968-02670576C789}</Project>
-      <Name>SwiftUI</Name>
-    </ProjectReference>
     <ProjectReference Include="..\src\SwiftUI.Mac\SwiftUI.Mac.csproj">
       <Project>{9F07ACCC-8357-4E81-9EAA-E238752B7977}</Project>
       <Name>SwiftUI.Mac</Name>

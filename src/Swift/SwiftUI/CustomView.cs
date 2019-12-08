@@ -33,13 +33,18 @@ namespace SwiftUI
 	/// <summary>
 	/// A custom view.
 	/// </summary>
-	/// <typeparam name="TBody">The type of body view this custom view has</typeparam>
-	public unsafe abstract class CustomView<TBody, TState> : RefView<CustomView<TBody, TState>>, ICustomView
-		where TBody : IView
+	/// <remarks>
+	/// An implementing class must supply a read-only property called "Body" that
+	///  returns a concrete implementation of IView (a type with a <c>SwiftType</c>
+	///  static property).
+	/// </remarks>
+	/// <typeparam name="T">The concrete type that implements this abstract class.</typeparam>
+	public unsafe abstract class CustomView<T> : RefView<T>, ICustomView
+		where T : CustomView<T>
 	{
-		static CustomViewType CreateViewType ()
-			=> CustomViewType.For (typeof (TBody), typeof (TState));
-
+		// Since this class is generic, we will end up with a cached CustomViewType
+		//  for each implementing type T.
+		static CustomViewType CreateViewType () => new CustomViewType (typeof (T));
 		readonly static Lazy<CustomViewType> swiftType
 			= new Lazy<CustomViewType> (CreateViewType, LazyThreadSafetyMode.ExecutionAndPublication);
 
@@ -50,9 +55,10 @@ namespace SwiftUI
 
 		long refCount = 1;
 
-		public abstract TBody Body { get; }
+		// by convention:
+		//public abstract TBody Body { get; }
 
-		IView ICustomView.Body => Body;
+		IView ICustomView.Body => (IView)swiftType.Value.BodyProperty.GetValue (this);
 		void ICustomView.AddRef () => Interlocked.Increment (ref refCount);
 
 		protected override void InitNativeData (byte [] data)
@@ -75,11 +81,11 @@ namespace SwiftUI
 			}
 		}
 
-		public override CustomView<TBody, TState> Copy ()
+		public override T Copy ()
 		{
 			// Do not call base here- we don't need to copy our data buffer
 			Interlocked.Increment (ref refCount);
-			return this;
+			return (T)this;
 		}
 
 		public override void Dispose ()

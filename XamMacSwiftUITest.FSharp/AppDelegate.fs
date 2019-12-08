@@ -6,7 +6,6 @@ open AppKit
 open CoreGraphics
 
 open SwiftUI
-open Views
 
 [<Register("AppDelegate")>]
 type AppDelegate() =

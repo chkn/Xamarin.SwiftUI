@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Text;
-using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
-
-using Microsoft.FSharp.Core;
-using Microsoft.FSharp.Reflection;
 
 using Swift;
 using Swift.Interop;
@@ -25,42 +22,33 @@ namespace SwiftUI.Interop
 
 	unsafe class CustomViewType : ViewType, IDisposable
 	{
-		readonly Type bodyType;
-		readonly Type [] stateFieldTypes;
 		ViewProtocolConformanceDescriptor* viewConformanceDesc;
 
-		internal int NativeDataSize { get; }
+		public int NativeDataSize { get; }
+		public PropertyInfo BodyProperty { get; }
 
-		internal static CustomViewType For (Type bodyType, Type stateType)
+		internal CustomViewType (Type customViewType)
+			: this (customViewType.GetProperty ("Body", BindingFlags.Public | BindingFlags.Instance))
 		{
-			Type [] stateFieldTypes;
-
-			if (stateType == typeof (Unit))
-				stateFieldTypes = Array.Empty<Type> ();
-			else if (typeof (ITuple).IsAssignableFrom (stateType))
-				stateFieldTypes = FSharpType.GetTupleElements (stateType);
-			else
-				stateFieldTypes = new[] { stateType };
-
-			return new CustomViewType (bodyType, stateFieldTypes);
 		}
 
-		CustomViewType (Type bodyType, Type [] stateFieldTypes)
+		internal CustomViewType (PropertyInfo bodyProperty)
 			: base (AllocFullTypeMetadata ())
 		{
+			if (bodyProperty is null || !bodyProperty.CanRead || bodyProperty.CanWrite || bodyProperty.PropertyType.IsInterface ||
+				!typeof (IView).IsAssignableFrom (bodyProperty.PropertyType))
+				throw new ArgumentException ($"CustomView implementations must declare a public, read-only `Body` property returning a concrete type of `{nameof (IView)}`");
 			try {
-				this.bodyType = bodyType;
-				this.stateFieldTypes = stateFieldTypes;
-
+				BodyProperty = bodyProperty;
 				NativeDataSize = CalculateNativeDataSize ();
 				fullMetadata->ValueWitnessTable = CreateValueWitnessTable ();
 
 				Metadata->Kind = MetadataKinds.Struct;
 				Metadata->TypeDescriptor = (NominalTypeDescriptor*)CreateTypeDescriptor ();
 
-				var swiftBodyType = SwiftType.Of (bodyType) as ViewType;
+				var swiftBodyType = ViewType.Of (bodyProperty.PropertyType);
 				if (swiftBodyType is null)
-					throw new ArgumentException ("Expected ViewType", nameof (bodyType));
+					throw new ArgumentException ("Expected ViewType for Body.SwiftType");
 
 				var thunkMetadata = (CustomViewMetadata*)fullMetadata;
 				thunkMetadata->ThunkViewT = swiftBodyType.Metadata;
@@ -80,10 +68,10 @@ namespace SwiftUI.Interop
 
 		int CalculateNativeDataSize ()
 		{
-			if (stateFieldTypes.Length == 0)
+			//if (stateFieldTypes.Length == 0)
 				return sizeof (CustomViewData);
 
-			throw new NotImplementedException ();
+			//throw new NotImplementedException ();
 		}
 
 		#region Value Witness Table
@@ -234,7 +222,7 @@ namespace SwiftUI.Interop
 			*viewConformanceDesc = default;
 			viewConformanceDesc->Populate (Metadata->TypeDescriptor);
 
-			var bodySwiftType = (ViewType)Of (bodyType)!;
+			var bodySwiftType = ViewType.Of (BodyProperty.PropertyType)!;
 			var bodyConformance = bodySwiftType.ViewConformance;
 			var witnessTable = SwiftCoreLib.GetProtocolWitnessTable (&viewConformanceDesc->ConformanceDescriptor, Metadata, null);
 
