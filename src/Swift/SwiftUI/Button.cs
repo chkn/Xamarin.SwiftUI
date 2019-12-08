@@ -10,7 +10,7 @@ namespace SwiftUI
 {
 	using static Button;
 
-	public class Button<TLabel> : RefView
+	public class Button<TLabel> : RefView<Button<TLabel>>
 		where TLabel : IView
 	{
 		static ViewType LabelType => Swift.Interop.SwiftType.Of (typeof (TLabel)) as ViewType ??

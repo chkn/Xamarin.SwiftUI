@@ -34,7 +34,7 @@ namespace SwiftUI
 	/// A custom view.
 	/// </summary>
 	/// <typeparam name="TBody">The type of body view this custom view has</typeparam>
-	public unsafe abstract class CustomView<TBody, TState> : RefView, ICustomView
+	public unsafe abstract class CustomView<TBody, TState> : RefView<CustomView<TBody, TState>>, ICustomView
 		where TBody : IView
 	{
 		static CustomViewType CreateViewType ()
@@ -48,7 +48,7 @@ namespace SwiftUI
 
 		protected override long NativeDataSize => swiftType.Value.NativeDataSize;
 
-		long refCount;
+		long refCount = 1;
 
 		public abstract TBody Body { get; }
 
@@ -57,7 +57,9 @@ namespace SwiftUI
 
 		protected override void InitNativeData (byte [] data)
 		{
-			refCount = 1;
+			if (refCount < 1)
+				throw new ObjectDisposedException (GetType ().FullName);
+
 			fixed (void* ptr = &data[0]) {
 				CustomViewData* cvd = (CustomViewData*)ptr;
 				cvd->GcHandleToView = GCHandle.ToIntPtr (GCHandle.Alloc (this));
@@ -71,6 +73,13 @@ namespace SwiftUI
 				CustomViewData* cvd = (CustomViewData*)ptr;
 				GCHandle.FromIntPtr (cvd->GcHandleToView).Free ();
 			}
+		}
+
+		public override CustomView<TBody, TState> Copy ()
+		{
+			// Do not call base here- we don't need to copy our data buffer
+			Interlocked.Increment (ref refCount);
+			return this;
 		}
 
 		public override void Dispose ()

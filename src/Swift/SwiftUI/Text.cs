@@ -9,7 +9,7 @@ using SwiftUI.Interop;
 namespace SwiftUI
 {
 	[StructLayout (LayoutKind.Sequential)]
-	public readonly struct Text : IView<Text>
+	public readonly struct Text : IBlittableView<Text>
 	{
 		public static ViewType SwiftType => SwiftUILib.Types.Text;
 		SwiftType ISwiftValue.SwiftType => SwiftUILib.Types.Text;

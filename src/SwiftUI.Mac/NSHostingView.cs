@@ -18,14 +18,14 @@ namespace SwiftUI
 		}
 
 		public static NSHostingView Create<T> (in T view)
-			where T : unmanaged, IView<T>
+			where T : unmanaged, IBlittableView<T>
 		{
 			fixed (T* viewPtr = &view)
 				return Create (viewPtr);
 		}
 
 		public static NSHostingView Create<T> (T* view)
-			where T : unmanaged, IView<T>
+			where T : unmanaged, IBlittableView<T>
 			=> Create (view, view->SwiftType);
 
 		static NSHostingView Create (void* viewData, ViewType swiftType)
