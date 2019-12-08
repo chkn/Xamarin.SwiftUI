@@ -75,20 +75,20 @@
     <Compile Include="AppDelegate.cs" />
   </ItemGroup>
   <ItemGroup>
-    <NativeReference Include="..\SwiftUIGlue\libSwiftUIGlue.dylib">
-      <Kind>Dynamic</Kind>
-      <SmartLink>False</SmartLink>
-    </NativeReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Swift\Swift.csproj">
+    <ProjectReference Include="..\src\Swift\Swift.csproj">
       <Project>{31E05277-F5C7-47C7-988B-EFA3A8057F07}</Project>
       <Name>Swift</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SwiftUI.Mac\SwiftUI.Mac.csproj">
+    <ProjectReference Include="..\src\SwiftUI.Mac\SwiftUI.Mac.csproj">
       <Project>{9F07ACCC-8357-4E81-9EAA-E238752B7977}</Project>
       <Name>SwiftUI.Mac</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <NativeReference Include="..\src\SwiftUIGlue\libSwiftUIGlue.dylib">
+      <Kind>Dynamic</Kind>
+      <SmartLink>False</SmartLink>
+    </NativeReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>

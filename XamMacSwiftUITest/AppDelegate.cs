@@ -8,12 +8,10 @@ using SwiftUI;
 
 namespace XamMacSwiftUITest
 {
-	/*
-	public class HelloView : View
+	public class HelloView : CustomView<HelloView>
 	{
-		public override IView Body => new Text ("HELLO SwiftUI FROM C#!");
+		public Button<Text> Body => new Button<Text> (() => Console.WriteLine ("CLICKED!"), new Text ("Click me!!"));
 	}
-	*/
 
 	public class AppDelegate : NSApplicationDelegate
 	{
@@ -25,14 +23,7 @@ namespace XamMacSwiftUITest
 
 			window.Center ();
 
-			//var content = new HelloView ();
-
-			//Console.WriteLine (SwiftUILib.Types.Text.ToString ());
-			//Console.WriteLine (content.SwiftType.ToString ());
-
-			var content = new Text ("HELLO SwiftUI FROM C#!");
-
-			window.ContentView = NSHostingView.Create (content);
+			window.ContentView = NSHostingView.Create (new HelloView ());
 
 			window.MakeKeyAndOrderFront (null);
 		}
