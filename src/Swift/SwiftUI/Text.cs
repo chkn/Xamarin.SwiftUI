@@ -12,7 +12,6 @@ namespace SwiftUI
 	public readonly struct Text : IBlittableView<Text>
 	{
 		public static ViewType SwiftType => SwiftUILib.Types.Text;
-		SwiftType ISwiftValue.SwiftType => SwiftUILib.Types.Text;
 		ViewType IView.SwiftType => SwiftUILib.Types.Text;
 
 		// Opaque data

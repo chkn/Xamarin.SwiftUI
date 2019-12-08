@@ -15,7 +15,6 @@ namespace SwiftUI
 		where T : RefView<T>
 	{
 		protected abstract ViewType ViewType { get; }
-		SwiftType ISwiftValue.SwiftType => ViewType;
 		ViewType IView.SwiftType => ViewType;
 
 		// using a byte array for the view's data allows the GC to collect it,
