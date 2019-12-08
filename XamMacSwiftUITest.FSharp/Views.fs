@@ -6,6 +6,6 @@ open SwiftUI
 let HelloView() =
     View {
         body (
-            Text("HELLO WORLD")
+            Button((fun () -> printfn "CLICKED"), Text("HELLO WORLD"))
         )
     }

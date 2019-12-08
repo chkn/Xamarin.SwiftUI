@@ -34,7 +34,7 @@ namespace SwiftUI
 	/// A custom view.
 	/// </summary>
 	/// <typeparam name="TBody">The type of body view this custom view has</typeparam>
-	public unsafe abstract class CustomView<TBody, TState> : ICustomView
+	public unsafe abstract class CustomView<TBody, TState> : RefView, ICustomView
 		where TBody : IView
 	{
 		static CustomViewType CreateViewType ()
@@ -44,47 +44,39 @@ namespace SwiftUI
 			= new Lazy<CustomViewType> (CreateViewType, LazyThreadSafetyMode.ExecutionAndPublication);
 
 		public static ViewType SwiftType => swiftType.Value;
-		SwiftType ISwiftValue.SwiftType => SwiftType;
-		ViewType IView.SwiftType => SwiftType;
+		protected override ViewType ViewType => swiftType.Value;
 
-		CustomViewData* handle;
+		protected override long NativeDataSize => swiftType.Value.NativeDataSize;
+
 		long refCount;
 
 		public abstract TBody Body { get; }
+
 		IView ICustomView.Body => Body;
+		void ICustomView.AddRef () => Interlocked.Increment (ref refCount);
 
-		public MemoryHandle GetHandle ()
-			=> new MemoryHandle (handle == null ? (handle = CreateNativeData ()) : handle);
-
-		CustomViewData* CreateNativeData ()
+		protected override void InitNativeData (byte [] data)
 		{
-			Debug.Assert (refCount == 0);
-
-			// Allocate memory
-			var result = (CustomViewData*)Marshal.AllocHGlobal (swiftType.Value.NativeDataSize);
-
-			// Assign fields
-			result->GcHandleToView = GCHandle.ToIntPtr (GCHandle.Alloc (this));
-
-			// The GCHandle above takes a ref
-			AddRef ();
-
-			return result;
+			refCount = 1;
+			fixed (void* ptr = &data[0]) {
+				CustomViewData* cvd = (CustomViewData*)ptr;
+				cvd->GcHandleToView = GCHandle.ToIntPtr (GCHandle.Alloc (this));
+			}
 		}
 
-		void AddRef () => Interlocked.Increment (ref refCount);
-		void ICustomView.AddRef () => AddRef ();
-
-		public void Dispose ()
+		protected override void DestroyNativeData (byte [] data)
 		{
-			if (Interlocked.Decrement (ref refCount) != 0)
-				return;
-
-			if (handle != null) {
-				GCHandle.FromIntPtr (handle->GcHandleToView).Free ();
-				Marshal.FreeHGlobal ((IntPtr)handle);
-				handle = null;
+			// Do not call base here, as the VWT implementation simply calls back to Dispose
+			fixed (void* ptr = &data [0]) {
+				CustomViewData* cvd = (CustomViewData*)ptr;
+				GCHandle.FromIntPtr (cvd->GcHandleToView).Free ();
 			}
+		}
+
+		public override void Dispose ()
+		{
+			if (Interlocked.Decrement (ref refCount) <= 0)
+				base.Dispose ();
 		}
 	}
 }

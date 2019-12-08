@@ -8,12 +8,9 @@ using SwiftUI.Interop;
 
 namespace SwiftUI
 {
-	interface IButton
-	{
-		void InvokeAction ();
-	}
+	using static Button;
 
-	public class Button<TLabel> : OpaqueView, IButton
+	public class Button<TLabel> : RefView
 		where TLabel : IView
 	{
 		static ViewType LabelType => Swift.Interop.SwiftType.Of (typeof (TLabel)) as ViewType ??
@@ -28,19 +25,18 @@ namespace SwiftUI
 
 		public Button (Action action, TLabel label)
 		{
-			this.label = label;
+			this.label = label ?? throw new ArgumentNullException (nameof (label));
 			this.action = action ?? throw new ArgumentNullException (nameof (action));
 		}
 
-		void IButton.InvokeAction () => action ();
-
-		protected override unsafe void InitNativeData (IntPtr handle)
+		protected override unsafe void InitNativeData (byte [] data)
 		{
-			if (label is null)
-				throw new InvalidOperationException ();
+			// We only need the action instance
+			var ctx = GCHandle.ToIntPtr (GCHandle.Alloc (action));
 
-			using (var labelData = label.GetHandle ())
-				Button.Init (handle, Button.InvokeAction, GCHandle.ToIntPtr (GCHandle), labelData.Pointer, LabelType.Metadata, LabelType.ViewConformance);
+			fixed (void* handle = &data[0])
+			using (var labelData = label!.GetHandle ())
+				Init (handle, OnActionDel, OnDisposeDel, ctx, labelData.Pointer, LabelType.Metadata, LabelType.ViewConformance);
 
 			label = null;
 		}
@@ -49,15 +45,23 @@ namespace SwiftUI
 	unsafe static class Button
 	{
 		// FIXME: MonoPInvokeCallback
-		internal static unsafe void InvokeAction (void* gcHandlePtr)
+		static void OnAction (void* gcHandlePtr)
 		{
 			var gcHandle = GCHandle.FromIntPtr ((IntPtr)gcHandlePtr);
-			((IButton)gcHandle.Target).InvokeAction ();
+			((Action)gcHandle.Target).Invoke ();
 		}
+		internal static readonly PtrFunc OnActionDel = OnAction;
+
+		static void OnDispose (void* gcHandlePtr)
+		{
+			var gcHandle = GCHandle.FromIntPtr ((IntPtr)gcHandlePtr);
+			gcHandle.Free ();
+		}
+		internal static readonly PtrFunc OnDisposeDel = OnDispose;
 
 		[DllImport (SwiftGlueLib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "swiftui_Button_action_label")]
-		internal static extern void Init (IntPtr result, PtrFunc action, IntPtr actionCtx, void* labelData, TypeMetadata* labelType, ProtocolWitnessTable* labelViewConformance);
+		internal static extern void Init (void* result, PtrFunc action, PtrFunc dispose, IntPtr ctx, void* labelData, TypeMetadata* labelType, ProtocolWitnessTable* labelViewConformance);
 	}
 }

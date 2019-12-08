@@ -35,11 +35,16 @@ namespace Swift.Interop
 		public ValueWitnessTable* ValueWitnessTable => fullMetadata->ValueWitnessTable;
 
 		/// <summary>
-		/// Creates a new <see cref="SwiftType"/> for a managed type.
+		/// Not to be used except by <see cref="CustomViewType"/>
 		/// </summary>
-		internal SwiftType (FullTypeMetadata* fullMetadata, Type? managedType = null)
+		internal SwiftType (FullTypeMetadata* fullMetadata)
 		{
 			this.fullMetadata = fullMetadata;
+		}
+
+		public SwiftType (IntPtr typeMetadata, Type? managedType = null)
+		{
+			this.fullMetadata = (FullTypeMetadata*)(typeMetadata - IntPtr.Size);
 
 			// Assert assumed invariants..
 			Debug.Assert (!ValueWitnessTable->IsNonBitwiseTakable, $"expected bitwise movable: {managedType?.Name}");
@@ -50,11 +55,6 @@ namespace Swift.Interop
 				Debug.Assert (Metadata->Kind == MetadataKind.OfType (managedType), $"unexpected kind: {Metadata->Kind}");
 				Debug.Assert ((int)ValueWitnessTable->Size == Marshal.SizeOf (managedType), $"unexpected size: {ValueWitnessTable->Size}");
 			}
-		}
-
-		public SwiftType (IntPtr typeMetadata, Type? managedType = null)
-			: this ((FullTypeMetadata*)(typeMetadata - IntPtr.Size), managedType)
-		{
 		}
 
 		/// <summary>

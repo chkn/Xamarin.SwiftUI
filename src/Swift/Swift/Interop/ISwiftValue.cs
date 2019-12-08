@@ -5,8 +5,9 @@ using System.Runtime.InteropServices;
 namespace Swift.Interop
 {
 	// We bind Swift values in a couple ways:
-	//  1. ISwiftValue<T> represents a managed struct of type T that is itself the native data.
-	//  2. ISwiftValue represents a wrapper type that has a Handle (pointer) to the data.
+	//  1. ISwiftValue represents any wrapper type that can get a Handle (pointer) to the data.
+	//  2. ISwiftBlittableStruct<T> is an ISwiftValue that represents a managed struct of
+	//      type T that is itself the native data.
 
 	/// <summary>
 	/// A Swift struct or class type.
@@ -26,13 +27,20 @@ namespace Swift.Interop
 		/// </remarks>
 		MemoryHandle GetHandle ();
 
-		// Note: this interface doesn't implement IDisposable because this causes
-		//  F# to require the use of the 'new' operator, which harshes our DSL.
-		//
-		// In the common SwiftUI case, most values we create are moved to native and
-		//  not retained by managed code, so calling Dispose is not needed. For types
-		//  that we expect to have references retained by managed code, we'll explicitly
-		//  implement IDisposable in those specific cases.
+		/// <summary>
+		/// Decrements any references to reference-counted data held by this
+		///  <see cref="ISwiftValue"/>.
+		/// </summary>
+		/// <remarks>
+		/// Note: this interface doesn't implement IDisposable because this causes
+		///  F# to require the use of the <c>new</c> operator, which harshes our DSL.
+		///
+		/// In the common SwiftUI case, most values we create are moved to native and
+		///  not retained by managed code, so calling <see cref="Dispose"/> is not needed.
+		///  For types where we expect the user will need to call <see cref="Dispose"/>
+		///  explicitly, we'll explicitly implement <see cref="IDisposable"/> in those
+		///  specific cases.
+		/// </remarks>
 		void Dispose ();
 	}
 
@@ -60,5 +68,15 @@ namespace Swift.Interop
 			}
 		}
 #endif
+
+		/// <summary>
+		/// Creates a copy of this value, while retaining ownership of the original value.
+		/// </summary>
+		/// <remarks>
+		/// If this method is not called, passing this value is considered a move operation.
+		///  The original value is not valid after a move operation, and it should not be used
+		///  or disposed.
+		/// </remarks>
+		T Copy ();
 	}
 }

@@ -25,20 +25,50 @@ public func Text_verbatim(dest : UnsafeMutablePointer<Text>, verbatim : String)
 }
 
 //
+// Holds a function pointer and context pointer and allows for managed clean up when Swift
+//  no longer needs them.
+// Aside from clean up, this is also needed because closure contexts are passed in r13.
+//
+@frozen
+public struct Delegate {
+	let invoke: @convention(c) (UnsafeRawPointer) -> Void
+	let dispose: @convention(c) (UnsafeRawPointer) -> Void
+	let ctx: UnsafeRawPointer
+}
+fileprivate class DelegateBox {
+	private let del : Delegate
+
+	init(_ del : Delegate)
+	{
+		self.del = del
+	}
+
+	public func invoke()
+	{
+		del.invoke(del.ctx)
+	}
+
+	deinit {
+		del.dispose(del.ctx)
+	}
+}
+
+//
 // Struct return pointer is passed in rax.
 // Closure contexts passed in r13
 //
 @_silgen_name("swiftui_Button_action_label")
-public func Button_action_label<T: View>(dest : UnsafeMutablePointer<Button<T>>, action : @escaping @convention(c) (UnsafeRawPointer) -> Void, actionCtx : UnsafeRawPointer, label : T)
+public func Button_action_label<T: View>(dest : UnsafeMutablePointer<Button<T>>, action : Delegate, label : __owned T)
 {
-	dest.initialize(to: Button<T>(action: { action(actionCtx) }, label: { label }))
+	let del = DelegateBox(action)
+	dest.initialize(to: Button<T>(action: del.invoke, label: { label }))
 }
 
 //
 // Class methods: Context register is used for pointer to type metadata
 //
 @_silgen_name("swiftui_NSHostingView_rootView")
-public func NSHostingView_rootView<T: View>(root : T) -> NSHostingView<T>
+public func NSHostingView_rootView<T: View>( root : __owned T) -> NSHostingView<T>
 {
 	return NSHostingView(rootView: root)
 }
@@ -47,7 +77,7 @@ public func NSHostingView_rootView<T: View>(root : T) -> NSHostingView<T>
 // Protocol witness gets self in context register
 //
 public struct ThunkView<T: View>: View {
-	var gcHandle: UnsafeRawPointer
+	let gcHandle: UnsafeRawPointer
 
 	public var body: T {
 		let resultPtr = UnsafeMutablePointer<T>.allocate(capacity: 1)
