@@ -12,6 +12,9 @@ namespace SwiftUI
 {
 	interface ICustomView : IView
 	{
+		new CustomViewType SwiftType { get; }
+		ViewType IView.SwiftType => SwiftType;
+
 		IView Body { get; }
 
 		/// <summary>
@@ -39,7 +42,7 @@ namespace SwiftUI
 	///  static property).
 	/// </remarks>
 	/// <typeparam name="T">The concrete type that implements this abstract class.</typeparam>
-	public unsafe abstract class CustomView<T> : RefView<T>, ICustomView
+	public unsafe abstract class CustomView<T> : SwiftStruct<T>, ICustomView
 		where T : CustomView<T>
 	{
 		// Since this class is generic, we will end up with a cached CustomViewType
@@ -49,9 +52,8 @@ namespace SwiftUI
 			= new Lazy<CustomViewType> (CreateViewType, LazyThreadSafetyMode.ExecutionAndPublication);
 
 		public static ViewType SwiftType => swiftType.Value;
-		protected override ViewType ViewType => swiftType.Value;
-
-		protected override long NativeDataSize => swiftType.Value.NativeDataSize;
+		CustomViewType ICustomView.SwiftType => swiftType.Value;
+		protected override SwiftType SwiftStructType => swiftType.Value;
 
 		long refCount = 1;
 
@@ -61,29 +63,28 @@ namespace SwiftUI
 		IView ICustomView.Body => (IView)swiftType.Value.BodyProperty.GetValue (this);
 		void ICustomView.AddRef () => Interlocked.Increment (ref refCount);
 
-		protected override void InitNativeData (byte [] data)
+		protected override void InitNativeData (byte [] data, int offset)
 		{
-			if (refCount < 1)
-				throw new ObjectDisposedException (GetType ().FullName);
-
-			fixed (void* ptr = &data[0]) {
-				CustomViewData* cvd = (CustomViewData*)ptr;
+			fixed (void* handle = &data [offset]) {
+				var cvd = (CustomViewData*)handle;
 				cvd->GcHandleToView = GCHandle.ToIntPtr (GCHandle.Alloc (this));
 			}
+			swiftType.Value.InitNativeFields (this, data, offset);
 		}
 
-		protected override void DestroyNativeData (byte [] data)
+		protected override void DestroyNativeData (void* handle)
 		{
 			// Do not call base here, as the VWT implementation simply calls back to Dispose
-			fixed (void* ptr = &data [0]) {
-				CustomViewData* cvd = (CustomViewData*)ptr;
-				GCHandle.FromIntPtr (cvd->GcHandleToView).Free ();
-			}
+			CustomViewData* cvd = (CustomViewData*)handle;
+			swiftType.Value.DestroyNativeFields (this);
+			GCHandle.FromIntPtr (cvd->GcHandleToView).Free ();
 		}
 
 		public override T Copy ()
 		{
 			// Do not call base here- we don't need to copy our data buffer
+			if (Disposed)
+				throw new ObjectDisposedException (GetType ().FullName);
 			Interlocked.Increment (ref refCount);
 			return (T)this;
 		}

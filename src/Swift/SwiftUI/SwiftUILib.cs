@@ -29,7 +29,10 @@ namespace SwiftUI
 		public ViewType Text => _text ??= new ViewType (this, typeof (Text));
 
 		public ViewType Button (ViewType label)
-			=> new ViewType (GetButtonType (0, label.Metadata, label.ViewConformance));
+			=> new ViewType (GetButtonType (0, label.Metadata, label.ViewConformance), genericArgs: new[] { label });
+
+		public SwiftType State (SwiftType value)
+			=> new SwiftType (GetStateType (0, value.Metadata), genericArgs: new[] { value });
 
 		#endregion
 
@@ -41,5 +44,10 @@ namespace SwiftUI
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI6ButtonVMa")]
 		static extern IntPtr GetButtonType (long metadataReq, TypeMetadata* labelType, ProtocolWitnessTable* labelViewConformance);
+
+		[DllImport (Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "$s7SwiftUI5StateVMa")]
+		static extern IntPtr GetStateType (long metadataReq, TypeMetadata* valueType);
 	}
 }

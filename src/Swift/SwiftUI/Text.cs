@@ -30,7 +30,7 @@ namespace SwiftUI
 
 		public Text (Swift.String verbatim) => Init (out this, verbatim);
 
-		public Text Copy () => SwiftType.Transfer (in this, SwiftType.CopyInitFunc);
+		public Text Copy () => SwiftType.Transfer (in this, TransferFuncType.InitWithCopy);
 
 		public void Dispose () => SwiftType.Destroy (in this);
 

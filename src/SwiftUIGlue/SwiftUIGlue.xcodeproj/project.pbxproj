@@ -304,6 +304,12 @@
 					_$s11SwiftUIGlue9ThunkViewVyxG0A2UI0D0AaeFP4body4BodyQzvgTW,
 					"-Xlinker",
 					_swiftui_ThunkView_body,
+					"-Xlinker",
+					"-alias",
+					"-Xlinker",
+					_$s11SwiftUIGlue25State_wrappedValue_setter5state5valuey0A2UI0C0VyxGn_xntlFTf4gn_n,
+					"-Xlinker",
+					_swiftui_State_wrappedValue_setter,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = foo.SwiftUIGlue;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -339,6 +345,12 @@
 					_$s11SwiftUIGlue9ThunkViewVyxG0A2UI0D0AaeFP4body4BodyQzvgTW,
 					"-Xlinker",
 					_swiftui_ThunkView_body,
+					"-Xlinker",
+					"-alias",
+					"-Xlinker",
+					_$s11SwiftUIGlue25State_wrappedValue_setter5state5valuey0A2UI0C0VyxGn_xntlFTf4gn_n,
+					"-Xlinker",
+					_swiftui_State_wrappedValue_setter,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = foo.SwiftUIGlue;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";

@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Reflection;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 
@@ -15,40 +19,71 @@ namespace SwiftUI.Interop
 	[StructLayout (LayoutKind.Sequential)]
 	unsafe struct CustomViewMetadata
 	{
+		public const int FieldOffsetVectorOffset = 4;
 		public FullTypeMetadata Metadata;
 		public TypeMetadata* ThunkViewT;
 		public ProtocolWitnessTable* ThunkViewTViewConformance;
+		// field offset vector follows..
 	}
 
+	readonly struct SwiftFieldInfo
+	{
+		public readonly FieldInfo Field;
+		public readonly SwiftType SwiftType;
+		public readonly int Offset;
+
+		public SwiftFieldInfo (FieldInfo field, SwiftType swiftType, int offset)
+		{
+			Field = field;
+			SwiftType = swiftType;
+			Offset = offset;
+		}
+	}
+
+	// FIXME: Ultimately, we should emit all metadata into one large allocation,
+	//  to make sharing a module and relative pointers easier.
 	unsafe class CustomViewType : ViewType, IDisposable
 	{
 		ViewProtocolConformanceDescriptor* viewConformanceDesc;
 
-		public int NativeDataSize { get; }
+		public override int NativeDataSize { get; }
+
 		public PropertyInfo BodyProperty { get; }
 
-		internal CustomViewType (Type customViewType)
-			: this (customViewType.GetProperty ("Body", BindingFlags.Public | BindingFlags.Instance))
-		{
-		}
+		readonly SwiftFieldInfo [] swiftFields;
 
-		internal CustomViewType (PropertyInfo bodyProperty)
-			: base (AllocFullTypeMetadata ())
+		internal CustomViewType (Type customViewType)
 		{
-			if (bodyProperty is null || !bodyProperty.CanRead || bodyProperty.CanWrite || bodyProperty.PropertyType.IsInterface ||
-				!typeof (IView).IsAssignableFrom (bodyProperty.PropertyType))
+			BodyProperty = customViewType.GetProperty ("Body", BindingFlags.Public | BindingFlags.Instance);
+			if (BodyProperty is null || !BodyProperty.CanRead || BodyProperty.CanWrite || BodyProperty.PropertyType.IsInterface ||
+				!typeof (IView).IsAssignableFrom (BodyProperty.PropertyType))
 				throw new ArgumentException ($"CustomView implementations must declare a public, read-only `Body` property returning a concrete type of `{nameof (IView)}`");
+
+			var swiftBodyType = ViewType.Of (BodyProperty.PropertyType);
+			if (swiftBodyType is null)
+				throw new ArgumentException ("Expected ViewType for Body.SwiftType");
+
+			// Determine fields to expose to Swift
+			var offset = sizeof (CustomViewData);
+			var fieldList = new List<SwiftFieldInfo> ();
+			foreach (var fld in customViewType.GetFields (BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
+				if (!typeof (ISwiftFieldExposable).IsAssignableFrom (fld.FieldType))
+					continue;
+				var swiftType = SwiftType.Of (fld.FieldType);
+				Debug.Assert (swiftType != null);
+				fieldList.Add (new SwiftFieldInfo (fld, swiftType, offset));
+				offset += swiftType.NativeDataSize; // FIXME: alignment?
+			}
+			swiftFields = fieldList.ToArray ();
+
 			try {
-				BodyProperty = bodyProperty;
-				NativeDataSize = CalculateNativeDataSize ();
+				fullMetadata = (FullTypeMetadata*)Marshal.AllocHGlobal (sizeof (CustomViewMetadata) + 4 * swiftFields.Length);
+				NativeDataSize = sizeof (CustomViewData) + swiftFields.Sum (fld => fld.SwiftType.NativeDataSize); // FIXME: alignment?
+
 				fullMetadata->ValueWitnessTable = CreateValueWitnessTable ();
 
 				Metadata->Kind = MetadataKinds.Struct;
-				Metadata->TypeDescriptor = (NominalTypeDescriptor*)CreateTypeDescriptor ();
-
-				var swiftBodyType = ViewType.Of (bodyProperty.PropertyType);
-				if (swiftBodyType is null)
-					throw new ArgumentException ("Expected ViewType for Body.SwiftType");
+				Metadata->TypeDescriptor = (NominalTypeDescriptor*)CreateTypeDescriptor (customViewType);
 
 				var thunkMetadata = (CustomViewMetadata*)fullMetadata;
 				thunkMetadata->ThunkViewT = swiftBodyType.Metadata;
@@ -56,6 +91,9 @@ namespace SwiftUI.Interop
 				//thunkMetadata->ThunkViewTViewConformance = swiftBodyType.ViewConformance;
 				thunkMetadata->ThunkViewTViewConformance = null;
 
+				var fieldOffsetVector = (int*)(thunkMetadata + 1);
+				for (var i = 0; i < swiftFields.Length; i++)
+					fieldOffsetVector [i] = swiftFields [i].Offset;
 			} catch {
 				// Ensure we don't leak allocated unmanaged memory
 				Dispose (true);
@@ -63,15 +101,20 @@ namespace SwiftUI.Interop
 			}
 		}
 
-		static FullTypeMetadata* AllocFullTypeMetadata ()
-			=> (FullTypeMetadata*)Marshal.AllocHGlobal (sizeof (CustomViewMetadata));
-
-		int CalculateNativeDataSize ()
+		public void InitNativeFields (object customView, byte [] data, int offset)
 		{
-			//if (stateFieldTypes.Length == 0)
-				return sizeof (CustomViewData);
+			foreach (var fldInfo in swiftFields) {
+				var fld = (ISwiftFieldExposable)fldInfo.Field.GetValue (customView);
+				fld.SetData (data, offset + fldInfo.Offset);
+			}
+		}
 
-			//throw new NotImplementedException ();
+		public void DestroyNativeFields (object customView)
+		{
+			foreach (var fldInfo in swiftFields) {
+				var fld = (ISwiftFieldExposable)fldInfo.Field.GetValue (customView);
+				fld.Dispose ();
+			}
 		}
 
 		#region Value Witness Table
@@ -98,12 +141,21 @@ namespace SwiftUI.Interop
 			return vwt;
 		}
 
+		internal override unsafe void Transfer (void* dest, void* src, TransferFuncType funcType)
+		{
+			var sz = NativeDataSize;
+			Buffer.MemoryCopy (src, dest, sz, sz);
+			foreach (var fld in swiftFields)
+				fld.SwiftType.Transfer ((byte*)dest + fld.Offset, (byte*)src + fld.Offset, funcType);
+		}
+
 		//FIXME: MonoPInvokeCallback
 		static void* InitWithCopy (void* dest, void* src, TypeMetadata* typeMetadata)
 		{
 			var view = ((CustomViewData*)src)->View;
 			view.AddRef ();
-			return InitWithTake (dest, src, typeMetadata);
+			view.SwiftType.Transfer (dest, src, TransferFuncType.InitWithCopy);
+			return dest;
 		}
 		static readonly TransferFunc InitWithCopyDel = InitWithCopy;
 
@@ -112,8 +164,8 @@ namespace SwiftUI.Interop
 		{
 			var view = ((CustomViewData*)src)->View;
 			view.AddRef ();
-			Destroy (dest, typeMetadata);
-			return InitWithTake (dest, src, typeMetadata);
+			view.SwiftType.Transfer (dest, src, TransferFuncType.AssignWithCopy);
+			return dest;
 		}
 		static readonly TransferFunc AssignWithCopyDel = AssignWithCopy;
 
@@ -121,9 +173,8 @@ namespace SwiftUI.Interop
 		// FIXME: Swift core lib probably provides a function for this trivial case?
 		static void* InitWithTake (void* dest, void* src, TypeMetadata* typeMetadata)
 		{
-			var vwt = *((ValueWitnessTable**)typeMetadata - 1);
-			var sz = (long)vwt->Size;
-			Buffer.MemoryCopy (src, dest, sz, sz);
+			var view = ((CustomViewData*)src)->View;
+			view.SwiftType.Transfer (dest, src, TransferFuncType.InitWithTake);
 			return dest;
 		}
 		static readonly TransferFunc InitWithTakeDel = InitWithTake;
@@ -132,8 +183,9 @@ namespace SwiftUI.Interop
 		// FIXME: Swift core lib probably provides a function for this trivial case?
 		static void* AssignWithTake (void* dest, void* src, TypeMetadata* typeMetadata)
 		{
-			Destroy (dest, typeMetadata);
-			return InitWithTake (dest, src, typeMetadata);
+			var view = ((CustomViewData*)src)->View;
+			view.SwiftType.Transfer (dest, src, TransferFuncType.AssignWithTake);
+			return dest;
 		}
 		static readonly TransferFunc AssignWithTakeDel = AssignWithTake;
 
@@ -149,19 +201,22 @@ namespace SwiftUI.Interop
 
 		#region Type Descriptor
 
-		StructDescriptor* CreateTypeDescriptor ()
+		static string Sanitize (string name)
+			=> Regex.Replace (name, @"[^a-zA-Z0-9]", "");
+
+		StructDescriptor* CreateTypeDescriptor (Type customViewType)
 		{
-			// FIXME: Name these somehow..
-			//  Maybe have a single module desc that we cache?
-			var name = Encoding.ASCII.GetBytes ("HELLO");
-			var ns = Encoding.ASCII.GetBytes ("WORLD");
+			var name = Encoding.ASCII.GetBytes (Sanitize (customViewType.Name));
+			var ns = Encoding.ASCII.GetBytes (Sanitize (customViewType.Namespace));
 
 			StructDescriptor* desc;
 			var modDesc = (ModuleDescriptor*)Marshal.AllocHGlobal (
 				sizeof (ModuleDescriptor) +
 				sizeof (StructDescriptor) +
 				sizeof (FieldDescriptor) +
-				// FIXME: plus size of field vector
+				sizeof (FieldRecord) * swiftFields.Length +
+				swiftFields.Sum (fld => fld.SwiftType.MangledTypeSize) +
+				swiftFields.Sum (fld => fld.Field.Name.Length + 1) +
 				name.Length + ns.Length + 2 // (for nulls)
 			);
 			try {
@@ -190,21 +245,35 @@ namespace SwiftUI.Interop
 				//  always gives us a pointer that overflows the Int32 offset value.
 				desc->NominalType.AccessFunctionPtr.Target = null;
 
-				//FIXME
-				desc->NumberOfFields = 0;
-				desc->FieldOffsetVectorOffset = 2;
+				desc->NumberOfFields = swiftFields.Length;
+				desc->FieldOffsetVectorOffset = CustomViewMetadata.FieldOffsetVectorOffset;
 
 				// Even if there are no fields, the presence of the field descriptor
 				//  pointer is used to determine if the type is "reflectable"
 				var fldDesc = (FieldDescriptor*)((byte*)namePtr + name.Length + 1);
 				desc->NominalType.FieldsPtr.Target = (void*)fldDesc;
 
-				// FIXME: ?
-				fldDesc->MangledTypeNamePtr = default;
+				fldDesc->MangledTypeNamePtr = default; // FIXME:?
 				fldDesc->SuperclassPtr = default;
 				fldDesc->Kind = FieldDescriptorKind.Struct;
-				fldDesc->FieldRecordSize = 12;
-				fldDesc->NumFields = 0; //FIXME
+				fldDesc->FieldRecordSize = checked ((ushort)sizeof (FieldRecord));
+				fldDesc->NumFields = (uint)swiftFields.Length;
+
+				var fldRecs = (FieldRecord*)(fldDesc + 1);
+				var fldType = (byte*)(fldRecs + swiftFields.Length);
+				for (var i = 0; i < swiftFields.Length; i++) {
+					fldRecs [i].Flags = swiftFields [i].Field.IsInitOnly? (FieldRecordFlags)0 : FieldRecordFlags.IsVar;
+					fldRecs [i].MangledTypeNamePtr.Target = fldType;
+					fldType = swiftFields [i].SwiftType.WriteMangledType (fldType);
+				}
+				var fldNamePtr = (IntPtr)fldType;
+				for (var i = 0; i < swiftFields.Length; i++) {
+					var fldName = Encoding.UTF8.GetBytes (swiftFields [i].Field.Name);
+					fldRecs [i].FieldNamePtr.Target = (void*)fldNamePtr;
+					Marshal.Copy (fldName, 0, fldNamePtr, fldName.Length);
+					Marshal.WriteByte (fldNamePtr, fldName.Length, 0);
+					fldNamePtr += fldName.Length + 1;
+				}
 			} catch {
 				Marshal.FreeHGlobal ((IntPtr)modDesc);
 				throw;
@@ -242,7 +311,7 @@ namespace SwiftUI.Interop
 			var body = view.Body;
 			var swiftType = body.SwiftType;
 			using (var handle = body.GetHandle ())
-				swiftType.Transfer (dest, handle.Pointer, swiftType.MoveInitFunc);
+				swiftType.Transfer (dest, handle.Pointer, TransferFuncType.InitWithTake);
 		}
 		static readonly PtrPtrFunc bodyFn = Body;
 

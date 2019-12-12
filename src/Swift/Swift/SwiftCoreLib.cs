@@ -20,6 +20,15 @@ namespace Swift
 		SwiftType? _int8;
 		public SwiftType Int8 => _int8 ?? (_int8 = new SwiftType (this, "Swift", "Int8", SwiftTypeCode.Struct));
 
+		SwiftType? _int16;
+		public SwiftType Int16 => _int16 ?? (_int16 = new SwiftType (this, "Swift", "Int16", SwiftTypeCode.Struct));
+
+		SwiftType? _int32;
+		public SwiftType Int32 => _int32 ?? (_int32 = new SwiftType (this, "Swift", "Int32", SwiftTypeCode.Struct));
+
+		SwiftType? _int64;
+		public SwiftType Int64 => _int64 ?? (_int64 = new SwiftType (this, "Swift", "Int64", SwiftTypeCode.Struct));
+
 		SwiftType? _string;
 		public SwiftType String => _string ?? (_string = new SwiftType (this, "SS", typeof (String)));
 

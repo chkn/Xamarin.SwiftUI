@@ -113,7 +113,16 @@ def processSeg(seg):
 			setRelPtr(addr + 4, "Superclass")
 			setInt16(addr + 8, "Kind")
 			setInt16(addr + 10, "FieldRecordSize")
-			setInt32(addr + 12, "NumFields")
+			addr += 12
+			setInt32(addr, "NumFields")
+			numFields = seg.readUInt32LE(addr)
+			addr += 4
+			for i in range(numFields):
+				seg.setCommentAtAddress(addr, "Field " + str(i))
+				setInt32(addr, "Flags")
+				setRelPtr(addr + 4, "MangledTypeName")
+				setRelPtr(addr + 8, "FieldName")
+				addr += 12
 
 		elif name.startswith("protocol conformance descriptor for "):
 			setRelIndPtr(addr, "ProtocolPtr")

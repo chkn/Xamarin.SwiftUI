@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace Swift.Interop
@@ -17,6 +18,7 @@ namespace Swift.Interop
 		// by convention:
 		// public static SwiftType SwiftType { get; }
 
+		// should be implemented explicitly:
 		SwiftType SwiftType { get; }
 
 		/// <summary>
@@ -78,5 +80,71 @@ namespace Swift.Interop
 		///  or disposed.
 		/// </remarks>
 		T Copy ();
+	}
+
+	// Sync with SwiftType.Of
+	public static class SwiftValue
+	{
+		/// <summary>
+		/// Returns an <see cref="ISwiftValue"/> representing the given object.
+		/// </summary>
+		/// <param name="obj">The manage object to bridge to Swift</param>
+		/// <exception cref="ArgumentException">Thrownhe given managed object cannot
+		///  be directly bridged to Swift</exception>
+		public static ISwiftValue? ToSwiftValue (this object? obj)
+		{
+			switch (obj) {
+
+			case null: return null;
+			case ISwiftValue swiftValue: return swiftValue;
+			case string val: return new Swift.String (val);
+			}
+
+			// FIXME: obj cannot be null due to "case null" above - nullability bug?
+			var swiftType = SwiftType.Of (obj!.GetType ());
+			if (swiftType is null)
+				throw new ArgumentException ("Given object cannot be bridged to Swift");
+
+			return new POD (obj, swiftType);
+		}
+
+		public static TSwiftValue FromNative<TSwiftValue> (IntPtr ptr)
+		{
+			var ty = typeof (TSwiftValue);
+			if (ty.IsValueType)
+				return Marshal.PtrToStructure<TSwiftValue> (ptr);
+
+			return (TSwiftValue)Activator.CreateInstance (typeof (TSwiftValue), ptr);
+		}
+
+		/// <summary>
+		/// A wrapper for POD types to expose them as <see cref="ISwiftValue"/>s.
+		/// </summary>
+		class POD : ISwiftValue
+		{
+			public SwiftType SwiftType { get; }
+
+			object value;
+
+			public unsafe MemoryHandle GetHandle ()
+			{
+				var gch = GCHandle.Alloc (value, GCHandleType.Pinned);
+				return new MemoryHandle ((void*)gch.AddrOfPinnedObject (), gch);
+			}
+
+			public POD (object value, SwiftType swiftType)
+			{
+				this.value = value;
+				SwiftType = swiftType;
+				unsafe {
+					Debug.Assert (!swiftType.ValueWitnessTable->IsNonPOD);
+				}
+			}
+
+			public void Dispose ()
+			{
+				// nop, since this is POD
+			}
+		}
 	}
 }

@@ -10,35 +10,30 @@ namespace SwiftUI
 {
 	using static Button;
 
-	public class Button<TLabel> : RefView<Button<TLabel>>
+	public sealed class Button<TLabel> : SwiftStruct<Button<TLabel>>, IView
 		where TLabel : IView
 	{
 		static ViewType LabelType => Swift.Interop.SwiftType.Of (typeof (TLabel)) as ViewType ??
 			throw new ArgumentException ("Expected ViewType", nameof (TLabel));
 
 		public static ViewType SwiftType { get; } = SwiftUILib.Types.Button (LabelType);
-		protected override ViewType ViewType => SwiftType;
+		protected override SwiftType SwiftStructType => SwiftType;
+		ViewType IView.SwiftType => SwiftType;
 
-		// intentionally box this so we can null it out after use and save a little memory
-		IView? label;
 		Action action;
+		TLabel label;
 
 		public Button (Action action, TLabel label)
 		{
-			this.label = label ?? throw new ArgumentNullException (nameof (label));
 			this.action = action ?? throw new ArgumentNullException (nameof (action));
+			this.label = label ?? throw new ArgumentNullException (nameof (label));
 		}
 
-		protected override unsafe void InitNativeData (byte [] data)
+		protected override unsafe void InitNativeData (void* handle)
 		{
-			// We only need the action instance
 			var ctx = GCHandle.ToIntPtr (GCHandle.Alloc (action));
-
-			fixed (void* handle = &data[0])
-			using (var labelData = label!.GetHandle ())
+			using (var labelData = label.GetHandle ())
 				Init (handle, OnActionDel, OnDisposeDel, ctx, labelData.Pointer, LabelType.Metadata, LabelType.ViewConformance);
-
-			label = null;
 		}
 	}
 

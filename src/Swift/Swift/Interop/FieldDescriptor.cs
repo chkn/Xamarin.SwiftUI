@@ -46,6 +46,27 @@ namespace Swift.Interop {
 		public uint NumFields;
 		// Vector of NumFields FieldRecords follows...
 
-		public string MangledTypeName => Marshal.PtrToStringAnsi ((IntPtr)MangledTypeNamePtr.Target);
+		// maybe don't expose this.. a lot of the time it's a symbolic ref
+		//public string MangledTypeName => Marshal.PtrToStringAnsi ((IntPtr)MangledTypeNamePtr.Target);
+	}
+
+	[Flags]
+	public enum FieldRecordFlags
+	{
+		// Is this an indirect enum case?
+		IsIndirectCase = 0x1,
+
+		// Is this a mutable `var` property?
+		IsVar = 0x2,
+	}
+
+	[StructLayout (LayoutKind.Sequential)]
+	public unsafe ref struct FieldRecord
+	{
+		public FieldRecordFlags Flags;
+		internal RelativePointer MangledTypeNamePtr;
+		internal RelativePointer FieldNamePtr;
+
+		public string FieldName => Marshal.PtrToStringAnsi ((IntPtr)FieldNamePtr.Target);
 	}
 }

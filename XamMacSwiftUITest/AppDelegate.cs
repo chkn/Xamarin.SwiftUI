@@ -10,7 +10,8 @@ namespace XamMacSwiftUITest
 {
 	public class HelloView : CustomView<HelloView>
 	{
-		public Button<Text> Body => new Button<Text> (() => Console.WriteLine ("CLICKED!"), new Text ("Click me!!"));
+		public Button<Text> Body =>
+			new Button<Text> (() => Console.WriteLine ("CLICKED!"), new Text ("Click me!!"));
 	}
 
 	public class AppDelegate : NSApplicationDelegate

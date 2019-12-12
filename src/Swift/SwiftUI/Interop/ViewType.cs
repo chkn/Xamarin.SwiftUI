@@ -19,16 +19,13 @@ namespace SwiftUI.Interop
 		protected virtual ProtocolWitnessTable* CreateViewConformance ()
 			=> base.GetProtocolConformance (SwiftUILib.Types.View);
 
-		/// <summary>
-		/// Not to be used except by <see cref="CustomViewType"/>
-		/// </summary>
-		internal ViewType (FullTypeMetadata* fullMetadata)
-			: base (fullMetadata)
+		// Only used by CustomViewType
+		private protected ViewType ()
 		{
 		}
 
-		public ViewType (IntPtr typeMetadata, Type? managedType = null)
-			: base (typeMetadata, managedType)
+		public ViewType (IntPtr typeMetadata, Type? managedType = null, SwiftType []? genericArgs = null)
+			: base (typeMetadata, managedType, genericArgs)
 		{
 		}
 

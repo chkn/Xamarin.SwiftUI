@@ -4,4 +4,6 @@ open SwiftUI
 
 type HelloView() =
     inherit CustomView<HelloView>()
-    member __.Body = Button((fun () -> printfn "CLICKED"), Text("HELLO WORLD"))
+    let clicks = State(3)
+    member __.Body =
+        Button((fun () -> clicks.Value <- clicks.Value + 1), Text(sprintf "Clicked %d times" clicks.Value))

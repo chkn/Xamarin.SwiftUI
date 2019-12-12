@@ -65,6 +65,34 @@ public func Button_action_label<T: View>(dest : UnsafeMutablePointer<Button<T>>,
 }
 
 //
+// Struct return pointer is passed in rax.
+//
+@_silgen_name("swiftui_State_initialValue")
+public func State_initialValue<T>(dest : UnsafeMutablePointer<State<T>>, initialValue : __owned T)
+{
+	dest.initialize(to: State<T>(initialValue: initialValue))
+}
+
+//
+// Non-static sized struct pointer passed in r13
+//
+// HACK: This doesn't quite do what we need, so we alias a helper function
+//  that the Swift compiler generates to swiftui_State_wrappedValue_setter
+public func State_wrappedValue_setter<T>(state : __owned State<T>, value : __owned T)
+{
+	state.wrappedValue = value
+}
+
+//
+// Non-static sized struct pointer passed in r13
+//
+@_silgen_name("swiftui_State_wrappedValue_getter")
+public func State_wrappedValue_getter<T>(dest : UnsafeMutablePointer<T>, state : UnsafePointer<State<T>>)
+{
+	dest.initialize(to: state.pointee.wrappedValue)
+}
+
+//
 // Class methods: Context register is used for pointer to type metadata
 //
 @_silgen_name("swiftui_NSHostingView_rootView")
