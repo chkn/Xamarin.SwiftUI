@@ -19,8 +19,9 @@ namespace SwiftUI.Interop
 	[StructLayout (LayoutKind.Sequential)]
 	unsafe struct CustomViewMetadata
 	{
-		public const int FieldOffsetVectorOffset = 4;
+		public const int FieldOffsetVectorOffset = 5;
 		public FullTypeMetadata Metadata;
+		public TypeMetadata* ThunkViewU;
 		public TypeMetadata* ThunkViewT;
 		public ProtocolWitnessTable* ThunkViewTViewConformance;
 		// field offset vector follows..
@@ -86,6 +87,7 @@ namespace SwiftUI.Interop
 				Metadata->TypeDescriptor = (NominalTypeDescriptor*)CreateTypeDescriptor (customViewType);
 
 				var thunkMetadata = (CustomViewMetadata*)fullMetadata;
+				thunkMetadata->ThunkViewU = Metadata;
 				thunkMetadata->ThunkViewT = swiftBodyType.Metadata;
 				// Currently unused, so don't force allocation if it's a custom view
 				//thunkMetadata->ThunkViewTViewConformance = swiftBodyType.ViewConformance;
@@ -105,15 +107,15 @@ namespace SwiftUI.Interop
 		{
 			foreach (var fldInfo in swiftFields) {
 				var fld = (ISwiftFieldExposable)fldInfo.Field.GetValue (customView);
-				fld.SetData (data, offset + fldInfo.Offset);
+				fld.InitNativeData (data, offset + fldInfo.Offset);
 			}
 		}
 
-		public void DestroyNativeFields (object customView)
+		public void DestroyNativeFields (object customView, void* data)
 		{
 			foreach (var fldInfo in swiftFields) {
 				var fld = (ISwiftFieldExposable)fldInfo.Field.GetValue (customView);
-				fld.Dispose ();
+				fld.DestroyNativeData ((byte*)data + fldInfo.Offset);
 			}
 		}
 
@@ -143,8 +145,19 @@ namespace SwiftUI.Interop
 
 		internal override unsafe void Transfer (void* dest, void* src, TransferFuncType funcType)
 		{
+			// Add ref if needed
+			switch (funcType) {
+			case TransferFuncType.InitWithCopy:
+			case TransferFuncType.AssignWithCopy:
+				((CustomViewData*)src)->View.AddRef ();
+				break;
+			}
+
+			// Copy the native data
 			var sz = NativeDataSize;
 			Buffer.MemoryCopy (src, dest, sz, sz);
+
+			// Transfer the fields
 			foreach (var fld in swiftFields)
 				fld.SwiftType.Transfer ((byte*)dest + fld.Offset, (byte*)src + fld.Offset, funcType);
 		}
@@ -153,7 +166,6 @@ namespace SwiftUI.Interop
 		static void* InitWithCopy (void* dest, void* src, TypeMetadata* typeMetadata)
 		{
 			var view = ((CustomViewData*)src)->View;
-			view.AddRef ();
 			view.SwiftType.Transfer (dest, src, TransferFuncType.InitWithCopy);
 			return dest;
 		}
@@ -163,7 +175,6 @@ namespace SwiftUI.Interop
 		static void* AssignWithCopy (void* dest, void* src, TypeMetadata* typeMetadata)
 		{
 			var view = ((CustomViewData*)src)->View;
-			view.AddRef ();
 			view.SwiftType.Transfer (dest, src, TransferFuncType.AssignWithCopy);
 			return dest;
 		}
@@ -193,7 +204,7 @@ namespace SwiftUI.Interop
 		static void Destroy (void* obj, TypeMetadata* typeMetadata)
 		{
 			var view = ((CustomViewData*)obj)->View;
-			view.Dispose ();
+			view.DestroyNativeData (obj);
 		}
 		static readonly DestroyFunc DestoryDel = Destroy;
 
@@ -305,13 +316,20 @@ namespace SwiftUI.Interop
 		}
 
 		// FIXME: View data appears to be passed in context register
-		static void Body (void* dest, void* gcHandle)
+		static void Body (void* dest, void* dataPtr)
 		{
-			var view = (ICustomView)GCHandle.FromIntPtr ((IntPtr)gcHandle).Target;
-			var body = view.Body;
-			var swiftType = body.SwiftType;
+			var data = (CustomViewData*)dataPtr;
+			var view = (ICustomView)GCHandle.FromIntPtr (data->GcHandleToView).Target;
+
+			// HACK: Overwrite our data array with the given native data
+			view.OverwriteNativeData (data);
+
+			// Now, when we call Body, it will operate on the new data
+			var body = (IView)view.SwiftType.BodyProperty.GetValue (view);
+
+			// Copy the returned view into dest
 			using (var handle = body.GetHandle ())
-				swiftType.Transfer (dest, handle.Pointer, TransferFuncType.InitWithTake);
+				body.SwiftType.Transfer (dest, handle.Pointer, TransferFuncType.InitWithTake);
 		}
 		static readonly PtrPtrFunc bodyFn = Body;
 

@@ -10,12 +10,12 @@ using SwiftUI.Interop;
 
 namespace SwiftUI
 {
-	interface ICustomView : IView
+	unsafe interface ICustomView : ISwiftFieldExposable, IView
 	{
 		new CustomViewType SwiftType { get; }
 		ViewType IView.SwiftType => SwiftType;
 
-		IView Body { get; }
+		void OverwriteNativeData (void* newData);
 
 		/// <summary>
 		/// Called by Swift to add a reference to our native data.
@@ -29,7 +29,7 @@ namespace SwiftUI
 	[StructLayout (LayoutKind.Sequential)]
 	struct CustomViewData
 	{
-		internal IntPtr GcHandleToView; // < MUST be first (see ThunkView in SwiftUIGlue)
+		internal IntPtr GcHandleToView;
 		public ICustomView View => (ICustomView)GCHandle.FromIntPtr (GcHandleToView).Target;
 	}
 
@@ -55,13 +55,13 @@ namespace SwiftUI
 		CustomViewType ICustomView.SwiftType => swiftType.Value;
 		protected override SwiftType SwiftStructType => swiftType.Value;
 
+		// controls the lifetime of the GCHandle
 		long refCount = 1;
+		void ICustomView.AddRef () => Interlocked.Increment (ref refCount);
+		void ICustomView.OverwriteNativeData (void* newData) => OverwriteNativeData (newData);
 
 		// by convention:
 		//public abstract TBody Body { get; }
-
-		IView ICustomView.Body => (IView)swiftType.Value.BodyProperty.GetValue (this);
-		void ICustomView.AddRef () => Interlocked.Increment (ref refCount);
 
 		protected override void InitNativeData (byte [] data, int offset)
 		{
@@ -76,23 +76,16 @@ namespace SwiftUI
 		{
 			// Do not call base here, as the VWT implementation simply calls back to Dispose
 			CustomViewData* cvd = (CustomViewData*)handle;
-			swiftType.Value.DestroyNativeFields (this);
-			GCHandle.FromIntPtr (cvd->GcHandleToView).Free ();
+			swiftType.Value.DestroyNativeFields (this, handle);
+			if (Interlocked.Decrement (ref refCount) <= 0)
+				GCHandle.FromIntPtr (cvd->GcHandleToView).Free ();
 		}
 
 		public override T Copy ()
 		{
 			// Do not call base here- we don't need to copy our data buffer
-			if (Disposed)
-				throw new ObjectDisposedException (GetType ().FullName);
 			Interlocked.Increment (ref refCount);
 			return (T)this;
-		}
-
-		public override void Dispose ()
-		{
-			if (Interlocked.Decrement (ref refCount) <= 0)
-				base.Dispose ();
 		}
 	}
 }

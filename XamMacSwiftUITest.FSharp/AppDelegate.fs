@@ -16,5 +16,5 @@ type AppDelegate() =
         window.WillClose.Add(fun _ -> window.ContentView <- NSTextField.CreateLabel("CLOSING"); GC.Collect())
         window.Center()
 
-        window.ContentView <- NSHostingView.Create(HelloView())
+        window.ContentView <- NSHostingView.Create(ClickButton())
         window.MakeKeyAndOrderFront(self)

@@ -7,7 +7,16 @@ namespace Swift.Interop
 {
 	unsafe interface ISwiftFieldExposable : ISwiftValue
 	{
-		void SetData (byte [] data, int offset);
+		/// <summary>
+		/// Initializes the native data for this Swift type in the given array
+		///  at the given offset.
+		/// </summary>
+		void InitNativeData (byte [] data, int offset);
+
+		/// <summary>
+		/// Destroys the native data at the given location.
+		/// </summary>
+		void DestroyNativeData (void* handle);
 	}
 
 	/// <summary>
@@ -38,27 +47,22 @@ namespace Swift.Interop
 		byte []? data;
 		int offset;
 
-		protected bool Disposed { get; private set; }
-
 		protected bool NativeDataInitialized => data != null;
 
-		void ISwiftFieldExposable.SetData (byte [] data, int offset)
+		// HACK: When Swift calls us back (e.g. View.Body), we overwrite our
+		//  native data array so we are operating on the new data...
+		internal void OverwriteNativeData (void* newData)
 		{
-			Debug.Assert (offset > 0);
-			if (Disposed)
-				return;
-			if (NativeDataInitialized)
-				throw new InvalidOperationException ();
-			this.data = data;
-			this.offset = offset;
-			InitNativeData (data, offset);
+			// FIXME: Figure out the ownership semantics.. I think this DestroyNativeData
+			//  is wrong, since we theoretically already passed it owned previously
+			fixed (void* dest = &data! [offset]) {
+				DestroyNativeData (dest);
+				SwiftStructType.Transfer (dest, newData, TransferFuncType.InitWithCopy);
+			}
 		}
 
 		public MemoryHandle GetHandle ()
 		{
-			if (Disposed)
-				throw new ObjectDisposedException (GetType ().FullName);
-
 			if (data == null) {
 				Debug.Assert (offset == 0);
 				data = new byte [SwiftStructType.NativeDataSize];
@@ -74,6 +78,18 @@ namespace Swift.Interop
 			return new MemoryHandle ((byte*)gch.AddrOfPinnedObject () + offset, gch);
 		}
 
+		/// <summary>
+		/// Initializes our native data in the given buffer.
+		/// </summary>
+		void ISwiftFieldExposable.InitNativeData (byte [] data, int offset)
+		{
+			if (NativeDataInitialized)
+				throw new InvalidOperationException ();
+			this.data = data;
+			this.offset = offset;
+			InitNativeData (data, offset);
+		}
+
 		protected virtual void InitNativeData (byte [] data, int offset)
 		{
 			fixed (void* handle = &data [offset])
@@ -83,14 +99,14 @@ namespace Swift.Interop
 		protected virtual void InitNativeData (void* handle)
 			=> throw new NotImplementedException ();
 
+		void ISwiftFieldExposable.DestroyNativeData (void* handle)
+			=> DestroyNativeData (handle);
+
 		protected virtual void DestroyNativeData (void* handle)
 			=> SwiftStructType.Destroy (handle);
 
 		public virtual T Copy ()
 		{
-			if (Disposed)
-				throw new ObjectDisposedException (GetType ().FullName);
-
 			var copy = (T)MemberwiseClone ();
 
 			if (data != null) {
@@ -103,10 +119,8 @@ namespace Swift.Interop
 			return copy;
 		}
 
-		public virtual void Dispose ()
+		public void Dispose ()
 		{
-			Disposed = true;
-
 			if (data != null) {
 				fixed (void* handle = &data [offset])
 					DestroyNativeData (handle);

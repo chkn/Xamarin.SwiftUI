@@ -182,7 +182,7 @@ namespace Swift.Interop
 				TypeCode.Int16 => SwiftCoreLib.Types.Int16,
 				TypeCode.Int32 => SwiftCoreLib.Types.Int32,
 				// FIXME: ...
-				_ => type.GetProperty ("SwiftType", BindingFlags.Public | BindingFlags.Static)?.GetValue (null) as SwiftType
+				_ => type.GetProperty ("SwiftType", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)?.GetValue (null) as SwiftType
 			};
 
 		internal static string Mangle (string module, string name)

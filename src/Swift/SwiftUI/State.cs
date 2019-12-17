@@ -21,9 +21,6 @@ namespace SwiftUI
 
 		public unsafe TValue Value {
 			get {
-				if (Disposed)
-					throw new ObjectDisposedException (GetType ().FullName);
-
 				// Don't force premature initialization- in the common case we're in a custom view,
 				//  it will init us when it's ready..
 				if (!NativeDataInitialized)
@@ -41,9 +38,6 @@ namespace SwiftUI
 				}
 			}
 			set {
-				if (Disposed)
-					throw new ObjectDisposedException (GetType ().FullName);
-
 				// Don't force premature initialization- in the common case we're in a custom view,
 				//  it will init us when it's ready..
 				if (!NativeDataInitialized) {

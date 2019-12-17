@@ -17,6 +17,6 @@ namespace Swift {
 
 		IntPtr _bodyProtocolWitness;
 		public IntPtr BodyProtocolWitness
-			=> _bodyProtocolWitness == IntPtr.Zero ? (_bodyProtocolWitness = RequireSymbol ("swiftui_ThunkView_body")) : _bodyProtocolWitness;
+			=> _bodyProtocolWitness == IntPtr.Zero ? (_bodyProtocolWitness = RequireSymbol ("$s11SwiftUIGlue9ThunkViewV4bodyq_vg")) : _bodyProtocolWitness;
 	}
 }

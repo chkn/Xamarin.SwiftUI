@@ -54,7 +54,7 @@ fileprivate class DelegateBox {
 }
 
 //
-// Struct return pointer is passed in rax.
+// Indirectly returned struct: return pointer is passed in rax.
 // Closure contexts passed in r13
 //
 @_silgen_name("swiftui_Button_action_label")
@@ -65,7 +65,7 @@ public func Button_action_label<T: View>(dest : UnsafeMutablePointer<Button<T>>,
 }
 
 //
-// Struct return pointer is passed in rax.
+// Indirectly returned struct: return pointer is passed in rax.
 //
 @_silgen_name("swiftui_State_initialValue")
 public func State_initialValue<T>(dest : UnsafeMutablePointer<State<T>>, initialValue : __owned T)
@@ -74,17 +74,18 @@ public func State_initialValue<T>(dest : UnsafeMutablePointer<State<T>>, initial
 }
 
 //
-// Non-static sized struct pointer passed in r13
+// Non-static sized struct: pointer passed in r13
 //
 // HACK: This doesn't quite do what we need, so we alias a helper function
 //  that the Swift compiler generates to swiftui_State_wrappedValue_setter
+//  NOTE: Must be built in Release to get that helper emitted by the compiler!
 public func State_wrappedValue_setter<T>(state : __owned State<T>, value : __owned T)
 {
 	state.wrappedValue = value
 }
 
 //
-// Non-static sized struct pointer passed in r13
+// Non-static sized struct: pointer passed in r13
 //
 @_silgen_name("swiftui_State_wrappedValue_getter")
 public func State_wrappedValue_getter<T>(dest : UnsafeMutablePointer<T>, state : UnsafePointer<State<T>>)
@@ -96,26 +97,26 @@ public func State_wrappedValue_getter<T>(dest : UnsafeMutablePointer<T>, state :
 // Class methods: Context register is used for pointer to type metadata
 //
 @_silgen_name("swiftui_NSHostingView_rootView")
-public func NSHostingView_rootView<T: View>( root : __owned T) -> NSHostingView<T>
+public func NSHostingView_rootView<T: View>(root : __owned T) -> NSHostingView<T>
 {
 	return NSHostingView(rootView: root)
 }
 
 //
-// Protocol witness gets self in context register
+// Protocol witness: gets self in context register
 //
-public struct ThunkView<T: View>: View {
-	let gcHandle: UnsafeRawPointer
+public struct ThunkView<U, T: View>: View {
+	let viewData: U
 
 	public var body: T {
 		let resultPtr = UnsafeMutablePointer<T>.allocate(capacity: 1)
 		defer { resultPtr.deallocate() }
-		bodyFn!(UnsafeRawPointer(resultPtr), gcHandle)
+		withUnsafePointer(to: viewData, { bodyFn!(UnsafeRawPointer(resultPtr), UnsafeRawPointer($0)) })
 		return resultPtr.move()
 	}
 }
 
-public typealias BodyFn = @convention(c) (UnsafeRawPointer, UnsafeRawPointer) -> Void // (TBody*, GCHandle*) -> Void
+public typealias BodyFn = @convention(c) (UnsafeRawPointer, UnsafeRawPointer) -> Void // (TBody*, CustomViewData*) -> Void
 var bodyFn: BodyFn?
 
 @_silgen_name("swiftui_ThunkView_setBodyFn")
