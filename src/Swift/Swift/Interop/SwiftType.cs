@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+using SwiftUI.Interop;
+
 namespace Swift.Interop
 {
 	using static TransferFuncType;
@@ -140,7 +142,7 @@ namespace Swift.Interop
 			checked {
 				Debug.Assert (Metadata->TypeDescriptor->Name == GetSwiftTypeName (managedType), $"unexpected name: {Metadata->TypeDescriptor->Name}");
 				Debug.Assert (Metadata->Kind == MetadataKind.OfType (managedType), $"unexpected kind: {Metadata->Kind}");
-				Debug.Assert ((int)ValueWitnessTable->Size == Marshal.SizeOf (managedType), $"unexpected size: {ValueWitnessTable->Size}");
+				Debug.Assert (!managedType.IsValueType || (int)ValueWitnessTable->Size == Marshal.SizeOf (managedType), $"unexpected size: {ValueWitnessTable->Size}");
 			}
 		}
 
@@ -183,6 +185,7 @@ namespace Swift.Interop
 				TypeCode.Int32 => SwiftCoreLib.Types.Int32,
 				// FIXME: ...
 				_ => type.GetProperty ("SwiftType", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)?.GetValue (null) as SwiftType
+				  ?? CustomViewType.Of (type)
 			};
 
 		internal static string Mangle (string module, string name)

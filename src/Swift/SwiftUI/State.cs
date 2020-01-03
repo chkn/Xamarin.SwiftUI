@@ -9,9 +9,9 @@ namespace SwiftUI
 {
 	using static State;
 
-	public sealed class State<TValue> : SwiftStruct<State<TValue>>
+	public sealed class State<TValue> : SwiftStruct
 	{
-		static SwiftType ValueType => Swift.Interop.SwiftType.Of (typeof (TValue)) ??
+		static SwiftType ValueType { get; } = SwiftType.Of (typeof (TValue)) ??
 			throw new ArgumentException ("Expected SwiftType", nameof (TValue));
 
 		public static SwiftType SwiftType { get; } = SwiftUILib.Types.State (ValueType);

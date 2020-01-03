@@ -8,10 +8,9 @@ namespace Swift.Interop
 	unsafe interface ISwiftFieldExposable : ISwiftValue
 	{
 		/// <summary>
-		/// Initializes the native data for this Swift type in the given array
-		///  at the given offset.
+		/// Initializes the native data for this Swift type.
 		/// </summary>
-		void InitNativeData (byte [] data, int offset);
+		void InitNativeData (void* handle);
 
 		/// <summary>
 		/// Destroys the native data at the given location.
@@ -20,18 +19,29 @@ namespace Swift.Interop
 	}
 
 	/// <summary>
-	/// A base class used to implement a Swift struct as a reference type,
-	///  generally because we are unable to model the type as a managed value type.
+	/// A base class used to implement a Swift struct as a reference type.
 	/// </summary>
 	/// <remarks>
-	/// Generally, it is preferable to bind Swift structs as managed value types.
-	///  However, there are cases where this is not possible, such as when dealing
-	///  with generic Swift structs that are not statically sized. This class is also
-	///  used in cases where fields must be exposed in Swift metadata, since it
-	///  can either be backed by memory it owns, or by a pointer to an external buffer.
+	/// It is possible to bind a Swift struct as a managed value type, but this
+	///  is only safe in the case of POD types. Otherwise, we need to ensure that
+	///  ownership is handled correctly, which we can only do reliably with a
+	///  class that is finalizable, such as this one.
+	/// <para/>
+	/// There are other cases where Swift structs must be reflected as a managed class,
+	///  such as when dealing with generic Swift structs that are not statically sized,
+	///  when fields must be exposed in Swift metadata, or when the Swift struct is
+	///  non-movable (<see cref="ValueWitnessTable.IsNonBitwiseTakable"/>).
+	/// <para/>
+	/// An instance of this class can own a single copy of the Swift struct data, but other
+	///  copies may be created when passing the value to Swift. It is also possible for an
+	///  instance of this class to not own its own data. This happens when the instance
+	///  represents a field in a larger struct. In that case, the <see cref="SwiftStruct"/>
+	///  instance representing the outer struct owns the data.
+	/// <para/>
+	/// When an instance of this class does own its data, the data is deinitialized and
+	///  deallocated when this instance is disposed or finalized.
 	/// </remarks>
-	public unsafe abstract class SwiftStruct<T> : ISwiftFieldExposable
-		where T : SwiftStruct<T>
+	public unsafe abstract class SwiftStruct : ISwiftFieldExposable
 	{
 		// implementing classes must add, by convention:
 		// public static SwiftType SwiftType { get; }
@@ -39,93 +49,62 @@ namespace Swift.Interop
 		protected abstract SwiftType SwiftStructType { get; } // => SwiftType;
 		SwiftType ISwiftValue.SwiftType => SwiftStructType;
 
-		// We either store our own data or have a pointer to external data
-		//  (e.g. a Swift field in a custom type), represented as an offset into
-		//  someone else's data.
-		// Using a byte array for the view's data allows the GC to collect it,
-		//  so we don't need to dispose if the value ownership is moved to native
-		byte []? data;
-		int offset;
+		// This is a tagged pointer that indicates whether we allocated the memory or not.
+		TaggedPointer data;
 
 		protected bool NativeDataInitialized => data != null;
+
+		public MemoryHandle GetHandle ()
+		{
+			if (data == null) {
+				data = TaggedPointer.AllocHGlobal (SwiftStructType.NativeDataSize);
+				try {
+					InitNativeData (data.Pointer);
+				} catch {
+					data = default;
+					throw;
+				}
+			}
+			return new MemoryHandle (data.Pointer);
+		}
+
+		void ISwiftFieldExposable.InitNativeData (void* handle)
+		{
+			if (NativeDataInitialized)
+				throw new InvalidOperationException ();
+			data = new TaggedPointer (handle, owned: false);
+			InitNativeData (handle);
+		}
+
+		protected abstract void InitNativeData (void* handle);
 
 		// HACK: When Swift calls us back (e.g. View.Body), we overwrite our
 		//  native data array so we are operating on the new data...
 		internal void OverwriteNativeData (void* newData)
 		{
-			// FIXME: Figure out the ownership semantics.. I think this DestroyNativeData
-			//  is wrong, since we theoretically already passed it owned previously
-			fixed (void* dest = &data! [offset]) {
-				DestroyNativeData (dest);
-				SwiftStructType.Transfer (dest, newData, TransferFuncType.InitWithCopy);
-			}
+			var dest = data.Pointer;
+			Debug.Assert (dest != null);
+			DestroyNativeData (dest);
+			SwiftStructType.Transfer (dest, newData, TransferFuncType.InitWithCopy);
 		}
-
-		public MemoryHandle GetHandle ()
-		{
-			if (data == null) {
-				Debug.Assert (offset == 0);
-				data = new byte [SwiftStructType.NativeDataSize];
-				try {
-					InitNativeData (data, 0);
-				} catch {
-					data = null;
-					throw;
-				}
-			}
-
-			var gch = GCHandle.Alloc (data, GCHandleType.Pinned);
-			return new MemoryHandle ((byte*)gch.AddrOfPinnedObject () + offset, gch);
-		}
-
-		/// <summary>
-		/// Initializes our native data in the given buffer.
-		/// </summary>
-		void ISwiftFieldExposable.InitNativeData (byte [] data, int offset)
-		{
-			if (NativeDataInitialized)
-				throw new InvalidOperationException ();
-			this.data = data;
-			this.offset = offset;
-			InitNativeData (data, offset);
-		}
-
-		protected virtual void InitNativeData (byte [] data, int offset)
-		{
-			fixed (void* handle = &data [offset])
-				InitNativeData (handle);
-		}
-
-		protected virtual void InitNativeData (void* handle)
-			=> throw new NotImplementedException ();
 
 		void ISwiftFieldExposable.DestroyNativeData (void* handle)
 			=> DestroyNativeData (handle);
 
-		protected virtual void DestroyNativeData (void* handle)
+		/// <summary>
+		/// Destroys (deinit) native data, but does not deallocate it.
+		/// </summary>
+		protected internal virtual void DestroyNativeData (void* handle)
 			=> SwiftStructType.Destroy (handle);
-
-		public virtual T Copy ()
-		{
-			var copy = (T)MemberwiseClone ();
-
-			if (data != null) {
-				copy.data = new byte [SwiftStructType.NativeDataSize];
-				fixed (void* src = &data [offset])
-				fixed (void* dest = &copy.data [0])
-					SwiftStructType.Transfer (dest, src, TransferFuncType.InitWithCopy);
-			}
-
-			return copy;
-		}
 
 		public void Dispose ()
 		{
-			if (data != null) {
-				fixed (void* handle = &data [offset])
-					DestroyNativeData (handle);
-				data = null;
-			}
+			if (data.IsOwned)
+				DestroyNativeData (data.Pointer);
+			data.Dispose ();
+			GC.SuppressFinalize (this);
 		}
+
+		~SwiftStruct () => Dispose ();
 	}
 }

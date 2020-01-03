@@ -58,7 +58,7 @@ fileprivate class DelegateBox {
 // Closure contexts passed in r13
 //
 @_silgen_name("swiftui_Button_action_label")
-public func Button_action_label<T: View>(dest : UnsafeMutablePointer<Button<T>>, action : Delegate, label : __owned T)
+public func Button_action_label<T: View>(dest : UnsafeMutablePointer<Button<T>>, action : Delegate, label : T)
 {
 	let del = DelegateBox(action)
 	dest.initialize(to: Button<T>(action: del.invoke, label: { label }))
@@ -68,7 +68,7 @@ public func Button_action_label<T: View>(dest : UnsafeMutablePointer<Button<T>>,
 // Indirectly returned struct: return pointer is passed in rax.
 //
 @_silgen_name("swiftui_State_initialValue")
-public func State_initialValue<T>(dest : UnsafeMutablePointer<State<T>>, initialValue : __owned T)
+public func State_initialValue<T>(dest : UnsafeMutablePointer<State<T>>, initialValue : T)
 {
 	dest.initialize(to: State<T>(initialValue: initialValue))
 }
@@ -79,6 +79,7 @@ public func State_initialValue<T>(dest : UnsafeMutablePointer<State<T>>, initial
 // HACK: This doesn't quite do what we need, so we alias a helper function
 //  that the Swift compiler generates to swiftui_State_wrappedValue_setter
 //  NOTE: Must be built in Release to get that helper emitted by the compiler!
+//   -> In the helper, "value" is passed guaranteed, not owned
 public func State_wrappedValue_setter<T>(state : __owned State<T>, value : __owned T)
 {
 	state.wrappedValue = value
@@ -97,7 +98,7 @@ public func State_wrappedValue_getter<T>(dest : UnsafeMutablePointer<T>, state :
 // Class methods: Context register is used for pointer to type metadata
 //
 @_silgen_name("swiftui_NSHostingView_rootView")
-public func NSHostingView_rootView<T: View>(root : __owned T) -> NSHostingView<T>
+public func NSHostingView_rootView<T: View>(root : T) -> NSHostingView<T>
 {
 	return NSHostingView(rootView: root)
 }

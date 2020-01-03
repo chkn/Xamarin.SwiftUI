@@ -11,22 +11,11 @@ namespace SwiftUI
 {
 	public unsafe class NSHostingView : NSView, /*INSUserInterfaceValidations,*/ INSDraggingSource
 	{
-		public static NSHostingView Create (IView view)
+		public static NSHostingView Create (View view)
 		{
 			using (var handle = view.GetHandle ())
-				return Create (handle.Pointer, view.SwiftType);
+				return Create (handle.Pointer, view.ViewType);
 		}
-
-		public static NSHostingView Create<T> (in T view)
-			where T : unmanaged, IBlittableView<T>
-		{
-			fixed (T* viewPtr = &view)
-				return Create (viewPtr);
-		}
-
-		public static NSHostingView Create<T> (T* view)
-			where T : unmanaged, IBlittableView<T>
-			=> Create (view, view->SwiftType);
 
 		static NSHostingView Create (void* viewData, ViewType swiftType)
 		{

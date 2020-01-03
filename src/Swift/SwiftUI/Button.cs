@@ -10,15 +10,13 @@ namespace SwiftUI
 {
 	using static Button;
 
-	public sealed class Button<TLabel> : SwiftStruct<Button<TLabel>>, IView
-		where TLabel : IView
+	public sealed class Button<TLabel> : View where TLabel : View
 	{
-		static ViewType LabelType => Swift.Interop.SwiftType.Of (typeof (TLabel)) as ViewType ??
+		static ViewType LabelType => ViewType.Of (typeof (TLabel)) ??
 			throw new ArgumentException ("Expected ViewType", nameof (TLabel));
 
 		public static ViewType SwiftType { get; } = SwiftUILib.Types.Button (LabelType);
-		protected override SwiftType SwiftStructType => SwiftType;
-		ViewType IView.SwiftType => SwiftType;
+		protected internal override ViewType ViewType => SwiftType;
 
 		Action action;
 		TLabel label;

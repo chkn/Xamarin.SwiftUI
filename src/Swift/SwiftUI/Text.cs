@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Runtime.InteropServices;
 
 using Swift;
@@ -8,35 +7,27 @@ using SwiftUI.Interop;
 
 namespace SwiftUI
 {
-	[StructLayout (LayoutKind.Sequential)]
-	public readonly struct Text : IBlittableView<Text>
+	public unsafe sealed class Text : View
 	{
 		public static ViewType SwiftType => SwiftUILib.Types.Text;
-		ViewType IView.SwiftType => SwiftUILib.Types.Text;
+		protected internal override ViewType ViewType => SwiftUILib.Types.Text;
 
-		// Opaque data
-		readonly IntPtr p1, p2, p3, p4;
+		string verbatim;
 
-		// FIXME: Remove when this is fixed: https://github.com/mono/mono/issues/17869
-		unsafe MemoryHandle ISwiftValue.GetHandle ()
+		public Text (string verbatim)
 		{
-			var gch = GCHandle.Alloc (this, GCHandleType.Pinned);
-			return new MemoryHandle ((void*)gch.AddrOfPinnedObject (), gch);
+			this.verbatim = verbatim;
 		}
 
-		public Text (string verbatim) : this (new Swift.String (verbatim))
+		protected override void InitNativeData (void* handle)
 		{
+			using (var str = new Swift.String (verbatim))
+				Init (handle, str);
 		}
-
-		public Text (Swift.String verbatim) => Init (out this, verbatim);
-
-		public Text Copy () => SwiftType.Transfer (in this, TransferFuncType.InitWithCopy);
-
-		public void Dispose () => SwiftType.Destroy (in this);
 
 		[DllImport (SwiftGlueLib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "swiftui_Text_verbatim")]
-		static extern void Init (out Text txt, Swift.String verbatim);
+		static extern void Init (void* result, Swift.String verbatim);
 	}
 }

@@ -3,7 +3,7 @@
 open SwiftUI
 
 type ClickButton() =
-    inherit CustomView<ClickButton>()
+    inherit View()
 
     let clicks = State(0)
     member __.Body =

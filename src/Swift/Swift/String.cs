@@ -8,7 +8,7 @@ using Swift.Interop;
 namespace Swift
 {
 	[StructLayout (LayoutKind.Sequential)]
-	public readonly unsafe struct String : ISwiftBlittableStruct<String>
+	readonly unsafe struct String : ISwiftBlittableStruct<String>, IDisposable
 	{
 		public static SwiftType SwiftType => SwiftCoreLib.Types.String;
 		SwiftType ISwiftValue.SwiftType => SwiftCoreLib.Types.String;
@@ -48,9 +48,9 @@ namespace Swift
 			WithUnsafeBytes (bytes => {
 				unsafe {
 					str = Encoding.UTF8.GetString ((byte*)bytes, len);
-					return (void*)0;
+					return null;
 				}
-			}, (void*)0, arr,
+			}, null, arr,
 				elementType: SwiftCoreLib.Types.Int8.Metadata,
 				resultType: SwiftCoreLib.Types.UnsafeRawPointer.Metadata);
 

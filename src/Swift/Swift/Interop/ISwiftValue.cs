@@ -34,14 +34,11 @@ namespace Swift.Interop
 		///  <see cref="ISwiftValue"/>.
 		/// </summary>
 		/// <remarks>
-		/// Note: this interface doesn't implement IDisposable because this causes
-		///  F# to require the use of the <c>new</c> operator, which harshes our DSL.
-		///
-		/// In the common SwiftUI case, most values we create are moved to native and
-		///  not retained by managed code, so calling <see cref="Dispose"/> is not needed.
-		///  For types where we expect the user will need to call <see cref="Dispose"/>
-		///  explicitly, we'll explicitly implement <see cref="IDisposable"/> in those
-		///  specific cases.
+		/// This interface doesn't implement <see cref="IDisposable"/> because that
+		///  would cause F# to require the use of the <c>new</c> operator, which
+		///  harshes our DSL. In cases where it is important, a finalizer will be
+		///  provided that will automatically dispose of the object if you do not call
+		///  <see cref="Dispose"/>. 
 		/// </remarks>
 		void Dispose ();
 	}

@@ -45,6 +45,9 @@ namespace SwiftUI.Interop
 	//  to make sharing a module and relative pointers easier.
 	unsafe class CustomViewType : ViewType, IDisposable
 	{
+		// lock!
+		static readonly ConditionalWeakTable<Type,CustomViewType> registry = new ConditionalWeakTable<Type,CustomViewType> ();
+
 		ViewProtocolConformanceDescriptor* viewConformanceDesc;
 
 		public override int NativeDataSize { get; }
@@ -53,16 +56,26 @@ namespace SwiftUI.Interop
 
 		readonly SwiftFieldInfo [] swiftFields;
 
-		internal CustomViewType (Type customViewType)
+		public static new CustomViewType? Of (Type customViewType)
+		{
+			if (!customViewType.IsSubclassOf (typeof (View)))
+				return null;
+
+			CustomViewType result;
+			lock (registry) {
+				if (!registry.TryGetValue (customViewType, out result)) {
+					result = new CustomViewType (customViewType);
+					registry.Add (customViewType, result);
+				}
+			}
+			return result;
+		}
+
+		CustomViewType (Type customViewType)
 		{
 			BodyProperty = customViewType.GetProperty ("Body", BindingFlags.Public | BindingFlags.Instance);
-			if (BodyProperty is null || !BodyProperty.CanRead || BodyProperty.CanWrite || BodyProperty.PropertyType.IsInterface ||
-				!typeof (IView).IsAssignableFrom (BodyProperty.PropertyType))
-				throw new ArgumentException ($"CustomView implementations must declare a public, read-only `Body` property returning a concrete type of `{nameof (IView)}`");
-
-			var swiftBodyType = ViewType.Of (BodyProperty.PropertyType);
-			if (swiftBodyType is null)
-				throw new ArgumentException ("Expected ViewType for Body.SwiftType");
+			if (BodyProperty is null || !BodyProperty.CanRead || BodyProperty.CanWrite || !BodyProperty.PropertyType.IsSubclassOf (typeof (View)))
+				throw new ArgumentException ($"View implementations must either override ViewType, or declare a public, read-only `Body` property returning a concrete type of `{nameof (View)}`");
 
 			// Determine fields to expose to Swift
 			var offset = sizeof (CustomViewData);
@@ -88,7 +101,7 @@ namespace SwiftUI.Interop
 
 				var thunkMetadata = (CustomViewMetadata*)fullMetadata;
 				thunkMetadata->ThunkViewU = Metadata;
-				thunkMetadata->ThunkViewT = swiftBodyType.Metadata;
+				thunkMetadata->ThunkViewT = ViewType.Of (BodyProperty.PropertyType)!.Metadata;
 				// Currently unused, so don't force allocation if it's a custom view
 				//thunkMetadata->ThunkViewTViewConformance = swiftBodyType.ViewConformance;
 				thunkMetadata->ThunkViewTViewConformance = null;
@@ -103,11 +116,11 @@ namespace SwiftUI.Interop
 			}
 		}
 
-		public void InitNativeFields (object customView, byte [] data, int offset)
+		public void InitNativeFields (object customView, void* data)
 		{
 			foreach (var fldInfo in swiftFields) {
 				var fld = (ISwiftFieldExposable)fldInfo.Field.GetValue (customView);
-				fld.InitNativeData (data, offset + fldInfo.Offset);
+				fld.InitNativeData ((byte*)data + fldInfo.Offset);
 			}
 		}
 
@@ -166,7 +179,7 @@ namespace SwiftUI.Interop
 		static void* InitWithCopy (void* dest, void* src, TypeMetadata* typeMetadata)
 		{
 			var view = ((CustomViewData*)src)->View;
-			view.SwiftType.Transfer (dest, src, TransferFuncType.InitWithCopy);
+			view.ViewType.Transfer (dest, src, TransferFuncType.InitWithCopy);
 			return dest;
 		}
 		static readonly TransferFunc InitWithCopyDel = InitWithCopy;
@@ -175,7 +188,7 @@ namespace SwiftUI.Interop
 		static void* AssignWithCopy (void* dest, void* src, TypeMetadata* typeMetadata)
 		{
 			var view = ((CustomViewData*)src)->View;
-			view.SwiftType.Transfer (dest, src, TransferFuncType.AssignWithCopy);
+			view.ViewType.Transfer (dest, src, TransferFuncType.AssignWithCopy);
 			return dest;
 		}
 		static readonly TransferFunc AssignWithCopyDel = AssignWithCopy;
@@ -185,7 +198,7 @@ namespace SwiftUI.Interop
 		static void* InitWithTake (void* dest, void* src, TypeMetadata* typeMetadata)
 		{
 			var view = ((CustomViewData*)src)->View;
-			view.SwiftType.Transfer (dest, src, TransferFuncType.InitWithTake);
+			view.ViewType.Transfer (dest, src, TransferFuncType.InitWithTake);
 			return dest;
 		}
 		static readonly TransferFunc InitWithTakeDel = InitWithTake;
@@ -195,7 +208,7 @@ namespace SwiftUI.Interop
 		static void* AssignWithTake (void* dest, void* src, TypeMetadata* typeMetadata)
 		{
 			var view = ((CustomViewData*)src)->View;
-			view.SwiftType.Transfer (dest, src, TransferFuncType.AssignWithTake);
+			view.ViewType.Transfer (dest, src, TransferFuncType.AssignWithTake);
 			return dest;
 		}
 		static readonly TransferFunc AssignWithTakeDel = AssignWithTake;
@@ -319,17 +332,17 @@ namespace SwiftUI.Interop
 		static void Body (void* dest, void* dataPtr)
 		{
 			var data = (CustomViewData*)dataPtr;
-			var view = (ICustomView)GCHandle.FromIntPtr (data->GcHandleToView).Target;
+			var view = (View)GCHandle.FromIntPtr (data->GcHandleToView).Target;
 
 			// HACK: Overwrite our data array with the given native data
 			view.OverwriteNativeData (data);
 
 			// Now, when we call Body, it will operate on the new data
-			var body = (IView)view.SwiftType.BodyProperty.GetValue (view);
+			var body = (View)((CustomViewType)view.ViewType).BodyProperty.GetValue (view);
 
 			// Copy the returned view into dest
 			using (var handle = body.GetHandle ())
-				body.SwiftType.Transfer (dest, handle.Pointer, TransferFuncType.InitWithTake);
+				body.ViewType.Transfer (dest, handle.Pointer, TransferFuncType.InitWithCopy);
 		}
 		static readonly PtrPtrFunc bodyFn = Body;
 

@@ -63,7 +63,7 @@ namespace Swift.Interop
 
 		public static MetadataKinds OfType (Type type)
 		{
-			if (type.IsValueType && !type.IsEnum)
+			if ((type.IsValueType && !type.IsEnum) || type.IsSubclassOf (typeof (SwiftStruct)))
 				return MetadataKinds.Struct;
 			//FIXME:
 			throw new NotImplementedException ();
