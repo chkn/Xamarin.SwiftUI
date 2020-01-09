@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
+    <Compile Include="View.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Swift\Swift.csproj">
