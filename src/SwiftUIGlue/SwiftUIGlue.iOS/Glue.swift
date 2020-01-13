@@ -94,16 +94,14 @@ public func State_wrappedValue_getter<T>(dest : UnsafeMutablePointer<T>, state :
 	dest.initialize(to: state.pointee.wrappedValue)
 }
 
-#if os(macOS)
 //
 // Class methods: Context register is used for pointer to type metadata
 //
-@_silgen_name("swiftui_NSHostingView_rootView")
-public func NSHostingView_rootView<T: View>(root : T) -> NSHostingView<T>
+@_silgen_name("swiftui_UIHostingController_rootView")
+public func UIHostingController_rootView<T: View>(root : T) -> UIHostingController<T>
 {
-	return NSHostingView(rootView: root)
+    return UIHostingController(rootView: root)
 }
-#endif
 
 //
 // Protocol witness: gets self in context register

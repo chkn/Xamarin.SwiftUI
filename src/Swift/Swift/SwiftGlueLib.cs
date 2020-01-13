@@ -2,7 +2,8 @@
 
 using Swift.Interop;
 
-namespace Swift {
+namespace Swift
+{
 
 	// FIXME: Remove this when mono supports Swift's calling convention
 	public class SwiftGlueLib : NativeLib
@@ -11,12 +12,17 @@ namespace Swift {
 
 		public static SwiftGlueLib Pointers { get; } = new SwiftGlueLib ();
 
-		SwiftGlueLib () : base (Path)
+		internal SwiftGlueLib () : base (Path)
 		{
 		}
 
 		IntPtr _bodyProtocolWitness;
 		public IntPtr BodyProtocolWitness
 			=> _bodyProtocolWitness == IntPtr.Zero ? (_bodyProtocolWitness = RequireSymbol ("$s11SwiftUIGlue9ThunkViewV4bodyq_vg")) : _bodyProtocolWitness;
+	}
+
+	public class SwiftGlueiOSLib : SwiftGlueLib
+	{
+		public new const string Path = "libSwiftUIGlue_IOS.dylib";
 	}
 }
