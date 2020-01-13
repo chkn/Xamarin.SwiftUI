@@ -34,41 +34,62 @@ namespace SwiftUI
 	/// </remarks>
 	public unsafe abstract class View : SwiftStruct
 	{
-		ViewType? viewType;
-		protected internal virtual ViewType ViewType => viewType ?? (viewType = CustomViewType.Of (GetType ())!);
+		SwiftType? viewType;
+		public virtual SwiftType ViewType => viewType ??= SwiftType.Of (GetType ())!;
 		protected sealed override SwiftType SwiftStructType => ViewType;
+
+		// by convention:
+		//public abstract TBody Body { get; }
 
 		// non-null if this is a custom (managed) View implementation
 		CustomViewType? CustomViewType => ViewType as CustomViewType;
 
 		GCHandle gch;
-		long refCount = 0; // controls the lifetime of the GCHandle
-		internal void AddRef () => Interlocked.Increment (ref refCount);
+		long refCount = 0; // number of refs passed to native code
 
-		// by convention:
-		//public abstract TBody Body { get; }
+		internal void AddRef ()
+		{
+			// When the ref count goes to 1, we know that native code is making
+			//  a copy of our data, so convert to normal GCHandle to retain our
+			//  managed instance..
+			if (Interlocked.Increment (ref refCount) == 1)
+				SetGCHandle (data.Pointer, GCHandleType.Normal);
+		}
+
+		internal void UnRef ()
+		{
+			// When ref count goes back to 0, native code is no longer holding
+			//  any copies of our data, so we can convert the GCHandle back to
+			//  weak to allow us to be collected...
+			if (Interlocked.Decrement (ref refCount) == 0)
+				SetGCHandle (data.Pointer, GCHandleType.Weak);
+		}
 
 		protected override void InitNativeData (void* handle)
 		{
 			var cvt = CustomViewType;
 			Debug.Assert (cvt != null, "View bindings must override InitNativeData and not call base");
 
-			gch = GCHandle.Alloc (this);
-			((CustomViewData*)handle)->GcHandleToView = GCHandle.ToIntPtr (gch);
+			// First alloc a weak GCHandle, since we don't know if native code will
+			//  make a copy or not...
+			SetGCHandle (handle, GCHandleType.Weak);
 			cvt.InitNativeFields (this, handle);
 		}
 
-		protected internal override void DestroyNativeData (void* handle)
+		protected override void Dispose (bool disposing)
 		{
-			var cvt = CustomViewType;
-			if (cvt == null) {
-				base.DestroyNativeData (handle);
-			} else {
-				// Do not call base here, as the VWT implementation simply calls back to Dispose
-				cvt.DestroyNativeFields (this, handle);
-				if (gch.IsAllocated && Interlocked.Decrement (ref refCount) <= 0)
-					gch.Free ();
-			}
+			base.Dispose (disposing);
+			if (gch.IsAllocated)
+				gch.Free ();
+		}
+
+		void SetGCHandle (void* handle, GCHandleType type)
+		{
+			if (gch.IsAllocated)
+				gch.Free ();
+			gch = GCHandle.Alloc (this, type);
+			var ptr = GCHandle.ToIntPtr (gch);
+			((CustomViewData*)handle)->GcHandleToView = ptr;
 		}
 	}
 }

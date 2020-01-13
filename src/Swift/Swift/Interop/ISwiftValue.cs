@@ -86,7 +86,7 @@ namespace Swift.Interop
 		/// Returns an <see cref="ISwiftValue"/> representing the given object.
 		/// </summary>
 		/// <param name="obj">The manage object to bridge to Swift</param>
-		/// <exception cref="ArgumentException">Thrownhe given managed object cannot
+		/// <exception cref="ArgumentException">Thrown when the given managed object cannot
 		///  be directly bridged to Swift</exception>
 		public static ISwiftValue? ToSwiftValue (this object? obj)
 		{
@@ -94,6 +94,9 @@ namespace Swift.Interop
 
 			case null: return null;
 			case ISwiftValue swiftValue: return swiftValue;
+
+			// FIXME: This might leak; we should maybe box this into a custom box that
+			//  has a finalizer?
 			case string val: return new Swift.String (val);
 			}
 

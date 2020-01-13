@@ -17,9 +17,9 @@ namespace SwiftUI
 				return Create (handle.Pointer, view.ViewType);
 		}
 
-		static NSHostingView Create (void* viewData, ViewType swiftType)
+		static NSHostingView Create (void* viewData, SwiftType swiftType)
 		{
-			var obj = new NSHostingView (Init (viewData, swiftType.Metadata, swiftType.ViewConformance));
+			var obj = new NSHostingView (Init (viewData, swiftType.Metadata, swiftType.GetProtocolConformance (SwiftUILib.Types.View)));
 			// release extra ref added by Xamarin runtime
 			obj.DangerousRelease ();
 			return obj;

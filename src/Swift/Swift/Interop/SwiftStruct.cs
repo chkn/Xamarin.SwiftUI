@@ -8,14 +8,9 @@ namespace Swift.Interop
 	unsafe interface ISwiftFieldExposable : ISwiftValue
 	{
 		/// <summary>
-		/// Initializes the native data for this Swift type.
+		/// Initializes the native data for this Swift type at the given location.
 		/// </summary>
 		void InitNativeData (void* handle);
-
-		/// <summary>
-		/// Destroys the native data at the given location.
-		/// </summary>
-		void DestroyNativeData (void* handle);
 	}
 
 	/// <summary>
@@ -50,7 +45,7 @@ namespace Swift.Interop
 		SwiftType ISwiftValue.SwiftType => SwiftStructType;
 
 		// This is a tagged pointer that indicates whether we allocated the memory or not.
-		TaggedPointer data;
+		private protected TaggedPointer data;
 
 		protected bool NativeDataInitialized => data != null;
 
@@ -84,27 +79,18 @@ namespace Swift.Interop
 		{
 			var dest = data.Pointer;
 			Debug.Assert (dest != null);
-			DestroyNativeData (dest);
-			SwiftStructType.Transfer (dest, newData, TransferFuncType.InitWithCopy);
+			SwiftStructType.Transfer (dest, newData, TransferFuncType.AssignWithCopy);
 		}
 
-		void ISwiftFieldExposable.DestroyNativeData (void* handle)
-			=> DestroyNativeData (handle);
-
-		/// <summary>
-		/// Destroys (deinit) native data, but does not deallocate it.
-		/// </summary>
-		protected internal virtual void DestroyNativeData (void* handle)
-			=> SwiftStructType.Destroy (handle);
-
-		public void Dispose ()
+		protected virtual void Dispose (bool disposing)
 		{
 			if (data.IsOwned)
-				DestroyNativeData (data.Pointer);
+				SwiftStructType.Destroy (data.Pointer);
 			data.Dispose ();
 			GC.SuppressFinalize (this);
 		}
 
-		~SwiftStruct () => Dispose ();
+		public void Dispose () => Dispose (true);
+		~SwiftStruct () => Dispose (false);
 	}
 }
