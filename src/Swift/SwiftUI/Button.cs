@@ -12,11 +12,11 @@ namespace SwiftUI
 
 	public sealed class Button<TLabel> : View where TLabel : View
 	{
-		static ViewType LabelType => ViewType.Of (typeof (TLabel)) ??
-			throw new ArgumentException ("Expected ViewType", nameof (TLabel));
+		static SwiftType LabelType => Swift.Interop.SwiftType.Of (typeof (TLabel)) ??
+			throw new ArgumentException ("Expected SwiftType", nameof (TLabel));
 
-		public static ViewType SwiftType { get; } = SwiftUILib.Types.Button (LabelType);
-		protected internal override ViewType ViewType => SwiftType;
+		public static SwiftType SwiftType { get; } = SwiftUILib.Types.Button (LabelType);
+		public override SwiftType ViewType => SwiftType;
 
 		Action action;
 		TLabel label;
@@ -31,7 +31,7 @@ namespace SwiftUI
 		{
 			var ctx = GCHandle.ToIntPtr (GCHandle.Alloc (action));
 			using (var labelData = label.GetHandle ())
-				Init (handle, OnActionDel, OnDisposeDel, ctx, labelData.Pointer, LabelType.Metadata, LabelType.ViewConformance);
+				Init (handle, OnActionDel, OnDisposeDel, ctx, labelData.Pointer, LabelType.Metadata, LabelType.GetProtocolConformance (SwiftUILib.Types.View));
 		}
 	}
 

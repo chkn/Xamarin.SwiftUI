@@ -9,8 +9,8 @@ namespace SwiftUI
 {
 	public unsafe sealed class Text : View
 	{
-		public static ViewType SwiftType => SwiftUILib.Types.Text;
-		protected internal override ViewType ViewType => SwiftUILib.Types.Text;
+		public static SwiftType SwiftType => SwiftUILib.Types.Text;
+		public override SwiftType ViewType => SwiftUILib.Types.Text;
 
 		string verbatim;
 

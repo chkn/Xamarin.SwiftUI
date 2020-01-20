@@ -5,7 +5,10 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
+// FIXME: Break this backward dep
+using SwiftUI;
 using SwiftUI.Interop;
 
 namespace Swift.Interop
@@ -30,6 +33,29 @@ namespace Swift.Interop
 		AssignWithTake
 	};
 
+	public static class TransferFuncTypeEx
+	{
+		public static bool IsCopy (this TransferFuncType tft)
+		{
+			switch (tft) {
+			case InitWithCopy:
+			case AssignWithCopy:
+				return true;
+			}
+			return false;
+		}
+
+		public static bool IsAssign (this TransferFuncType tft)
+		{
+			switch (tft) {
+			case AssignWithCopy:
+			case AssignWithTake:
+				return true;
+			}
+			return false;
+		}
+	}
+
 	public unsafe class SwiftType
 	{
 		protected FullTypeMetadata* fullMetadata;
@@ -43,12 +69,14 @@ namespace Swift.Interop
 		DestroyFunc? _destroy;
 		TransferFunc? _copyInit;
 		TransferFunc? _moveInit;
+		TransferFunc? _copyAssign;
 
 		TransferFunc GetTransferFunc (TransferFuncType type)
 			=> type switch
 			{
 				InitWithCopy => _copyInit ??= Marshal.GetDelegateForFunctionPointer<TransferFunc> (ValueWitnessTable->InitWithCopy),
 				InitWithTake => _moveInit ??= Marshal.GetDelegateForFunctionPointer<TransferFunc> (ValueWitnessTable->InitWithTake),
+				AssignWithCopy => _copyAssign ??= Marshal.GetDelegateForFunctionPointer<TransferFunc> (ValueWitnessTable->AssignWithCopy),
 				_ => throw new NotImplementedException (type.ToString ())
 			};
 
@@ -125,7 +153,7 @@ namespace Swift.Interop
 			return (byte*)ptr;
 		}
 
-		// Only used by CustomViewType
+		// Only used by ManagedSwiftType
 		private protected SwiftType ()
 		{
 		}
@@ -168,6 +196,9 @@ namespace Swift.Interop
 		{
 		}
 
+		// lock!
+		static readonly ConditionalWeakTable<Type, SwiftType> registry = new ConditionalWeakTable<Type, SwiftType> ();
+
 		/// <summary>
 		/// Returns the <see cref="SwiftType"/> of the given <see cref="Type"/>.
 		/// </summary>
@@ -177,16 +208,27 @@ namespace Swift.Interop
 		//
 		// Sync with SwiftValue.ToSwiftValue
 		public static SwiftType? Of (Type type)
-			=> Type.GetTypeCode (type) switch
-			{
-				TypeCode.String => SwiftCoreLib.Types.String,
-				TypeCode.Byte => SwiftCoreLib.Types.Int8,
-				TypeCode.Int16 => SwiftCoreLib.Types.Int16,
-				TypeCode.Int32 => SwiftCoreLib.Types.Int32,
-				// FIXME: ...
-				_ => type.GetProperty ("SwiftType", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)?.GetValue (null) as SwiftType
-				  ?? CustomViewType.Of (type)
-			};
+		{
+			SwiftType? result;
+			lock (registry) {
+				if (!registry.TryGetValue (type, out result)) {
+					result = Type.GetTypeCode (type) switch
+					{
+						TypeCode.String => SwiftCoreLib.Types.String,
+						TypeCode.Byte => SwiftCoreLib.Types.Int8,
+						TypeCode.Int16 => SwiftCoreLib.Types.Int16,
+						TypeCode.Int32 => SwiftCoreLib.Types.Int32,
+						// FIXME: ...
+						_ => type.GetProperty ("SwiftType", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)?.GetValue (null) as SwiftType
+					};
+					if (result == null && type.IsSubclassOf (typeof (View)))
+						result = new CustomViewType (type);
+					if (result != null)
+						registry.Add (type, result);
+				}
+			}
+			return result;
+		}
 
 		internal static string Mangle (string module, string name)
 			=> (module == "Swift" ? "s" : module.Length + module) + name.Length + name;
@@ -207,11 +249,12 @@ namespace Swift.Interop
 		}
 
 		internal static SwiftTypeCode GetSwiftTypeCode (Type ty)
-		{
-			if (ty.IsClass) return SwiftTypeCode.Class;
-			if (ty.IsValueType) return SwiftTypeCode.Struct;
-			throw new NotSupportedException (ty.FullName);
-		}
+			=> MetadataKind.OfType (ty) switch
+			{
+				MetadataKinds.Class => SwiftTypeCode.Class,
+				MetadataKinds.Struct => SwiftTypeCode.Struct,
+				_ => throw new NotSupportedException (ty.FullName)
+			};
 
 		public virtual ProtocolWitnessTable* GetProtocolConformance (ProtocolDescriptor* descriptor)
 		{
@@ -226,7 +269,7 @@ namespace Swift.Interop
 			=> Metadata->ToString ();
 #endif
 
-		internal virtual void Transfer (void* dest, void* src, TransferFuncType funcType)
+		protected internal virtual void Transfer (void* dest, void* src, TransferFuncType funcType)
 		{
 			var witness = ValueWitnessTable;
 			if (witness->IsNonPOD) {
@@ -251,7 +294,7 @@ namespace Swift.Interop
 			return result;
 		}
 
-		internal void Destroy (void* data)
+		protected internal virtual void Destroy (void* data)
 		{
 			var witness = ValueWitnessTable;
 			if (witness->IsNonPOD) {

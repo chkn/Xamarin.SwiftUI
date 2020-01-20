@@ -25,11 +25,11 @@ namespace SwiftUI
 
 		#region Types
 
-		ViewType? _text;
-		public ViewType Text => _text ??= new ViewType (this, typeof (Text));
+		SwiftType? _text;
+		public SwiftType Text => _text ??= new SwiftType (this, typeof (Text));
 
-		public ViewType Button (ViewType label)
-			=> new ViewType (GetButtonType (0, label.Metadata, label.ViewConformance), genericArgs: new[] { label });
+		public SwiftType Button (SwiftType label)
+			=> new SwiftType (GetButtonType (0, label.Metadata, label.GetProtocolConformance (View)), genericArgs: new[] { label });
 
 		public SwiftType State (SwiftType value)
 			=> new SwiftType (GetStateType (0, value.Metadata), genericArgs: new[] { value });
