@@ -62,7 +62,7 @@ namespace SwiftUI
 			//  any copies of our data, so we can convert the GCHandle back to
 			//  weak to allow us to be collected...
 			if (Interlocked.Decrement (ref refCount) == 0)
-				SetGCHandle (data.Pointer, GCHandleType.Weak);
+				SetGCHandle (data.Pointer, GCHandleType.WeakTrackResurrection);
 		}
 
 		protected override void InitNativeData (void* handle)
@@ -72,7 +72,7 @@ namespace SwiftUI
 
 			// First alloc a weak GCHandle, since we don't know if native code will
 			//  make a copy or not...
-			SetGCHandle (handle, GCHandleType.Weak);
+			SetGCHandle (handle, GCHandleType.WeakTrackResurrection);
 			cvt.InitNativeFields (this, handle);
 		}
 

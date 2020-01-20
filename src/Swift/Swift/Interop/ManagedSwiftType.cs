@@ -77,7 +77,7 @@ namespace Swift.Interop
 
 				if (kind == MetadataKinds.Struct) {
 					// Store a GCHandle so we can recover our ManagedSwiftType from a TypeMetadata*
-					gch = GCHandle.Alloc (this, GCHandleType.Weak);
+					gch = GCHandle.Alloc (this, GCHandleType.WeakTrackResurrection);
 					var ptr = GCHandle.ToIntPtr (gch);
 					var loc = (IntPtr*)Metadata + GCHandleOffset;
 					*loc = ptr;
