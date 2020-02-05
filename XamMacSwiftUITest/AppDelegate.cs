@@ -5,6 +5,7 @@ using Foundation;
 using CoreGraphics;
 
 using SwiftUI;
+using XamSwiftUITestShared;
 
 namespace XamMacSwiftUITest
 {

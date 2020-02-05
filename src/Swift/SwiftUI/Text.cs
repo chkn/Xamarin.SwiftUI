@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 
 using Swift;
 using Swift.Interop;
-using SwiftUI.Interop;
 
 namespace SwiftUI
 {

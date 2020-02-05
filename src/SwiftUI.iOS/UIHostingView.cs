@@ -5,10 +5,6 @@ using UIKit;
 
 using Swift;
 using Swift.Interop;
-using SwiftUI.Interop;
-using ObjCRuntime;
-
-[assembly: LinkWith("../../../../../../../src/SwiftUIGlue/" + SwiftGlueiOSLib.Path, LinkTarget.Simulator | LinkTarget.Simulator64 | LinkTarget.ArmV7 | LinkTarget.ArmV7s, ForceLoad = true)]
 
 namespace SwiftUI
 {
@@ -22,7 +18,7 @@ namespace SwiftUI
 
 		static UIHostingViewController Create (void* viewData, SwiftType swiftType)
 		{
-			var obj = new UIHostingViewController(Init (viewData, swiftType.Metadata, swiftType.GetProtocolConformance(SwiftUILib.Types.View)));
+			var obj = new UIHostingViewController(Init (viewData, swiftType.Metadata, swiftType.GetProtocolConformance (SwiftUILib.Types.View)));
 			// release extra ref added by Xamarin runtime
 			obj.DangerousRelease ();
 			return obj;
@@ -32,7 +28,7 @@ namespace SwiftUI
 		{
 		}
 
-		[DllImport (SwiftGlueiOSLib.Path,
+		[DllImport (SwiftGlueLib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "swiftui_UIHostingController_rootView")]
 		static extern IntPtr Init (void* viewData, TypeMetadata* viewType, ProtocolWitnessTable* viewConformance);

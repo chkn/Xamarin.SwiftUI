@@ -8,7 +8,7 @@ namespace Swift
 	// FIXME: Remove this when mono supports Swift's calling convention
 	public class SwiftGlueLib : NativeLib
 	{
-		public const string Path = "libSwiftUIGlue.dylib";
+		public const string Path = /*TODO Remove ../ for iOS */ "../Frameworks/SwiftUIGlue.framework/SwiftUIGlue";
 
 		public static SwiftGlueLib Pointers { get; } = new SwiftGlueLib ();
 
@@ -19,10 +19,5 @@ namespace Swift
 		IntPtr _bodyProtocolWitness;
 		public IntPtr BodyProtocolWitness
 			=> _bodyProtocolWitness == IntPtr.Zero ? (_bodyProtocolWitness = RequireSymbol ("$s11SwiftUIGlue9ThunkViewV4bodyq_vg")) : _bodyProtocolWitness;
-	}
-
-	public class SwiftGlueiOSLib : SwiftGlueLib
-	{
-		public new const string Path = "libSwiftUIGlue_IOS.dylib";
 	}
 }

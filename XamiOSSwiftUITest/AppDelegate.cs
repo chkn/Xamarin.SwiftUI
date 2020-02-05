@@ -2,7 +2,9 @@
 
 using Foundation;
 using UIKit;
+
 using SwiftUI;
+using XamSwiftUITestShared;
 
 namespace XamiOSSwiftUITest
 {
@@ -23,10 +25,9 @@ namespace XamiOSSwiftUITest
         [Export("application:didFinishLaunchingWithOptions:")]
         public bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
         {
-            // Override point for customization after application launch.
-            // If not required for your application you can safely delete this method
+            Window = new UIWindow (UIScreen.MainScreen.Bounds);
 
-            Window.RootViewController = UIHostingViewController.Create (new ClickButton());
+            Window.RootViewController = UIHostingViewController.Create (new ClickButton ());
 
             Window.MakeKeyAndVisible ();
             return true;
@@ -39,7 +40,7 @@ namespace XamiOSSwiftUITest
         {
             // Called when a new scene session is being created.
             // Use this method to select a configuration to create the new scene with.
-            return UISceneConfiguration.Create("Default Configuration", connectingSceneSession.Role);
+            return UISceneConfiguration.Create ("Default Configuration", connectingSceneSession.Role);
         }
 
         [Export("application:didDiscardSceneSessions:")]

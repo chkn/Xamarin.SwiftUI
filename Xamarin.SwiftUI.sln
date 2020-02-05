@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwiftUI.iOS", "src\SwiftUI.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XamiOSSwiftUITest", "XamiOSSwiftUITest\XamiOSSwiftUITest.csproj", "{72CBF528-4225-44FC-B9DC-CD34DF3FC6C7}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "XamSwiftUITestShared", "XamSwiftUITestShared\XamSwiftUITestShared.shproj", "{99F5F4F5-135E-46B4-941B-135F3420F1D9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

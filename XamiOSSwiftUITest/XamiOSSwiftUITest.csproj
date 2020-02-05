@@ -126,7 +126,6 @@
     <ItemGroup>
         <Compile Include="Main.cs" />
         <Compile Include="AppDelegate.cs" />
-        <Compile Include="View.cs" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\src\Swift\Swift.csproj">
@@ -138,5 +137,12 @@
         <Name>SwiftUI.iOS</Name>
       </ProjectReference>
     </ItemGroup>
+    <ItemGroup>
+      <NativeReference Include="..\src\SwiftUIGlue\build\Release-iphonesimulator\SwiftUIGlue.framework">
+        <Kind>Framework</Kind>
+        <SmartLink>False</SmartLink>
+      </NativeReference>
+    </ItemGroup>
+    <Import Project="..\XamSwiftUITestShared\XamSwiftUITestShared.projitems" Label="Shared" Condition="Exists('..\XamSwiftUITestShared\XamSwiftUITestShared.projitems')" />
     <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>
