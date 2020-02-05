@@ -13,7 +13,7 @@ all:
 	xcodebuild -project src/SwiftUIGlue/SwiftUIGlue.xcodeproj -target "SwiftUIGlue iOS" -arch x86_64 -sdk iphonesimulator
 
 # - Hardware
-	xcodebuild -project src/SwiftUIGlue/SwiftUIGlue.xcodeproj -target "SwiftUIGlue iOS"
+	# xcodebuild -project src/SwiftUIGlue/SwiftUIGlue.xcodeproj -target "SwiftUIGlue iOS"
 
 # TODO lipo these 2 together
 
@@ -28,7 +28,7 @@ all:
 	xcodebuild -project src/SwiftUIGlue/SwiftUIGlue.xcodeproj -target "SwiftUIGlue tvOS" -arch x86_64 -sdk appletvsimulator
 
 # - Hardware
-	xcodebuild -project src/SwiftUIGlue/SwiftUIGlue.xcodeproj -target "SwiftUIGlue tvOS"
+	# xcodebuild -project src/SwiftUIGlue/SwiftUIGlue.xcodeproj -target "SwiftUIGlue tvOS"
 
 # TODO lipo these 2 together
 
@@ -38,7 +38,7 @@ all:
 	xcodebuild -project src/SwiftUIGlue/SwiftUIGlue.xcodeproj -target "SwiftUIGlue watchOS" -arch x86_64 -sdk watchsimulator
 
 # - Hardware
-	xcodebuild -project src/SwiftUIGlue/SwiftUIGlue.xcodeproj -target "SwiftUIGlue watchOS"
+	# xcodebuild -project src/SwiftUIGlue/SwiftUIGlue.xcodeproj -target "SwiftUIGlue watchOS"
 
 # TODO lipo these 2 together
 

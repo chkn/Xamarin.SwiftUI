@@ -17,13 +17,13 @@ namespace XamiOSSwiftUITest
         public UIWindow Window { get; set; }
 
         [Export("applicationWillTerminate:")]
-        public void WillTerminate(UIApplication application)
+        public void WillTerminate (UIApplication application)
         {
             GC.Collect ();
         }
 
         [Export("application:didFinishLaunchingWithOptions:")]
-        public bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
+        public bool FinishedLaunching (UIApplication application, NSDictionary launchOptions)
         {
             Window = new UIWindow (UIScreen.MainScreen.Bounds);
 

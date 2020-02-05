@@ -9,9 +9,16 @@ using XamSwiftUITestShared;
 
 namespace XamMacSwiftUITest
 {
+	[Register("AppDelegate")]
 	public class AppDelegate : NSApplicationDelegate
 	{
-		public override void DidFinishLaunching (NSNotification notification)
+		public override bool ApplicationShouldTerminateAfterLastWindowClosed(NSApplication sender)
+		{
+			GC.Collect();
+			return true;
+		}
+
+        public override void DidFinishLaunching (NSNotification notification)
 		{
 			var flags = NSWindowStyle.Titled | NSWindowStyle.Closable | NSWindowStyle.Miniaturizable | NSWindowStyle.Resizable | NSWindowStyle.FullSizeContentView;
 			var window = new NSWindow (new CGRect (x: 0, y: 0, width: 480, height: 300), flags, NSBackingStore.Buffered, deferCreation: false);
@@ -21,15 +28,9 @@ namespace XamMacSwiftUITest
 			};
 			window.Center ();
 
-			window.ContentView = NSHostingView.Create (new ClickButton());
+            window.ContentView = NSHostingView.Create (new ClickButton ());
 
-			window.MakeKeyAndOrderFront (null);
+			window.MakeKeyAndOrderFront (this);
 		}
-
-        public override bool ApplicationShouldTerminateAfterLastWindowClosed(NSApplication sender)
-        {
-			GC.Collect();
-			return false;
-        }
     }
 }
