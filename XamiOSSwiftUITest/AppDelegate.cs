@@ -4,26 +4,22 @@ using Foundation;
 using UIKit;
 
 using SwiftUI;
-using XamSwiftUITestShared;
 
 namespace XamiOSSwiftUITest
 {
     // The UIApplicationDelegate for the application. This class is responsible for launching the
     // User Interface of the application, as well as listening (and optionally responding) to application events from iOS.
     [Register("AppDelegate")]
-    public class AppDelegate : UIResponder, IUIApplicationDelegate
+    public class AppDelegate : UIApplicationDelegate
     {
-        [Export("window")]
-        public UIWindow Window { get; set; }
+        public override UIWindow Window { get; set; }
 
-        [Export("applicationWillTerminate:")]
-        public void WillTerminate (UIApplication application)
+        public override void WillTerminate (UIApplication application)
         {
             GC.Collect ();
         }
 
-        [Export("application:didFinishLaunchingWithOptions:")]
-        public bool FinishedLaunching (UIApplication application, NSDictionary launchOptions)
+        public override bool FinishedLaunching (UIApplication application, NSDictionary launchOptions)
         {
             Window = new UIWindow (UIScreen.MainScreen.Bounds);
 
@@ -32,6 +28,13 @@ namespace XamiOSSwiftUITest
             Window.MakeKeyAndVisible ();
             return true;
         }
+    }
+
+    public class ClickButton : View
+    {
+        State<int> counter = new State<int>(0);
+        public Button<Text> Body =>
+            new Button<Text>(() => counter.Value += 1, new Text(string.Format("Clicked {0} times", counter.Value)));
     }
 }
 

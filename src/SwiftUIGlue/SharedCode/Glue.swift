@@ -112,12 +112,11 @@ public func NSHostingView_rootView<T: View>(root : T) -> NSHostingView<T>
 #endif
 
 #if os(watchOS)
-/* TODO @_silgen_name("swiftui_UIHostingController_rootView")
-public func UIHostingController_rootView<T: View>(root : T) -> UIHostingController<T>
+@_silgen_name("swiftui_WKHostingController_rootView")
+public func WKHostingController_rootView<T: View>() -> WKHostingController<T>
 {
-    return UIHostingController(rootView: root)
+    return WKHostingController()
 }
- */
 #endif
 
 //
