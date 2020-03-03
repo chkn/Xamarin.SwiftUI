@@ -5,7 +5,6 @@ using AppKit;
 
 using Swift;
 using Swift.Interop;
-using SwiftUI.Interop;
 
 namespace SwiftUI
 {

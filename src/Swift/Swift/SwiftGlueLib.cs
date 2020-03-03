@@ -2,16 +2,17 @@
 
 using Swift.Interop;
 
-namespace Swift {
+namespace Swift
+{
 
 	// FIXME: Remove this when mono supports Swift's calling convention
 	public class SwiftGlueLib : NativeLib
 	{
-		public const string Path = "libSwiftUIGlue.dylib";
+		public const string Path = /*TODO Remove ../ for iOS */ "../Frameworks/SwiftUIGlue.framework/SwiftUIGlue";
 
 		public static SwiftGlueLib Pointers { get; } = new SwiftGlueLib ();
 
-		SwiftGlueLib () : base (Path)
+		internal SwiftGlueLib () : base (Path)
 		{
 		}
 
