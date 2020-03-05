@@ -16,8 +16,12 @@ namespace Swift
 		{
 		}
 
-		IntPtr _bodyProtocolWitness;
-		public IntPtr BodyProtocolWitness
-			=> _bodyProtocolWitness == IntPtr.Zero ? (_bodyProtocolWitness = RequireSymbol ("$s11SwiftUIGlue9ThunkViewV4bodyq_vg")) : _bodyProtocolWitness;
+		IntPtr _viewBodyProtocolWitness;
+		public IntPtr ViewBodyProtocolWitness
+			=> _viewBodyProtocolWitness == IntPtr.Zero ? (_viewBodyProtocolWitness = RequireSymbol ("$s11SwiftUIGlue9ThunkViewV4bodyq_vg")) : _viewBodyProtocolWitness;
+
+		IntPtr _viewModifierBodyProtocolWitness;
+		public IntPtr ViewModifierBodyProtocolWitness
+			=> _viewModifierBodyProtocolWitness == IntPtr.Zero ? (_viewModifierBodyProtocolWitness = RequireSymbol("$s11SwiftUIGlue9ThunkViewModifierV4bodyq_vg")) : _viewModifierBodyProtocolWitness;
 	}
 }

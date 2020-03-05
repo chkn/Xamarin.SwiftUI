@@ -21,6 +21,9 @@ namespace SwiftUI
 		ProtocolDescriptor* _view;
 		public ProtocolDescriptor* View => _view == null ? (_view = GetProtocol ("SwiftUI", "View")) : _view;
 
+		ProtocolDescriptor* _viewModifier;
+		public ProtocolDescriptor* ViewModifier => _viewModifier == null ? (_viewModifier = GetProtocol("SwiftUI", "ViewModifier")) : _viewModifier;
+
 		#endregion
 
 		#region Types

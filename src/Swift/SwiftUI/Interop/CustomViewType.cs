@@ -96,7 +96,7 @@ namespace SwiftUI.Interop
 				witnessTable,
 				bodyConformance,
 				bodySwiftType.Metadata,
-				SwiftGlueLib.Pointers.BodyProtocolWitness);
+				SwiftGlueLib.Pointers.ViewBodyProtocolWitness);
 
 			return witnessTable;
 		}
@@ -140,13 +140,13 @@ namespace SwiftUI.Interop
 
 		static CustomViewType ()
 		{
-			SetBodyFn (bodyFn);
+			SetViewBodyFn (bodyFn);
 		}
 
 		[DllImport (SwiftGlueLib.Path,
 			CallingConvention = CallingConvention.Cdecl,
-			EntryPoint = "swiftui_ThunkView_setBodyFn")]
-		static extern void SetBodyFn (PtrPtrFunc bodyFn);
+			EntryPoint = "swiftui_ThunkView_setViewBodyFn")]
+		static extern void SetViewBodyFn (PtrPtrFunc bodyFn);
 
 		protected override void Dispose (bool disposing)
 		{

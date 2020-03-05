@@ -123,21 +123,46 @@ public func WKHostingController_rootView<T: View>() -> WKHostingController<T>
 // Protocol witness: gets self in context register
 //
 public struct ThunkView<U, T: View>: View {
+    
     let viewData: U
 
     public var body: T {
         let resultPtr = UnsafeMutablePointer<T>.allocate(capacity: 1)
         defer { resultPtr.deallocate() }
-        withUnsafePointer(to: viewData, { bodyFn!(UnsafeRawPointer(resultPtr), UnsafeRawPointer($0)) })
+        withUnsafePointer(to: viewData, { viewBodyFn!(UnsafeRawPointer(resultPtr), UnsafeRawPointer($0)) })
         return resultPtr.move()
     }
 }
 
-public typealias BodyFn = @convention(c) (UnsafeRawPointer, UnsafeRawPointer) -> Void // (TBody*, CustomViewData*) -> Void
-var bodyFn: BodyFn?
+public typealias ViewBodyFn = @convention(c) (UnsafeRawPointer, UnsafeRawPointer) -> Void // (TBody*, CustomViewData*) -> Void
+var viewBodyFn: ViewBodyFn?
 
-@_silgen_name("swiftui_ThunkView_setBodyFn")
-public func SetBodyFn(value : @escaping BodyFn)
+@_silgen_name("swiftui_ThunkView_setViewBodyFn")
+public func SetViewBodyFn(value : @escaping ViewBodyFn)
 {
-    bodyFn = value
+    viewBodyFn = value
+}
+
+//
+// Protocol witness: gets self in context register
+//
+public struct ThunkViewModifier<U, T: ViewModifier>: ViewModifier {
+    let viewModifierData: U
+
+    public func body(content: _ViewModifier_Content<ThunkViewModifier<U, T>>) -> some View {
+        let resultPtr = UnsafeMutablePointer<T>.allocate(capacity: 1)
+        defer { resultPtr.deallocate() }
+        withUnsafePointer(to: viewModifierData, { viewModifierBodyFn!(UnsafeRawPointer(resultPtr), UnsafeRawPointer($0)) })
+        _ = resultPtr.move()
+        return content
+    }
+}
+
+public typealias ViewModifierBodyFn = @convention(c) (UnsafeRawPointer, UnsafeRawPointer) -> Void // (TBody*, CustomViewData*) -> Void
+var viewModifierBodyFn: ViewModifierBodyFn?
+
+@_silgen_name("swiftui_ThunkViewModifier_setViewModifierBodyFn")
+public func SetViewModifierBodyFn(value : @escaping ViewModifierBodyFn)
+{
+    viewModifierBodyFn = value
 }

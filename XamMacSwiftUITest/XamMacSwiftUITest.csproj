@@ -67,6 +67,7 @@
     <None Include="Entitlements.plist" />
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
+    <Compile Include="ClickModifier.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Swift\Swift.csproj">
