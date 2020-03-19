@@ -46,6 +46,7 @@ namespace SwiftUI.Interop
 		}
 
 		public PropertyInfo BodyProperty { get; }
+		//public PropertyInfo OpacityProperty { get; }
 
 		internal CustomViewType (Type customViewType): base (customViewType, MetadataKinds.Struct)
 		{
@@ -60,6 +61,12 @@ namespace SwiftUI.Interop
 				// Currently unused, so don't force allocation if it's a custom view
 				//thunkMetadata->ThunkViewTViewConformance = swiftBodyType.ViewConformance;
 				thunkMetadata->ThunkViewTViewConformance = null;
+
+				/* TODO OpacityProperty = customViewType.GetProperty("Opacity", BindingFlags.Public | BindingFlags.Instance);
+				var thunkMetadata1 = (CustomViewMetadata*)fullMetadata;
+				thunkMetadata1->ThunkViewU = Metadata;
+				thunkMetadata1->ThunkViewT = SwiftType.Of(OpacityProperty.PropertyType)!.Metadata;
+				thunkMetadata1->ThunkViewTViewConformance = null; */
 			} catch {
 				// Ensure we don't leak allocated unmanaged memory
 				Dispose (true);
@@ -134,19 +141,42 @@ namespace SwiftUI.Interop
 
 			// Copy the returned view into dest
 			using (var handle = body.GetHandle ())
-				body.ViewType.Transfer (dest, handle.Pointer, TransferFuncType.InitWithCopy);
+				body.ViewType.Transfer (dest, handle.Pointer, TransferFuncType.InitWithCopy);  
 		}
 		static readonly PtrPtrFunc bodyFn = Body;
+
+		static void Opacity (void* dest, void* dataPtr)
+		{
+			Console.WriteLine ("Opacity Fn");
+			var data = (CustomViewData*)dataPtr;
+			var view = data->View;
+
+			// HACK: Overwrite our data array with the given native data
+			view.OverwriteNativeData(data);
+
+			//var opacityValue = ((CustomViewType)view.ViewType).OpacityProperty.GetValue(view);
+			
+			// Copy the returned view into dest
+			/*using (var handle = body.GetHandle())
+				body.ViewType.Transfer(dest, handle.Pointer, TransferFuncType.InitWithCopy);*/
+		}
+		static readonly PtrPtrFunc opacityFn = Opacity;
 
 		static CustomViewType ()
 		{
 			SetViewBodyFn (bodyFn);
+			//SetViewOpacityFn (opacityFn);
 		}
 
 		[DllImport (SwiftGlueLib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "swiftui_ThunkView_setViewBodyFn")]
 		static extern void SetViewBodyFn (PtrPtrFunc bodyFn);
+
+		[DllImport(SwiftGlueLib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "swiftui_ThunkView_setViewOpacityFn")]
+		static extern void SetViewOpacityFn(PtrPtrFunc opacityFn);
 
 		protected override void Dispose (bool disposing)
 		{

@@ -101,6 +101,15 @@ public func UIHostingController_rootView<T: View>(root : T) -> UIHostingControll
 {
     return UIHostingController(rootView: root)
 }
+
+//
+// Indirectly returned struct: return pointer is passed in rax.
+//
+@_silgen_name("swiftui_Color_initialValue")
+public func Color_initialValue(dest : UnsafeMutablePointer<Color>, initialValue : UIColor)
+{
+    dest.initialize(to: Color(initialValue))
+}
 #endif
 
 #if os(macOS)
@@ -109,6 +118,15 @@ public func NSHostingView_rootView<T: View>(root : T) -> NSHostingView<T>
 {
     return NSHostingView(rootView: root)
 }
+
+//
+// Indirectly returned struct: return pointer is passed in rax.
+//
+@_silgen_name("swiftui_Color_initialValue")
+public func Color_initialValue(dest : UnsafeMutablePointer<Color>, initialValue : NSColor)
+{
+    dest.initialize(to: Color(initialValue))
+}
 #endif
 
 #if os(watchOS)
@@ -116,6 +134,15 @@ public func NSHostingView_rootView<T: View>(root : T) -> NSHostingView<T>
 public func WKHostingController_rootView<T: View>() -> WKHostingController<T>
 {
     return WKHostingController()
+}
+
+//
+// Indirectly returned struct: return pointer is passed in rax.
+//
+@_silgen_name("swiftui_Color_initialValue")
+public func Color_initialValue(dest : UnsafeMutablePointer<Color>, initialValue : UIColor)
+{
+    dest.initialize(to: Color(initialValue))
 }
 #endif
 
@@ -127,9 +154,19 @@ public struct ThunkView<U, T: View>: View {
     let viewData: U
 
     public var body: T {
+        print("Body Property")
         let resultPtr = UnsafeMutablePointer<T>.allocate(capacity: 1)
         defer { resultPtr.deallocate() }
         withUnsafePointer(to: viewData, { viewBodyFn!(UnsafeRawPointer(resultPtr), UnsafeRawPointer($0)) })
+        return resultPtr.move()
+    }
+    
+    public func opacity(_ aOpacity: Double) -> some View
+    {
+        let resultPtr = UnsafeMutablePointer<T>.allocate(capacity: 1)
+        defer { resultPtr.deallocate() }
+        withUnsafePointer(to: viewData, { viewOpacityFn!(UnsafeRawPointer(resultPtr), UnsafeRawPointer($0)) })
+        print(aOpacity)
         return resultPtr.move()
     }
 }
@@ -140,7 +177,18 @@ var viewBodyFn: ViewBodyFn?
 @_silgen_name("swiftui_ThunkView_setViewBodyFn")
 public func SetViewBodyFn(value : @escaping ViewBodyFn)
 {
+    print("SetViewBodyFn")
     viewBodyFn = value
+}
+
+public typealias ViewOpacityFn = @convention(c) (UnsafeRawPointer, UnsafeRawPointer) -> Void // (TBody*, CustomViewData*) -> Void
+var viewOpacityFn: ViewOpacityFn?
+
+@_silgen_name("swiftui_ThunkView_setViewOpacityFn")
+public func SetViewOpacityFn(value : @escaping ViewOpacityFn)
+{
+    print("SetViewOpacityFn")
+    viewOpacityFn = value
 }
 
 //

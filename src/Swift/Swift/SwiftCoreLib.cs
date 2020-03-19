@@ -16,6 +16,8 @@ namespace Swift
 		}
 
 		#region Types
+		// Special types like String, Double require the mangling from https://github.com/apple/swift/blob/master/docs/ABI/Mangling.rst#types
+		// This usually take the form of starting with S with the KNOWN-TYPE-KIND letter from the above link. eg String is SS, Float64/Double is Sd
 
 		SwiftType? _int8;
 		public SwiftType Int8 => _int8 ?? (_int8 = new SwiftType (this, "Swift", "Int8", SwiftTypeCode.Struct));
@@ -34,6 +36,10 @@ namespace Swift
 
 		SwiftType? _unsafeRawPointer;
 		public SwiftType UnsafeRawPointer => _unsafeRawPointer ?? (_unsafeRawPointer = new SwiftType (this, "SV"));
+
+		// Double is actually a type alias for Float64, hence why we use Sd for mangling here
+		SwiftType? _double;
+        public SwiftType Double => _double ?? (_double = new SwiftType(this, "Sd", typeof(Double))); 
 
 		#endregion
 

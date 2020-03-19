@@ -170,7 +170,9 @@ namespace Swift.Interop
 			checked {
 				Debug.Assert (Metadata->TypeDescriptor->Name == GetSwiftTypeName (managedType), $"unexpected name: {Metadata->TypeDescriptor->Name}");
 				Debug.Assert (Metadata->Kind == MetadataKind.OfType (managedType), $"unexpected kind: {Metadata->Kind}");
-				Debug.Assert (!managedType.IsValueType || (int)ValueWitnessTable->Size == Marshal.SizeOf (managedType), $"unexpected size: {ValueWitnessTable->Size}");
+                var vwtSize = (int)ValueWitnessTable->Size;
+				var marshalledSizeOfType = Marshal.SizeOf(managedType);
+				Debug.Assert (!managedType.IsValueType || vwtSize == marshalledSizeOfType, $"unexpected size: {ValueWitnessTable->Size}");
 			}
 		}
 
@@ -218,6 +220,7 @@ namespace Swift.Interop
 						TypeCode.Byte => SwiftCoreLib.Types.Int8,
 						TypeCode.Int16 => SwiftCoreLib.Types.Int16,
 						TypeCode.Int32 => SwiftCoreLib.Types.Int32,
+						//TypeCode.Double => SwiftCoreLib.Types.Double,
 						// FIXME: ...
 						_ => type.GetProperty ("SwiftType", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)?.GetValue (null) as SwiftType
 					};

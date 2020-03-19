@@ -1,6 +1,7 @@
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
-
+using Swift;
 using Swift.Interop;
 using SwiftUI.Interop;
 
@@ -29,13 +30,18 @@ namespace SwiftUI
 		#region Types
 
 		SwiftType? _text;
-		public SwiftType Text => _text ??= new SwiftType (this, typeof (Text));
+		public SwiftType Text
+            => _text ??= new SwiftType (this, typeof (Text));
 
 		public SwiftType Button (SwiftType label)
 			=> new SwiftType (GetButtonType (0, label.Metadata, label.GetProtocolConformance (View)), genericArgs: new[] { label });
 
 		public SwiftType State (SwiftType value)
 			=> new SwiftType (GetStateType (0, value.Metadata), genericArgs: new[] { value });
+
+		SwiftType? _color;
+		public SwiftType Color
+			=> _color ??= new SwiftType(this, typeof(Color));
 
 		#endregion
 
@@ -52,5 +58,28 @@ namespace SwiftUI
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5StateVMa")]
 		static extern IntPtr GetStateType (long metadataReq, TypeMetadata* valueType);
+
+		[DllImport(Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "$s7SwiftUI5ColorVMa")]
+		static extern IntPtr GetColorType(long metadataReq, TypeMetadata* valueType);
+	}
+
+	public static class SwiftUIExtensions
+	{
+		public static ViewModifier Modifier(this View view, ViewModifier viewModifier)
+		{
+			return viewModifier;
+		}
+
+		public static View Opacity(this View view, double opacity )
+		{
+			return ViewOpacity(view, opacity);
+		}
+
+		[DllImport(SwiftGlueLib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "swiftui_View_opacity")]
+		internal static extern View ViewOpacity(View view, double opacity);
 	}
 }

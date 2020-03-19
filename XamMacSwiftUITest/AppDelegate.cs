@@ -27,7 +27,10 @@ namespace XamMacSwiftUITest
 			};
 			window.Center ();
 
-            window.ContentView = NSHostingView.Create (new ClickButton ());
+			var clickButton = new ClickButton();
+
+			//clickButton.Modifier (new ClickModifier ());
+			window.ContentView = NSHostingView.Create (clickButton);
 
 			window.MakeKeyAndOrderFront (this);
 		}
@@ -36,7 +39,13 @@ namespace XamMacSwiftUITest
 	public class ClickButton : View
 	{
 		State<int> counter = new State<int>(0);
+       // Color colour = new Color();
 		public Button<Text> Body =>
-			new Button<Text>(() => counter.Value += 1, new Text(string.Format("Clicked {0} times", counter.Value)));
+			new Button<Text>(() => {
+                counter.Value += 1;
+				var val = counter.Value;
+				this.Opacity (counter.Value % 2 == 0 ? 0.5 : 1.0);
+			},
+            new Text(string.Format("Clicked {0} times", counter.Value)));
 	}
 }

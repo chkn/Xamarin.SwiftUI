@@ -46,7 +46,6 @@ namespace SwiftUI
 
         GCHandle gch;
         long refCount = 0; // number of refs passed to native code
-        private ViewModifier? modifier;
 
         internal void AddRef()
         {
@@ -93,6 +92,6 @@ namespace SwiftUI
             ((CustomViewData*)handle)->GcHandleToView = ptr;
         }
 
-        public ViewModifier? Modifier { get => modifier; set => modifier = value; }
+        public double Opacity { get; set; }
     }
 }
