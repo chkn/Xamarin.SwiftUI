@@ -47,6 +47,16 @@ namespace SwiftUI
 		GCHandle gch;
 		long refCount = 0; // number of refs passed to native code
 
+		public View ()
+		{
+		}
+
+		internal View (TaggedPointer data, SwiftType viewType)
+		{
+			this.data = data;
+			this.viewType = viewType;
+		}
+
 		internal void AddRef ()
 		{
 			// When the ref count goes to 1, we know that native code is making

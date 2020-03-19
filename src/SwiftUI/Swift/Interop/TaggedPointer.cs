@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Swift.Interop
 {
-	unsafe struct TaggedPointer : IEquatable<TaggedPointer>, IDisposable
+	public unsafe struct TaggedPointer : IEquatable<TaggedPointer>, IDisposable
 	{
 		void* ptr;
 

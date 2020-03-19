@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 
 using Swift;
 using Swift.Interop;
-using SwiftUI.Interop;
 
 namespace SwiftUI
 {
@@ -12,7 +11,7 @@ namespace SwiftUI
 
 	public sealed class Button<TLabel> : View where TLabel : View
 	{
-		static SwiftType LabelType => Swift.Interop.SwiftType.Of (typeof (TLabel)) ??
+		static SwiftType LabelType => SwiftType.Of (typeof (TLabel)) ??
 			throw new ArgumentException ("Expected SwiftType", nameof (TLabel));
 
 		public static SwiftType SwiftType { get; } = SwiftUILib.Types.Button (LabelType);
