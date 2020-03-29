@@ -73,7 +73,9 @@ namespace SwiftUI
 			// First alloc a weak GCHandle, since we don't know if native code will
 			//  make a copy or not...
 			SetGCHandle (handle, GCHandleType.WeakTrackResurrection);
-			cvt.InitNativeFields (this, handle);
+
+			// FIXME: '!' shouldn't be needed as we have Debug.Assert
+			cvt!.InitNativeFields (this, handle);
 		}
 
 		protected override void Dispose (bool disposing)

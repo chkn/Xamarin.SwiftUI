@@ -75,11 +75,7 @@
   <ItemGroup>
     <ProjectReference Include="..\src\Swift\Swift.csproj">
       <Project>{31E05277-F5C7-47C7-988B-EFA3A8057F07}</Project>
-      <Name>Swift</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\src\SwiftUI.Mac\SwiftUI.Mac.csproj">
-      <Project>{9F07ACCC-8357-4E81-9EAA-E238752B7977}</Project>
-      <Name>SwiftUI.Mac</Name>
+      <Name>SwiftUI</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

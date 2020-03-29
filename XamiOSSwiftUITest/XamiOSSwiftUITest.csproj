@@ -130,11 +130,7 @@
     <ItemGroup>
       <ProjectReference Include="..\src\Swift\Swift.csproj">
         <Project>{31E05277-F5C7-47C7-988B-EFA3A8057F07}</Project>
-        <Name>Swift</Name>
-      </ProjectReference>
-      <ProjectReference Include="..\src\SwiftUI.iOS\SwiftUI.iOS.csproj">
-        <Project>{314583A2-E373-4236-8E83-AFD373659AD1}</Project>
-        <Name>SwiftUI.iOS</Name>
+        <Name>SwiftUI</Name>
       </ProjectReference>
     </ItemGroup>
     <ItemGroup>

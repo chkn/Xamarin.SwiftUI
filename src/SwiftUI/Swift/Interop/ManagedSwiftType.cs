@@ -124,8 +124,9 @@ namespace Swift.Interop
 					continue;
 				var swiftType = SwiftType.Of (fld.FieldType);
 				Debug.Assert (swiftType != null, "ISwiftFieldExposable types must be SwiftTypes");
-				swiftFields.Add (new SwiftFieldInfo (fld, swiftType, offset));
-				offset += swiftType.NativeDataSize; // FIXME: alignment?
+				// FIXME: '!' shouldn't be needed as we have Debug.Assert
+				swiftFields.Add (new SwiftFieldInfo (fld, swiftType!, offset));
+				offset += swiftType!.NativeDataSize; // FIXME: alignment?
 			}
 			return swiftFields.ToArray ();
 		}
