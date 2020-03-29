@@ -1,0 +1,92 @@
+<Project DefaultTargets="Pack">
+	<PropertyGroup>
+		<TargetPlatforms Condition=" '$(TargetPlatforms)' == '' ">Mac;iOS</TargetPlatforms>
+		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+
+		<SrcPath Condition=" '$(SrcPath)' == '' ">$(MSBuildThisFileDirectory)src\</SrcPath>
+		<BaseOutputPath Condition=" '$(BaseOutputPath)' == '' ">$(MSBuildThisFileDirectory)bin\</BaseOutputPath>
+		<OutputPath Condition=" '$(OutputPath)' == '' ">$(BaseOutputPath)$(Configuration)\</OutputPath>
+
+		<!-- SwiftUIGlue -->
+		<SwiftUIGlueDir Condition=" '$(SwiftUIGlueDir)' == '' ">$(SrcPath)SwiftUIGlue\</SwiftUIGlueDir>
+		<SwiftUIGlueDylib Condition=" '$(SwiftUIGlueDylib)' == '' ">$(SwiftUIGlueDir).build\$(Configuration.ToLowerInvariant())\libSwiftUIGlue.dylib</SwiftUIGlueDylib>
+		<SwiftUIGlueXcodeproj Condition=" '$(SwiftUIGlueXcodeproj)' == '' ">$(SwiftUIGlueDir)SwiftUIGlue.xcodeproj</SwiftUIGlueXcodeproj>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<SwiftUIGlueSources Include="$(SwiftUIGlueDir)*.swift" />
+
+		<!-- Mac -->
+		<!-- FIXME: Include dSYM? -->
+		<SwiftUIGlueDylibOutputs Include="$(SwiftUIGlueDylib)" />
+		<SwiftUIGlueMacOutputs Include="@(SwiftUIGlueDylibOutputs->'$(OutputPath)Mac\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+		<!-- All other platforms -->
+		<SwiftUIGlueSdks Condition="$(TargetPlatforms.Contains('iOS'))" Include="iphoneos;iphonesimulator" TargetPlatform="iOS" />
+
+		<SwiftUIGlueSdks Update="@(SwiftUIGlueSdks)">
+			<IntermediateFrameworkDir>$(SwiftUIGlueDir)build\$(Configuration)-%(Identity)\SwiftUIGlue.framework\</IntermediateFrameworkDir>
+			<OutputFrameworkDir>$(OutputPath)%(TargetPlatform)\SwiftUIGlue.framework\</OutputFrameworkDir>
+		</SwiftUIGlueSdks>
+	</ItemGroup>
+
+	<Target Name="SwiftUIGlueXcode">
+		<Exec
+			Condition="!Exists('$(SwiftUIGlueXcodeproj)')"
+			Command="swift package generate-xcodeproj"
+			WorkingDirectory="$(SwiftUIGlueDir)" />
+
+		<Exec
+			Command="xcodebuild -project $(SwiftUIGlueXcodeproj) -configuration $(Configuration) -sdk %(SwiftUIGlueSdks.Identity)"
+			WorkingDirectory="$(SwiftUIGlueDir)" />
+
+		<MakeDir Directories="%(SwiftUIGlueSdks.OutputFrameworkDir)" />
+
+		<Exec
+			Command="lipo -create -output %(SwiftUIGlueSdks.OutputFrameworkDir)SwiftUIGlue @(SwiftUIGlueSdks->'%(IntermediateFrameworkDir)SwiftUIGlue', ' ')" />
+	</Target>
+
+	<Target Name="SwiftUIGlueMac" Inputs="@(SwiftUIGlueSources)" Outputs="@(SwiftUIGlueMacOutputs)">
+		<Exec
+			Command="swift build -c $(Configuration.ToLowerInvariant())"
+			WorkingDirectory="$(SwiftUIGlueDir)" />
+
+		<Copy
+			SourceFiles="@(SwiftUIGlueDylibOutputs)"
+			DestinationFiles="@(SwiftUIGlueMacOutputs)" />
+	</Target>
+
+	<Target Name="Mac" DependsOnTargets="SwiftUIGlueMac">
+		<MSBuild
+			Projects="$(SrcPath)SwiftUI.Mac\SwiftUI.Mac.csproj"
+			Properties="Configuration=$(Configuration)" />
+	</Target>
+
+	<Target Name="iOS" DependsOnTargets="SwiftUIGlueXcode">
+		<MSBuild
+			Projects="$(SrcPath)SwiftUI.iOS\SwiftUI.iOS.csproj"
+			Properties="Configuration=$(Configuration)" />
+	</Target>
+
+	<Target Name="Build" DependsOnTargets="$(TargetPlatforms)" />
+
+	<Target Name="Pack" DependsOnTargets="Build">
+		<!-- FIXME: Implement -->
+	</Target>
+
+	<Target Name="Clean">
+		<RemoveDir Directories="$(OutputPath)" />
+		<Exec
+			Command="swift package clean"
+			WorkingDirectory="$(SwiftUIGlueDir)" />
+		<Exec
+			Condition="Exists('$(SwiftUIGlueXcodeproj)')"
+			Command="xcodebuild -project $(SwiftUIGlueXcodeproj) -configuration $(Configuration) -sdk %(SwiftUIGlueSdks.Identity) clean"
+			WorkingDirectory="$(SwiftUIGlueDir)" />
+		<RemoveDir Directories="$(SwiftUIGlueXcodeproj)" />
+		<MSBuild
+			Targets="Clean"
+			Projects="Xamarin.SwiftUI.sln"
+			Properties="Configuration=$(Configuration)" />
+	</Target>
+</Project>
