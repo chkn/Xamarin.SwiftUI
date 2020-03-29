@@ -73,14 +73,14 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\Swift\Swift.csproj">
+    <ProjectReference Include="..\src\SwiftUI\SwiftUI.csproj">
       <Project>{31E05277-F5C7-47C7-988B-EFA3A8057F07}</Project>
       <Name>SwiftUI</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <NativeReference Include="..\src\SwiftUIGlue\build\Release\SwiftUIGlue.framework">
-      <Kind>Framework</Kind>
+    <NativeReference Include="..\native\$(Configuration)\xamarin.mac20\libSwiftUIGlue.dylib">
+      <Kind>Dynamic</Kind>
       <SmartLink>False</SmartLink>
     </NativeReference>
   </ItemGroup>

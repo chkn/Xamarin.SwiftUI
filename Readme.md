@@ -9,10 +9,16 @@ A managed binding to SwiftUI.
 - Xcode 11 or newer
 - Xcode [command line](https://developer.apple.com/library/archive/technotes/tn2339/_index.html) tools
 
-### Build Everything and Package
+### Build Everything and NuGet Package
 
 ```
 msbuild build.proj
+```
+
+If you need to make changes to the SwiftUIGlue native glue library during development, you can rebuild just those bits by running:
+
+```
+msbuild build.proj /t:SwiftUIGlue /p:Configuration=Debug
 ```
 
 ### Visual Studio for Mac

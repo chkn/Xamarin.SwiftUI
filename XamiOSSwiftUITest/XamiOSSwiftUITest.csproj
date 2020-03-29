@@ -67,9 +67,6 @@
         <Reference Include="System.Numerics.Vectors" />
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="Xamarin.Essentials" Version="1.3.1" />
-    </ItemGroup>
-    <ItemGroup>
         <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json">
             <Visible>false</Visible>
         </ImageAsset>
@@ -128,13 +125,13 @@
         <Compile Include="AppDelegate.cs" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\src\Swift\Swift.csproj">
+      <ProjectReference Include="..\src\SwiftUI\SwiftUI.csproj">
         <Project>{31E05277-F5C7-47C7-988B-EFA3A8057F07}</Project>
         <Name>SwiftUI</Name>
       </ProjectReference>
     </ItemGroup>
     <ItemGroup>
-      <NativeReference Include="..\src\SwiftUIGlue\build\Release-iphonesimulator\SwiftUIGlue.framework">
+      <NativeReference Include="..\native\$(Configuration)\xamarin.ios10\SwiftUIGlue.framework">
         <Kind>Framework</Kind>
         <SmartLink>False</SmartLink>
       </NativeReference>

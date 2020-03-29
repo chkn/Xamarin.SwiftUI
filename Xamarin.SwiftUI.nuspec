@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+   <metadata minClientVersion="4.0">
+    <id>Xamarin.SwiftUI</id>
+    <title>Xamarin.SwiftUI</title>
+    <version>$version$</version>
+    <authors>Alex Corrado</authors>
+    <owners>Alex Corrado</owners>
+
+    <projectUrl>https://github.com/chkn/Xamarin.SwiftUI</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+
+    <summary>A managed binding to SwiftUI.</summary>
+    <description>
+    TBD
+    </description>
+    <tags>xamarin android ios tvos watchos ipados swiftui swift toolkit</tags>
+    <dependencies>
+      <group targetFramework="netstandard2.1">
+      </group>
+      <group targetFramework="xamarin.ios10">
+      </group>
+      <group targetFramework="Xamarin.Mac20">
+      </group>
+    </dependencies>
+    <contentFiles>
+      <files include="any/**/*.dylib" buildAction="NativeReference" copyToOutput="true" />
+      <files include="any/*/*.framework" buildAction="NativeReference" copyToOutput="true" />
+    </contentFiles>
+   </metadata>
+   <files>
+    <file src="managed/$configuration$/**/*" exclude="**/*.json;**/.DS_Store" target="lib" />
+    <file src="native/$configuration$/**/*" exclude="**/.DS_Store" target="contentFiles\any" />
+   </files>
+</package>

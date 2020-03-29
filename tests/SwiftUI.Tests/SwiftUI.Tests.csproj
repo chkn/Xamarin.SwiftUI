@@ -15,6 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Swift\Swift.csproj" />
+    <ProjectReference Include="..\..\src\SwiftUI\SwiftUI.csproj" />
   </ItemGroup>
 </Project>

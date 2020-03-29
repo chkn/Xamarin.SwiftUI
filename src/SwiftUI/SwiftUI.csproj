@@ -1,7 +1,7 @@
 <Project Sdk="MSBuild.Sdk.Extras/2.0.54">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;Xamarin.Mac20;Xamarin.iOS10</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;xamarin.mac20;xamarin.ios10</TargetFrameworks>
     <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -10,7 +10,7 @@
     <Nullable>enable</Nullable>
     <NullableContextOptions>enable</NullableContextOptions>
     
-    <OutputPath>..\..\bin\$(Configuration)\$(TargetFramework)</OutputPath>
+    <OutputPath>..\..\managed\$(Configuration)</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
