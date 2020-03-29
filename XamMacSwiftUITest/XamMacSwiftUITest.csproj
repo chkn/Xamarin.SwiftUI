@@ -66,12 +66,6 @@
     <Compile Include="AppDelegate.cs" />
   </ItemGroup>
   <ItemGroup>
-    <NativeReference Include="..\native\$(Configuration)\xamarin.mac20\libSwiftUIGlue.dylib">
-      <Kind>Dynamic</Kind>
-      <SmartLink>False</SmartLink>
-    </NativeReference>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\src\SwiftUI\SwiftUI.csproj">
       <Project>{31E05277-F5C7-47C7-988B-EFA3A8057F07}</Project>
       <Name>SwiftUI</Name>

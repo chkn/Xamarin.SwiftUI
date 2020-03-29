@@ -22,6 +22,7 @@
     <Folder Include="iOS\" />
   </ItemGroup>
 
+  <!-- Conditionally exclude platform-specific source files -->
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != 'Xamarin.Mac' ">
     <Compile Remove="Mac\**\*.*" />
     <None Include="Mac\**\*.*" />
@@ -30,4 +31,27 @@
     <Compile Remove="iOS\**\*.*"  />
     <None Include="iOS\**\*.*"  />
   </ItemGroup>
+
+  <!-- Embed the native library where possible -->
+  <PropertyGroup Condition=" '$(TargetFrameworkIdentifier)' != 'netstandard' ">
+    <IsBindingProject>true</IsBindingProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- KLUDGE: We auto-generate a blank file for this -->
+    <ObjcBindingApiDefinition Include="$(IntermediateOutputPath)\ApiDefinition.cs" />
+    <ObjcBindingNativeFramework
+      Include="..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework"
+      Condition="Exists('..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework')"
+      Visible="false" />
+    <ObjcBindingNativeLibrary
+      Include="..\..\native\$(Configuration)\$(TargetFramework)\*.dylib"
+      Visible="false" />
+  </ItemGroup>
+
+  <Target Name="CreateDummyApiDefinition" BeforeTargets="_GenerateBindings">
+    <WriteLinesToFile
+      Lines=""
+      File="@(ObjcBindingApiDefinition)"
+      Condition="!Exists('@(ObjcBindingApiDefinition)')" />
+  </Target>
 </Project>

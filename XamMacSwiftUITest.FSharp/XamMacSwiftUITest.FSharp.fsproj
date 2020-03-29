@@ -78,11 +78,5 @@
       <Name>SwiftUI</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <NativeReference Include="..\native\$(Configuration)\xamarin.mac20\libSwiftUIGlue.dylib">
-      <Kind>Dynamic</Kind>
-      <SmartLink>False</SmartLink>
-    </NativeReference>
-  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.FSharp.targets" />
 </Project>

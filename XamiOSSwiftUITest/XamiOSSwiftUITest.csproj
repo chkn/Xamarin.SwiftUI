@@ -130,11 +130,5 @@
         <Name>SwiftUI</Name>
       </ProjectReference>
     </ItemGroup>
-    <ItemGroup>
-      <NativeReference Include="..\native\$(Configuration)\xamarin.ios10\SwiftUIGlue.framework">
-        <Kind>Framework</Kind>
-        <SmartLink>False</SmartLink>
-      </NativeReference>
-    </ItemGroup>
     <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>
