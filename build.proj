@@ -41,7 +41,7 @@
 
 	<Target Name="SwiftUIGlueXcode">
 		<Exec
-			Condition="!Exists('$(SwiftUIGlueXcodeproj)')"
+			Condition="!Exists('$(SwiftUIGlueXcodeproj)\project.pbxproj')"
 			Command="swift package generate-xcodeproj"
 			WorkingDirectory="$(SwiftUIGlueDir)" />
 
