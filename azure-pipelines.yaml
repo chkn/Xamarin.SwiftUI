@@ -1,4 +1,4 @@
-﻿trigger:
+trigger:
   branches:
     include:
       - master
@@ -6,38 +6,38 @@
 stages:
   - stage: Build
     jobs:
-  - job: Build Swift UI Glue and NuGets
-    displayName: Building Swift UI
-    pool:
-    vmImage: macOS-latest
-    steps:
-    - task: MSBuild@1
-      displayName: 'Building Swift UI Glue and NuGets via build.proj'
-      inputs:
-        solution: build.proj
-        configuration: Release
-        msbuildArguments: /restore /v:diag
-  - job: Build Test Projects
-    displayName: Building Swift UI
-    dependsOn: Build Swift UI Glue and NuGets
-    pool:
-    vmImage: macOS-latest
-    steps:
-    - task: MSBuild@1
-      displayName: 'Build MacOS C# project XamMacSwiftUITest/XamMacSwiftUITest.csproj'
-      inputs:
-        solution: XamMacSwiftUITest/XamMacSwiftUITest.csproj
-        configuration: Release
-        msbuildArguments: /restore /v:diag
-    - task: MSBuild@1
-      displayName: 'Build MacOS F# project XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj'
-      inputs:
-        solution: XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj
-        configuration: Release
-        msbuildArguments: /restore /v:diag
-    - task: MSBuild@1
-      displayName: 'Build iOS C# project XamiOSSwiftUITest/XamiOSSwiftUITest.csproj'
-      inputs:
-        solution: XamiOSSwiftUITest/XamiOSSwiftUITest.csproj
-        configuration: Release
-        msbuildArguments: /restore /v:diag
+    - job: BuildSwiftUIGlueAndNuGets
+      displayName: 'Building Swift UI'
+      pool:
+        vmImage: macOS-latest
+      steps:
+      - task: MSBuild@1
+        displayName: 'Building Swift UI Glue and NuGets via build.proj'
+        inputs:
+          solution: build.proj
+          configuration: Release
+          msbuildArguments: /restore /v:diag
+    - job: BuildTestProjects
+      displayName: Building Test Projects
+      dependsOn: BuildSwiftUIGlueAndNuGets
+      pool:
+        vmImage: macOS-latest
+      steps:
+      - task: MSBuild@1
+        displayName: 'Build MacOS C# project XamMacSwiftUITest/XamMacSwiftUITest.csproj'
+        inputs:
+          solution: XamMacSwiftUITest/XamMacSwiftUITest.csproj
+          configuration: Release
+          msbuildArguments: /restore /v:diag
+      - task: MSBuild@1
+        displayName: 'Build MacOS F# project XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj'
+        inputs:
+          solution: XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj
+          configuration: Release
+          msbuildArguments: /restore /v:diag
+      - task: MSBuild@1
+        displayName: 'Build iOS C# project XamiOSSwiftUITest/XamiOSSwiftUITest.csproj'
+        inputs:
+          solution: XamiOSSwiftUITest/XamiOSSwiftUITest.csproj
+          configuration: Release
+          msbuildArguments: /restore /v:diag

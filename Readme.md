@@ -3,7 +3,7 @@
 A managed binding to SwiftUI.
 
 ## Build Status
-[![Build Status](https://dolouis.visualstudio.com/SwiftUI/_apis/build/status/CartBlanche.SwiftUI?branchName=master)](https://dolouis.visualstudio.com/SwiftUI/_build/latest?definitionId=1&branchName=master)
+[![Build Status](https://alcorra.visualstudio.com/Xamarin.SwiftUI/_apis/build/status/Xamarin.SwiftUI?branchName=master)](https://alcorra.visualstudio.com/Xamarin.SwiftUI/_build/latest?definitionId=1&branchName=master)
 
 ## Building from Source
 
