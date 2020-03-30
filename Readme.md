@@ -2,14 +2,30 @@
 
 A managed binding to SwiftUI.
 
-## Getting Started
+## Build Status
+[![Build Status](https://dolouis.visualstudio.com/SwiftUI/_apis/build/status/CartBlanche.SwiftUI?branchName=master)](https://dolouis.visualstudio.com/SwiftUI/_build/latest?definitionId=1&branchName=master)
 
-Ensure you have the XCode [command line](https://developer.apple.com/library/archive/technotes/tn2339/_index.html) tools installed before starting.
+## Building from Source
 
-For the time being you'll need to run **make** from the root directory of the repo.
-This will use Xcode to build SwiftUIGlue dynamic lib which is referenced from both CSharp and FSharp projects.
-It will also build those 2 projects, just to make sure everything is building correctly. 
+### Prerequisites
+- Xamarin toolchain
+- Xcode 11 or newer
+- Xcode [command line](https://developer.apple.com/library/archive/technotes/tn2339/_index.html) tools
 
-## Hacking
+### Build Everything and NuGet Package
 
-For information about the internals and guidance on developing the binding itself, see the document titled [Hacking](Hacking.md).
+```
+msbuild build.proj
+```
+
+If you need to make changes to the SwiftUIGlue native glue library during development, you can rebuild just those bits by running:
+
+```
+msbuild build.proj /t:SwiftUIGlue /p:Configuration=Debug
+```
+
+### Visual Studio for Mac
+
+Open `Xamarin.SwiftUI.sln`
+
+For more information about the internals and guidance on developing the binding itself, see the document titled [Hacking](Hacking.md).

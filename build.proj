@@ -1,0 +1,107 @@
+<Project DefaultTargets="Pack">
+	<PropertyGroup>
+		<Version Condition=" '$(Version)' == '' ">99.0-pre</Version>
+		<TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">netstandard2.1;xamarin.mac20;xamarin.ios10</TargetFrameworks>
+		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+
+		<!-- Managed code -->
+		<SrcPath Condition=" '$(SrcPath)' == '' ">$(MSBuildThisFileDirectory)src\</SrcPath>
+		<BaseOutputPath Condition=" '$(BaseOutputPath)' == '' ">$(MSBuildThisFileDirectory)managed\</BaseOutputPath>
+		<OutputPath Condition=" '$(OutputPath)' == '' ">$(BaseOutputPath)$(Configuration)\</OutputPath>
+
+		<!-- Native code -->
+		<NativeBaseOutputPath Condition=" '$(NativeBaseOutputPath)' == '' ">$(MSBuildThisFileDirectory)native\</NativeBaseOutputPath>
+		<NativeOutputPath Condition=" '$(NativeOutputPath)' == '' ">$(NativeBaseOutputPath)$(Configuration)\</NativeOutputPath>
+
+		<!-- SwiftUIGlue -->
+		<SwiftUIGlueDir Condition=" '$(SwiftUIGlueDir)' == '' ">$(SrcPath)SwiftUIGlue\</SwiftUIGlueDir>
+		<SwiftUIGlueDylib Condition=" '$(SwiftUIGlueDylib)' == '' ">$(SwiftUIGlueDir).build\$(Configuration.ToLowerInvariant())\libSwiftUIGlue.dylib</SwiftUIGlueDylib>
+		<SwiftUIGlueXcodeproj Condition=" '$(SwiftUIGlueXcodeproj)' == '' ">$(SwiftUIGlueDir)SwiftUIGlue.xcodeproj</SwiftUIGlueXcodeproj>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<SwiftUIGlueTargets Condition="$(TargetFrameworks.Contains('xamarin.mac20'))" Include="SwiftUIGlueMac" />
+		<SwiftUIGlueTargets Condition="$(TargetFrameworks.Contains('xamarin.ios10'))" Include="SwiftUIGlueXcode" />
+
+		<SwiftUIGlueSources Include="$(SwiftUIGlueDir)*.swift" />
+
+		<!-- Mac -->
+		<!-- FIXME: Include dSYM? -->
+		<SwiftUIGlueDylibOutputs Include="$(SwiftUIGlueDylib)" />
+		<SwiftUIGlueMacOutputs Include="@(SwiftUIGlueDylibOutputs->'$(NativeOutputPath)xamarin.mac20\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+		<!-- All other platforms -->
+		<SwiftUIGlueSdks Condition="$(TargetFrameworks.Contains('xamarin.ios10'))" Include="iphoneos;iphonesimulator" TargetFramework="xamarin.ios10" />
+
+		<SwiftUIGlueSdks Update="@(SwiftUIGlueSdks)">
+			<IntermediateFrameworkDir>$(SwiftUIGlueDir)build\$(Configuration)-%(Identity)\SwiftUIGlue.framework\</IntermediateFrameworkDir>
+			<OutputFrameworkDir>$(NativeOutputPath)%(TargetFramework)\SwiftUIGlue.framework\</OutputFrameworkDir>
+		</SwiftUIGlueSdks>
+	</ItemGroup>
+
+	<Target Name="SwiftUIGlueXcode">
+		<Exec
+			Condition="!Exists('$(SwiftUIGlueXcodeproj)\project.pbxproj')"
+			Command="swift package generate-xcodeproj"
+			WorkingDirectory="$(SwiftUIGlueDir)" />
+
+		<Exec
+			Command="xcodebuild -project $(SwiftUIGlueXcodeproj) -configuration $(Configuration) -sdk %(SwiftUIGlueSdks.Identity)"
+			WorkingDirectory="$(SwiftUIGlueDir)" />
+
+		<Copy
+			Condition="Exists('%(IntermediateFrameworkDir)\_CodeSignature\CodeResources')"
+			SourceFiles="%(IntermediateFrameworkDir)\_CodeSignature\CodeResources"
+			DestinationFolder="%(SwiftUIGlueSdks.OutputFrameworkDir)\_CodeSignature" />
+
+		<Copy
+			Condition="Exists('$(SwiftUIGlueDir)\%(SwiftUIGlueSdks.TargetFramework)\Info.plist')"
+			SourceFiles="$(SwiftUIGlueDir)\%(SwiftUIGlueSdks.TargetFramework)\Info.plist"
+			DestinationFolder="%(SwiftUIGlueSdks.OutputFrameworkDir)" />
+
+		<Exec
+			Command="lipo -create -output %(SwiftUIGlueSdks.OutputFrameworkDir)SwiftUIGlue @(SwiftUIGlueSdks->'%(IntermediateFrameworkDir)SwiftUIGlue', ' ')" />
+	</Target>
+
+	<Target Name="SwiftUIGlueMac" Inputs="@(SwiftUIGlueSources)" Outputs="@(SwiftUIGlueMacOutputs)">
+		<Exec
+			Command="swift build -c $(Configuration.ToLowerInvariant())"
+			WorkingDirectory="$(SwiftUIGlueDir)" />
+
+		<Copy
+			SourceFiles="@(SwiftUIGlueDylibOutputs)"
+			DestinationFiles="@(SwiftUIGlueMacOutputs)" />
+	</Target>
+
+	<Target Name="SwiftUIGlue" DependsOnTargets="@(SwiftUIGlueTargets)" />
+
+	<Target Name="Build" DependsOnTargets="SwiftUIGlue">
+		<ItemGroup>
+			<TargetFramework Include="$(TargetFrameworks)" />
+		</ItemGroup>
+		<MSBuild
+			Projects="$(SrcPath)SwiftUI\SwiftUI.csproj"
+			Properties="Configuration=$(Configuration);TargetFramework=%(TargetFramework.Identity)" />
+	</Target>
+
+	<Target Name="Pack" DependsOnTargets="Build">
+		<Exec
+			Command="nuget pack Xamarin.SwiftUI.nuspec -Properties 'configuration=$(Configuration);version=$(Version)'" />
+	</Target>
+
+	<Target Name="Clean">
+		<RemoveDir Directories="$(OutputPath);$(NativeOutputPath)" />
+		<Exec
+			Command="swift package clean"
+			WorkingDirectory="$(SwiftUIGlueDir)" />
+		<Exec
+			Condition="Exists('$(SwiftUIGlueXcodeproj)')"
+			Command="xcodebuild -project $(SwiftUIGlueXcodeproj) -configuration $(Configuration) -sdk %(SwiftUIGlueSdks.Identity) clean"
+			WorkingDirectory="$(SwiftUIGlueDir)" />
+		<RemoveDir Directories="$(SwiftUIGlueXcodeproj)" />
+		<MSBuild
+			Targets="Clean"
+			Projects="Xamarin.SwiftUI.sln"
+			Properties="Configuration=$(Configuration)" />
+	</Target>
+</Project>

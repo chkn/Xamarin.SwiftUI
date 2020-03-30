@@ -55,9 +55,6 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Xamarin.Mac" />
-    <Reference Include="netstandard">
-      <HintPath>/Library/Frameworks/Xamarin.Mac.framework/Versions/Current/lib/mono/4.5/Facades/netstandard.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
@@ -69,20 +66,10 @@
     <Compile Include="AppDelegate.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\Swift\Swift.csproj">
+    <ProjectReference Include="..\src\SwiftUI\SwiftUI.csproj">
       <Project>{31E05277-F5C7-47C7-988B-EFA3A8057F07}</Project>
-      <Name>Swift</Name>
+      <Name>SwiftUI</Name>
     </ProjectReference>
-    <ProjectReference Include="..\src\SwiftUI.Mac\SwiftUI.Mac.csproj">
-      <Project>{9F07ACCC-8357-4E81-9EAA-E238752B7977}</Project>
-      <Name>SwiftUI.Mac</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <NativeReference Include="..\src\SwiftUIGlue\build\Release\SwiftUIGlue.framework">
-      <Kind>Framework</Kind>
-      <SmartLink>False</SmartLink>
-    </NativeReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>

@@ -73,11 +73,8 @@ public func State_initialValue<T>(dest : UnsafeMutablePointer<State<T>>, initial
 //
 // Non-static sized struct: pointer passed in r13
 //
-// HACK: This doesn't quite do what we need, so we alias a helper function
-//  that the Swift compiler generates to swiftui_State_wrappedValue_setter
-//  NOTE: Must be built in Release to get that helper emitted by the compiler!
-//   -> In the helper, "value" is passed guaranteed, not owned
-public func State_wrappedValue_setter<T>(state : __owned State<T>, value : __owned T)
+@_silgen_name("swiftui_State_wrappedValue_setter")
+public func State_wrappedValue_setter<T>(state : State<T>, value : T)
 {
     state.wrappedValue = value
 }

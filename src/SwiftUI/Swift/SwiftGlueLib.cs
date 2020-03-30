@@ -8,7 +8,12 @@ namespace Swift
 	// FIXME: Remove this when mono supports Swift's calling convention
 	public class SwiftGlueLib : NativeLib
 	{
-		public const string Path = /*TODO Remove ../ for iOS */ "../Frameworks/SwiftUIGlue.framework/SwiftUIGlue";
+		public const string Path =
+		#if __MACOS__
+			"libSwiftUIGlue.dylib";
+		#else
+			"Frameworks/SwiftUIGlue.framework/SwiftUIGlue";
+		#endif
 
 		public static SwiftGlueLib Pointers { get; } = new SwiftGlueLib ();
 

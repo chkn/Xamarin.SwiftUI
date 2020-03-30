@@ -1,5 +1,0 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-
-[assembly: InternalsVisibleTo ("SwiftUI.Tests")]
-

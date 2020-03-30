@@ -1,0 +1,57 @@
+<Project Sdk="MSBuild.Sdk.Extras/2.0.54">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;xamarin.mac20;xamarin.ios10</TargetFrameworks>
+    <LangVersion>preview</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- FIXME: Currently need both: "Nullable" for Windows, "NullableContextOptions" for Mac -->
+    <Nullable>enable</Nullable>
+    <NullableContextOptions>enable</NullableContextOptions>
+    
+    <OutputPath>..\..\managed\$(Configuration)</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Swift\" />
+    <Folder Include="SwiftUI\" />
+    <Folder Include="Swift\Interop\" />
+    <Folder Include="SwiftUI\Interop\" />
+    <Folder Include="Mac\" />
+    <Folder Include="iOS\" />
+  </ItemGroup>
+
+  <!-- Conditionally exclude platform-specific source files -->
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != 'Xamarin.Mac' ">
+    <Compile Remove="Mac\**\*.*" />
+    <None Include="Mac\**\*.*" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != 'Xamarin.iOS' ">
+    <Compile Remove="iOS\**\*.*"  />
+    <None Include="iOS\**\*.*"  />
+  </ItemGroup>
+
+  <!-- Embed the native library where possible -->
+  <PropertyGroup Condition=" '$(TargetFrameworkIdentifier)' != 'netstandard' ">
+    <IsBindingProject>true</IsBindingProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- KLUDGE: We auto-generate a blank file for this -->
+    <ObjcBindingApiDefinition Include="$(IntermediateOutputPath)\ApiDefinition.cs" />
+    <ObjcBindingNativeFramework
+      Include="..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework"
+      Condition="Exists('..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework')"
+      Visible="false" />
+    <ObjcBindingNativeLibrary
+      Include="..\..\native\$(Configuration)\$(TargetFramework)\*.dylib"
+      Visible="false" />
+  </ItemGroup>
+
+  <Target Name="CreateDummyApiDefinition" BeforeTargets="_GenerateBindings">
+    <WriteLinesToFile
+      Lines=""
+      File="@(ObjcBindingApiDefinition)"
+      Condition="!Exists('@(ObjcBindingApiDefinition)')" />
+  </Target>
+</Project>

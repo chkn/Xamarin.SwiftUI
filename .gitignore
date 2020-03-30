@@ -106,6 +106,7 @@ Generated\ Files/
 
 # Xcode
 xcuserdata/
+DerivedData/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
@@ -406,3 +407,9 @@ ASALocalRun/
 
 # Local History for Visual Studio
 .localhistory/
+
+# SwiftPM
+.build
+build/
+src/SwiftUIGlue/*.xcodeproj
+xcuserdata/
