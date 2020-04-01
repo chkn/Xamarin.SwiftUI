@@ -81,7 +81,7 @@
 		</ItemGroup>
 		<MSBuild
 			Projects="$(SrcPath)SwiftUI\SwiftUI.csproj"
-			Properties="Configuration=$(Configuration);TargetFramework=%(TargetFramework.Identity)" />
+			Properties="Configuration=$(Configuration);TargetFramework=%(TargetFramework.Identity)" Targets="Restore;Build"/>
 	</Target>
 
 	<Target Name="Pack" DependsOnTargets="Build">
