@@ -18,13 +18,6 @@ stages:
           solution: build.proj
           configuration: Release
           msbuildArguments: /restore /v:diag
-    - job: BuildTestProjects
-      displayName: Building Test Projects
-      dependsOn: BuildSwiftUIGlueAndNuGets
-      pool:
-        vmImage: macOS-latest
-      steps:
-      - task: NuGetToolInstaller@1
       - task: MSBuild@1
         displayName: 'Build MacOS C# project XamMacSwiftUITest/XamMacSwiftUITest.csproj'
         inputs:
