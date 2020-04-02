@@ -7,17 +7,24 @@ stages:
   - stage: Build
     jobs:
     - job: BuildSwiftUIGlueAndNuGets
-      displayName: 'Building Swift UI'
+      displayName: 'Build, test, and package Xamarin.SwiftUI'
       pool:
         vmImage: macOS-latest
       steps:
       - task: NuGetToolInstaller@1
+        displayName: 'Install NuGet tools'
       - task: MSBuild@1
-        displayName: 'Building Swift UI Glue and NuGets via build.proj'
+        displayName: 'msbuild build.proj'
         inputs:
           solution: build.proj
           configuration: Release
           msbuildArguments: /restore /v:diag
+      - task: DotNetCoreCLI@2
+        displayName: 'dotnet test SwiftUI.Tests'
+        inputs:
+          command: 'test'
+          projects: 'tests/SwiftUI.Tests/SwiftUI.Tests.csproj'
+          testRunTitle: 'SwiftUI.Tests'
       - task: MSBuild@1
         displayName: 'Build MacOS C# project XamMacSwiftUITest/XamMacSwiftUITest.csproj'
         inputs:
