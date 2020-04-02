@@ -28,8 +28,8 @@
     <None Include="Mac\**\*.*" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != 'Xamarin.iOS' ">
-    <Compile Remove="iOS\**\*.*"  />
-    <None Include="iOS\**\*.*"  />
+    <Compile Remove="iOS\**\*.*" />
+    <None Include="iOS\**\*.*" />
   </ItemGroup>
 
   <!-- Embed the native library where possible -->

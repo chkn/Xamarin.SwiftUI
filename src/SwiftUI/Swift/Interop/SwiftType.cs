@@ -70,6 +70,7 @@ namespace Swift.Interop
 		TransferFunc? _copyInit;
 		TransferFunc? _moveInit;
 		TransferFunc? _copyAssign;
+		StoreEnumTagSinglePayloadFunc? _storeEnumTagSinglePayload;
 
 		TransferFunc GetTransferFunc (TransferFuncType type)
 			=> type switch
@@ -85,6 +86,8 @@ namespace Swift.Interop
 		public ValueWitnessTable* ValueWitnessTable => fullMetadata->ValueWitnessTable;
 
 		public virtual int NativeDataSize => checked ((int)ValueWitnessTable->Size);
+
+		internal IReadOnlyList<SwiftType>? GenericArguments => genericArgs;
 
 		internal int MangledTypeTrailingPointers =>
 			(mangledName is null ? 1 : 0) + (genericArgs?.Sum (ga => ga.MangledTypeTrailingPointers) ?? 0);
@@ -171,6 +174,9 @@ namespace Swift.Interop
 				Debug.Assert (Metadata->TypeDescriptor->Name == GetSwiftTypeName (managedType), $"unexpected name: {Metadata->TypeDescriptor->Name}");
 				Debug.Assert (Metadata->Kind == MetadataKind.OfType (managedType), $"unexpected kind: {Metadata->Kind}");
 				Debug.Assert (!managedType.IsValueType || (int)ValueWitnessTable->Size == Marshal.SizeOf (managedType), $"unexpected size: {ValueWitnessTable->Size}");
+				// We should think hard before making a non-POD Swift struct a public C# struct
+				//  (Swift.String is internal and we are careful to manage its lifetime)
+				Debug.Assert (!managedType.IsValueType || !managedType.IsPublic || !ValueWitnessTable->IsNonPOD, "expected POD");
 			}
 		}
 
@@ -222,8 +228,19 @@ namespace Swift.Interop
 						// FIXME: ...
 						_ => type.GetProperty ("SwiftType", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)?.GetValue (null) as SwiftType
 					};
-					if (result == null && type.IsSubclassOf (typeof (View)))
-						result = new CustomViewType (type);
+					if (result == null) {
+						// Special handling for certain types..
+						//   Custom views
+						if (type.IsSubclassOf (typeof (View))) {
+							result = new CustomViewType (type);
+						} else if (type.IsNullable ()) {
+							//  Nullable types -> Swift optional
+							var underlyingType = type.GetNullableUnderlyingType ();
+							var underlyingSwiftType = SwiftType.Of (underlyingType);
+							if (underlyingSwiftType != null)
+								result = SwiftCoreLib.Types.Optional (underlyingSwiftType);
+						}
+					}
 					if (result != null)
 						registry.Add (type, result);
 				}
@@ -293,6 +310,18 @@ namespace Swift.Interop
 				result = src;
 			}
 			return result;
+		}
+
+		/// <summary>
+		/// Stores the tag for an enum that has a single payload of this type.
+		/// </summary>
+		internal void StoreEnumTagSinglePayload (void* dest, int whichCase, int emptyCases)
+		{
+			if (_storeEnumTagSinglePayload is null)
+				_storeEnumTagSinglePayload = Marshal.GetDelegateForFunctionPointer<StoreEnumTagSinglePayloadFunc> (ValueWitnessTable->StoreEnumTagSinglePayload);
+			checked {
+				_storeEnumTagSinglePayload (dest, (uint)whichCase, (uint)emptyCases, Metadata);
+			}
 		}
 
 		protected internal virtual void Destroy (void* data)
