@@ -11,11 +11,13 @@ namespace Swift.Interop
 
 		public static RelativePointer Zero => default;
 
-		// FIXME: Should be able to freely take &this without fixed as this is a ref struct
 		public void* Target {
 			get {
 				if (offset == 0)
 					return null;
+
+				// FIXME: Shouldn't need fixed here; this is a ref struct
+				//  (remove when https://github.com/dotnet/csharplang/issues/1792 is fixed)
 				fixed (void* ptr = &this)
 					return (byte*)ptr + offset;
 			}
@@ -41,11 +43,13 @@ namespace Swift.Interop
 
 		public static RelativePointer Zero => default;
 
-		// FIXME: Should be able to freely take &this without fixed as this is a ref struct
 		public void* Target {
 			get {
 				if (offsetPlusIndirect == 0)
 					return null;
+
+				// FIXME: Shouldn't need fixed here; this is a ref struct
+				//  (remove when https://github.com/dotnet/csharplang/issues/1792 is fixed)
 				fixed (void* ptr = &this) {
 					var address = (byte*)ptr + (offsetPlusIndirect & ~1);
 					// If the low bit is set, then this is an indirect address. Otherwise,
