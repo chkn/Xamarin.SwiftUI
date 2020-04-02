@@ -61,7 +61,8 @@ namespace SwiftUI.Interop
 			set {
 				protocolDescriptor = value;
 
-				// FIXME: Shouldn't need fixed; this is a ref struct
+				// FIXME: Shouldn't need fixed here; this is a ref struct
+				//  (remove when https://github.com/dotnet/csharplang/issues/1792 is fixed)
 				fixed (void** ptr = &protocolDescriptor)
 					ConformanceDescriptor.ProtocolPtr.SetTarget (ptr, indirect: true);
 			}
@@ -72,7 +73,8 @@ namespace SwiftUI.Interop
 			set {
 				typeDescriptor = value;
 
-				// FIXME: Shouldn't need fixed; this is a ref struct
+				// FIXME: Shouldn't need fixed here; this is a ref struct
+				//  (remove when https://github.com/dotnet/csharplang/issues/1792 is fixed)
 				fixed (void* ptr = &typeDescriptor)
 					ConformanceDescriptor.TypeDescriptorPtr.Target = ptr;
 			}
@@ -94,6 +96,7 @@ namespace SwiftUI.Interop
 			req2 = (void*)reqs [2];
 
 			// FIXME: Shouldn't need fixed here; this is a ref struct
+			//  (remove when https://github.com/dotnet/csharplang/issues/1792 is fixed)
 			fixed (ViewProtocolConformanceDescriptor* dest = &this) {
 				conformanceDescriptorPtr.Target = &dest->ConformanceDescriptor;
 
@@ -134,6 +137,7 @@ namespace SwiftUI.Interop
 				var req = (void*)Marshal.ReadIntPtr (wt, offs);
 
 				// FIXME: Shouldn't need fixed here; this is a ref struct
+				//  (remove when https://github.com/dotnet/csharplang/issues/1792 is fixed)
 				fixed (ViewProtocolConformanceDescriptor* dest = &this) {
 					if (req == &dest->req0)
 						Marshal.WriteIntPtr (wt, offs, (IntPtr)assocConformance);

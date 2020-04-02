@@ -16,6 +16,8 @@ namespace Swift.Interop
 	public interface ISwiftValue
 	{
 		// by convention:
+		//  FIXME: Make an actual requirement when/if we get
+		//   https://github.com/Partydonk/roslyn/tree/dev/abock/asim/asim-playground
 		// public static SwiftType SwiftType { get; }
 
 		// should be implemented explicitly:
