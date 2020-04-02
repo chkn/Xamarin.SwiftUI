@@ -9,7 +9,7 @@ namespace Swift
 	public class SwiftGlueLib : NativeLib
 	{
 		public const string Path =
-		#if __MACOS__
+		#if __MACOS__ || NETSTANDARD
 			"libSwiftUIGlue.dylib";
 		#else
 			"Frameworks/SwiftUIGlue.framework/SwiftUIGlue";

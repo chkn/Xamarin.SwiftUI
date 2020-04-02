@@ -66,15 +66,10 @@ namespace Swift.Interop
 			return new MemoryHandle ((void*)gch.AddrOfPinnedObject (), gch);
 		}
 
-		/// <summary>
-		/// Creates a copy of this value, while retaining ownership of the original value.
-		/// </summary>
-		/// <remarks>
-		/// If this method is not called, passing this value is considered a move operation.
-		///  The original value is not valid after a move operation, and it should not be used
-		///  or disposed.
-		/// </remarks>
-		T Copy ();
+		// Default implementation provided for POD only.
+		void ISwiftValue.Dispose ()
+		{
+		}
 	}
 
 	// Sync with SwiftType.Of
@@ -83,14 +78,18 @@ namespace Swift.Interop
 		/// <summary>
 		/// Returns an <see cref="ISwiftValue"/> representing the given object.
 		/// </summary>
-		/// <param name="obj">The manage object to bridge to Swift</param>
-		/// <exception cref="ArgumentException">Thrown when the given managed object cannot
+		/// <param name="obj">The managed object to bridge to Swift</param>
+		/// <param name="asOptional"><c>true</c> to bridge the value to Swift
+		///  as an Optional value. This is done regardless if <typeparamref name="T"/> is
+		///  identified as a known nullable wrapper, such as <see cref="Nullable"/>.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="obj"/> is
+		///	 <c>null</c>, <typeparamref name="T"/> is not a known nullable wrapper type,
+		///	 and <paramref name="asOptional"/> is <c>false</c>.</exception>
+		/// <exception cref="ArgumentException">Thrown when the type <typeparamref name="T"/> cannot
 		///  be directly bridged to Swift</exception>
-		public static ISwiftValue? ToSwiftValue (this object? obj)
+		public static ISwiftValue ToSwiftValue<T> (this T obj, bool asOptional = false)
 		{
 			switch (obj) {
-
-			case null: return null;
 			case ISwiftValue swiftValue: return swiftValue;
 
 			// FIXME: This might leak; we should maybe box this into a custom box that
@@ -98,16 +97,31 @@ namespace Swift.Interop
 			case string val: return new Swift.String (val);
 			}
 
-			// FIXME: obj cannot be null due to "case null" above - nullability bug?
-			var swiftType = SwiftType.Of (obj!.GetType ());
+			var type = typeof (T);
+			var swiftType = SwiftType.Of (type);
 			if (swiftType is null)
-				throw new ArgumentException ("Given object cannot be bridged to Swift");
+				throw new ArgumentException ($"Type '{type}' cannot be bridged to Swift");
+
+			// Nullable types are bridged to Swift optionals
+			if (asOptional || type.IsNullable ()) {
+				var underlyingType = type.GetNullableUnderlyingType ();
+				var underlyingSwiftType = SwiftType.Of (underlyingType);
+				if (underlyingSwiftType is null)
+					throw new ArgumentException ($"Type '{underlyingType}' cannot be bridged to Swift");
+
+				// FIXME: Handle non-POD types
+				return new OptionalPOD (obj!, swiftType, underlyingSwiftType);
+			} else if (obj is null) {
+				throw new ArgumentNullException (nameof (obj));
+			}
 
 			return new POD (obj, swiftType);
 		}
 
 		public static TSwiftValue FromNative<TSwiftValue> (IntPtr ptr)
 		{
+			// FIXME: Handle nullables
+
 			var ty = typeof (TSwiftValue);
 			if (ty.IsValueType)
 				return Marshal.PtrToStructure<TSwiftValue> (ptr);
@@ -136,6 +150,40 @@ namespace Swift.Interop
 				SwiftType = swiftType;
 				unsafe {
 					Debug.Assert (!swiftType.ValueWitnessTable->IsNonPOD);
+				}
+			}
+
+			public void Dispose ()
+			{
+				// nop, since this is POD
+			}
+		}
+
+		unsafe class OptionalPOD : ISwiftValue
+		{
+			public SwiftType SwiftType { get; }
+
+			byte [] data;
+
+			public MemoryHandle GetHandle ()
+			{
+				var gch = GCHandle.Alloc (data, GCHandleType.Pinned);
+				return new MemoryHandle ((void*)gch.AddrOfPinnedObject (), gch);
+			}
+
+			public OptionalPOD (object value, SwiftType swiftType, SwiftType wrappedSwiftType)
+			{
+				SwiftType = swiftType;
+				Debug.Assert (!swiftType.ValueWitnessTable->IsNonPOD);
+
+				data = new byte [swiftType.NativeDataSize];
+				fixed (void* ptr = &data[0]) {
+					var tag = 1; // nil
+					if (value != null) {
+						tag = 0;
+						Marshal.StructureToPtr (value, (IntPtr)ptr, false);
+					}
+					wrappedSwiftType.StoreEnumTagSinglePayload (ptr, tag, 1);
 				}
 			}
 

@@ -7,6 +7,8 @@ using Xunit;
 using Swift;
 using SwiftUI;
 using Swift.Interop;
+using SwiftUI.Interop;
+using SwiftUI.Tests.FSharp;
 
 namespace SwiftUI.Tests
 {
@@ -15,7 +17,7 @@ namespace SwiftUI.Tests
 		[Theory]
 		[InlineData (typeof (SwiftCoreLib))]
 		[InlineData (typeof (SwiftUILib))]
-		public void CreateAllNonGenericTypes (Type libType)
+		public void AllNonGenericTypesCanBeCreated (Type libType)
 		{
 			var lib = Activator.CreateInstance (libType, nonPublic: true);
 			Assert.NotNull (lib);
@@ -23,17 +25,27 @@ namespace SwiftUI.Tests
 			var props = libType.GetProperties ()
 			                   .Where (prop => typeof (SwiftType).IsAssignableFrom (prop.PropertyType));
 
-			// These use Debug.Assert, which Xunit doesn't hook by default (https://github.com/xunit/xunit/issues/382)
-			//  So we need to hook this ourselves...
-			// FIXME: Better way? Hook at the test fixture level? etc..
-			var oldListeners = Trace.Listeners.Cast<TraceListener> ().ToArray ();
-			try {
-				Trace.Listeners.Clear ();
-				Trace.Listeners.Add (new ThrowingTraceListener ());
+			using (new ThrowingTraceListener ())
 				Assert.All (props, prop => Assert.NotNull (prop.GetValue (lib)));
-			} finally {
-				Trace.Listeners.Clear ();
-				Trace.Listeners.AddRange (oldListeners);
+		}
+
+		[Theory]
+		[InlineData (typeof (ViewWithNullableReferenceState))]
+		[InlineData (typeof (ViewWithNullableValueState))]
+		[InlineData (typeof (ViewWithOptionState))]
+		public void NullableFieldConvertsToSwiftOptional (Type viewType)
+		{
+			var sty = SwiftType.Of (viewType) as CustomViewType;
+			Assert.NotNull (sty);
+
+			Assert.Equal (1, sty!.NativeFields.Count);
+
+			var gargs = sty.NativeFields [0].SwiftType.GenericArguments;
+			Assert.NotNull (gargs);
+			Assert.Equal (1, gargs!.Count);
+
+			unsafe {
+				Assert.Equal ("Optional", gargs [0].Metadata->TypeDescriptor->Name);
 			}
 		}
 	}

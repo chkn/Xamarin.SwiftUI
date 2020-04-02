@@ -46,8 +46,8 @@ namespace SwiftUI
 				}
 
 				using (var handle = GetHandle ())
-				using (var valueHandle = value.ToSwiftValue ()?.GetHandle ())
-					SetWrappedValue (handle.Pointer, valueHandle.HasValue? valueHandle.Value.Pointer : null, ValueType.Metadata);
+				using (var valueHandle = value.ToSwiftValue ().GetHandle ())
+					SetWrappedValue (handle.Pointer, valueHandle.Pointer, ValueType.Metadata);
 			}
 		}
 
@@ -58,8 +58,8 @@ namespace SwiftUI
 
 		protected override unsafe void InitNativeData (void* handle)
 		{
-			using (var value = initialValue.ToSwiftValue ()?.GetHandle ())
-				Init (handle, value.HasValue? value.Value.Pointer : null, ValueType.Metadata);
+			using (var value = initialValue.ToSwiftValue ().GetHandle ())
+				Init (handle, value.Pointer, ValueType.Metadata);
 		}
 	}
 

@@ -6,6 +6,7 @@ using ObjCRuntime;
 #endif
 
 [assembly: InternalsVisibleTo ("SwiftUI.Tests")]
+[assembly: InternalsVisibleTo ("SwiftUI.Tests.FSharp")]
 
 #if __MACOS__
 [assembly: LinkWith ("libSwiftUIGlue.dylib", Dlsym = DlsymOption.Disabled)]

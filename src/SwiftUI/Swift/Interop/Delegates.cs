@@ -14,4 +14,6 @@ namespace Swift.Interop
 	unsafe delegate void DestroyFunc (void* obj, TypeMetadata* typeMetadata);
 
 	unsafe delegate void* TransferFunc (void* dest, void* src, TypeMetadata* typeMetadata);
+
+	unsafe delegate void StoreEnumTagSinglePayloadFunc (void* dest, uint whichCase, uint emptyCases, TypeMetadata* typeMetadata);
 }
