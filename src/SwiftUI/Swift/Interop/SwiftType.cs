@@ -218,6 +218,7 @@ namespace Swift.Interop
 						TypeCode.Byte => SwiftCoreLib.Types.Int8,
 						TypeCode.Int16 => SwiftCoreLib.Types.Int16,
 						TypeCode.Int32 => SwiftCoreLib.Types.Int32,
+						TypeCode.Double => SwiftCoreLib.Types.Double,
 						// FIXME: ...
 						_ => type.GetProperty ("SwiftType", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)?.GetValue (null) as SwiftType
 					};

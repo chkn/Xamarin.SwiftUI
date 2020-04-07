@@ -138,3 +138,10 @@ public func SetBodyFn(value : @escaping BodyFn)
 {
     bodyFn = value
 }
+
+@_silgen_name("swiftui_View_opacity")
+public func SetViewOpacity<T: View>(dest : UnsafeMutableRawPointer, view : T, value : Double)
+{
+    let result = view.opacity(value)
+    dest.initializeMemory(as: type(of: result), repeating: result, count: 1)
+}

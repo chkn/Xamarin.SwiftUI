@@ -143,11 +143,6 @@ namespace SwiftUI.Interop
 			SetBodyFn (bodyFn);
 		}
 
-		[DllImport (SwiftGlueLib.Path,
-			CallingConvention = CallingConvention.Cdecl,
-			EntryPoint = "swiftui_ThunkView_setBodyFn")]
-		static extern void SetBodyFn (PtrPtrFunc bodyFn);
-
 		protected override void Dispose (bool disposing)
 		{
 			base.Dispose (disposing);
@@ -156,5 +151,10 @@ namespace SwiftUI.Interop
 				viewConformanceDesc = null;
 			}
 		}
+
+		[DllImport(SwiftGlueLib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "swiftui_ThunkView_setBodyFn")]
+		static extern void SetBodyFn (PtrPtrFunc bodyFn);
 	}
 }
