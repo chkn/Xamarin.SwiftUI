@@ -58,10 +58,5 @@ namespace SwiftUI
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5StateVMa")]
 		static extern IntPtr GetStateType (long metadataReq, TypeMetadata* valueType);
-
-		[DllImport(Path,
-			CallingConvention = CallingConvention.Cdecl,
-			EntryPoint = "$s7SwiftUI5ColorVMa")]
-		static extern IntPtr GetColorType (long metadataReq, TypeMetadata* valueType);
 	}
 }
