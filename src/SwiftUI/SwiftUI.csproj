@@ -39,19 +39,14 @@
   <ItemGroup>
     <!-- KLUDGE: We auto-generate a blank file for this -->
     <ObjcBindingApiDefinition Include="$(IntermediateOutputPath)\ApiDefinition.cs" />
-    <ObjcBindingNativeFramework
-      Include="..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework"
-      Condition="Exists('..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework')"
-      Visible="false" />
-    <ObjcBindingNativeLibrary
-      Include="..\..\native\$(Configuration)\$(TargetFramework)\*.dylib"
-      Visible="false" />
+    <ObjcBindingNativeFramework Include="..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework" Condition="Exists('..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework')" Visible="false" />
+    <ObjcBindingNativeLibrary Include="..\..\native\$(Configuration)\$(TargetFramework)\*.dylib" Visible="false" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="SwiftUI\TextExtensions.cs" />
+  </ItemGroup>
   <Target Name="CreateDummyApiDefinition" BeforeTargets="_GenerateBindings">
-    <WriteLinesToFile
-      Lines=""
-      File="@(ObjcBindingApiDefinition)"
-      Condition="!Exists('@(ObjcBindingApiDefinition)')" />
+    <WriteLinesToFile Lines="" File="@(ObjcBindingApiDefinition)" Condition="!Exists('@(ObjcBindingApiDefinition)')" />
   </Target>
 </Project>
