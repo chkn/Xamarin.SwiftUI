@@ -13,12 +13,12 @@ namespace SwiftUI
 		#region Constructors
 		public Color (UIColor color)
 		{
-			data = CreateFromUIColor(color.Handle.ToPointer());
+			Data = CreateFromUIColor(color.Handle.ToPointer());
 		}
 
 		public Color (string name, NSBundle? bundle = null)
 		{
-			data = CreateFromStringBundle (name, bundle == null ? IntPtr.Zero.ToPointer() : bundle.Handle.ToPointer());
+			Data = CreateFromStringBundle (name, bundle == null ? IntPtr.Zero.ToPointer() : bundle.Handle.ToPointer());
 		}
 		#endregion
 

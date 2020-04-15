@@ -28,7 +28,7 @@ namespace SwiftUI
 
 		public void Dispose () => SwiftType.Destroy (in this);
 
-		readonly IntPtr data;
+		public IntPtr Data { get; private set; }
 
 		#region Static Colour Spaces
 		public static IntPtr ColorSpaceDisplayP3 => GetColorSpaceDisplayP3 (0, RGBColorSpaceMetadata ());
@@ -37,35 +37,41 @@ namespace SwiftUI
 		#endregion
 
 		#region Static Colours
-		public static IntPtr Black => GetColorBlack (0, SwiftType.Metadata);
-		public static IntPtr Blue => GetColorBlue (0, SwiftType.Metadata);
-		public static IntPtr Clear => GetColorClear (0, SwiftType.Metadata);
-		public static IntPtr Gray => GetColorGray (0, SwiftType.Metadata);
-		public static IntPtr Green => GetColorGreen (0, SwiftType.Metadata);
-		public static IntPtr Orange => GetColorOrange (0, SwiftType.Metadata);
-		public static IntPtr Pink => GetColorPink (0, SwiftType.Metadata);
-		public static IntPtr Primary => GetColorPrimary (0, SwiftType.Metadata);
-		public static IntPtr Purple => GetColorPurple (0, SwiftType.Metadata);
-		public static IntPtr Red => GetColorRed (0, SwiftType.Metadata);
-		public static IntPtr Secondary => GetColorSecondary (0, SwiftType.Metadata);
-		public static IntPtr White => GetColorWhite (0, SwiftType.Metadata);
-		public static IntPtr Yellow => GetColorYellow (0, SwiftType.Metadata);
+		// TODO: Most of these should be cached
+		public static Color Black => new Color (GetColorBlack (0, SwiftType.Metadata));
+		public static Color Blue => new Color (GetColorBlue (0, SwiftType.Metadata));
+		public static Color Clear => new Color (GetColorClear (0, SwiftType.Metadata));
+		public static Color Gray => new Color (GetColorGray (0, SwiftType.Metadata));
+		public static Color Green => new Color (GetColorGreen (0, SwiftType.Metadata));
+		public static Color Orange => new Color (GetColorOrange (0, SwiftType.Metadata));
+		public static Color Pink => new Color (GetColorPink (0, SwiftType.Metadata));
+		public static Color Primary => new Color (GetColorPrimary (0, SwiftType.Metadata));
+		public static Color Purple => new Color (GetColorPurple (0, SwiftType.Metadata));
+		public static Color Red => new Color (GetColorRed (0, SwiftType.Metadata));
+		public static Color Secondary => new Color (GetColorSecondary (0, SwiftType.Metadata));
+		public static Color White => new Color (GetColorWhite (0, SwiftType.Metadata));
+		public static Color Yellow => new Color (GetColorYellow (0, SwiftType.Metadata));
 		#endregion
 
 		#region Constructors
+		internal Color (IntPtr data)
+		{
+			Data = data;
+		}
+
 		public Color (RGBColorSpace colorSpace, double red, double green, double blue, double opacity)
 		{
-			data = CreateFromRGBColorSpaceRedGreenBlueOpacity ((ulong)colorSpace, red, green, blue, opacity);
+			Data = CreateFromRGBColorSpaceRedGreenBlueOpacity ((ulong)colorSpace, red, green, blue, opacity);
 		}
 
 		public Color (RGBColorSpace colorSpace, double white, double opacity)
 		{
-			data = CreateFromRGBColorSpaceWhiteOpacity ((ulong)colorSpace, white, opacity);
+			Data = CreateFromRGBColorSpaceWhiteOpacity ((ulong)colorSpace, white, opacity);
         }
 
         public Color (double hue, double saturation, double brightness, double opacity)
 		{
-			data = CreateFromHSBO (hue, saturation, brightness, opacity);
+			Data = CreateFromHSBO (hue, saturation, brightness, opacity);
 		}
 		#endregion
 
