@@ -31,9 +31,9 @@ namespace SwiftUI
 		readonly IntPtr data;
 
 		#region Static Colour Spaces
-		public static IntPtr DisplayP3 => GetColorSpaceDisplayP3 (0, RGBColorSpaceMetadata ());
-		public static IntPtr RGB => GetColorSpaceRGB ();
-		public static IntPtr RGBLinear => GetColorSpaceRGBLinear ();
+		public static IntPtr ColorSpaceDisplayP3 => GetColorSpaceDisplayP3 (0, RGBColorSpaceMetadata ());
+		public static IntPtr ColorSpaceRGB => GetColorSpaceRGB ();
+		public static IntPtr ColorSpaceRGBLinear => GetColorSpaceRGBLinear ();
 		#endregion
 
 		#region Static Colours
@@ -75,10 +75,7 @@ namespace SwiftUI
 			var gch = GCHandle.Alloc (this, GCHandleType.Pinned);
 			return new MemoryHandle ((void*)gch.AddrOfPinnedObject (), gch);
 		}
-	}
 
-	unsafe partial struct Color
-	{
 		#region DllImports
 
 		#region Initialisers
