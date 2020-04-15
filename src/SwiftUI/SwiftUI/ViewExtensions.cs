@@ -28,17 +28,17 @@ namespace SwiftUI
 			}
 		}
 
-		public static ModifiedOpacity<T> Background<T> (this T view, Color color) where T : View
+		public static ModifiedBackground<T> Background<T> (this T view, Color color) where T : View
 		{
-			var opaqueOpacityMetadata = ModifiedOpacity<T>.SwiftType;
-			var resultPointer = Marshal.AllocHGlobal (opaqueOpacityMetadata.NativeDataSize);
+			var opaqueBackgroundMetadata = ModifiedBackground<T>.SwiftType;
+			var resultPointer = Marshal.AllocHGlobal (opaqueBackgroundMetadata.NativeDataSize);
 			try
 			{
 				using (var viewHandle = view.GetHandle())
 				{
-					ViewBackground (resultPointer.ToPointer(), viewHandle.Pointer, color, view.ViewType.Metadata, view.ViewType.GetProtocolConformance (SwiftUILib.Types.View));
+					ViewBackground (resultPointer.ToPointer(), viewHandle.Pointer, color.Data, view.ViewType.Metadata, view.ViewType.GetProtocolConformance (SwiftUILib.Types.View));
 
-					return new ModifiedOpacity<T >(new TaggedPointer (resultPointer, true), opaqueOpacityMetadata);
+					return new ModifiedBackground<T >(new TaggedPointer (resultPointer, true), opaqueBackgroundMetadata);
 				}
 			}
 			catch
@@ -56,6 +56,6 @@ namespace SwiftUI
 		[DllImport(SwiftGlueLib.Path,
 		CallingConvention = CallingConvention.Cdecl,
 		EntryPoint = "swiftui_View_background")]
-		internal static extern void ViewBackground (void* resultPointer, void* viewPointer, Color opacity, TypeMetadata* viewMetatdata, ProtocolWitnessTable* viewConformance);
+		internal static extern void ViewBackground (void* resultPointer, void* viewPointer, IntPtr colorPointer, TypeMetadata* viewMetatdata, ProtocolWitnessTable* viewConformance);
 	}
 }
