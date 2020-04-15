@@ -10,46 +10,21 @@ namespace SwiftUI
 {
 	public unsafe partial struct Color
 	{
+		#region Constructors
 		public Color (UIColor color)
 		{
-			// We can't guarantee the UIColor will have RGBA components so will null for now. Otherwise we need to jump through hoops and trap execptions
-			RedComponent = null;
-			GreenComponent = null;
-			BlueComponent = null;
-			OpacityComponent = null;
-
-			ColorSpace = null;
-
-			HueComponent = null;
-			SaturationComponent = null;
-			BrightnessComponent = null;
-
-			WhiteComponent = null;
-
-			_ = CreateFromUIColor(color.Handle.ToPointer());
+			data = CreateFromUIColor(color.Handle.ToPointer());
 		}
 
 		public Color (string name, NSBundle? bundle = null)
 		{
-			RedComponent = null;
-			GreenComponent = null;
-			BlueComponent = null;
-			OpacityComponent = null;
-
-			ColorSpace = null;
-
-			HueComponent = null;
-			SaturationComponent = null;
-			BrightnessComponent = null;
-			
-			WhiteComponent = null;
-
-			_ = CreateFromStringBundle (name, bundle == null ? IntPtr.Zero.ToPointer() : bundle.Handle.ToPointer());
+			data = CreateFromStringBundle (name, bundle == null ? IntPtr.Zero.ToPointer() : bundle.Handle.ToPointer());
 		}
+		#endregion
 
 		#region DllImports
 		// Initialisers
-		[DllImport(SwiftUILib.Path,
+		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorVyACSo7UIColorCcfC")]
 		static extern IntPtr CreateFromUIColor (void* colorPointer);
