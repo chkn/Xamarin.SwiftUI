@@ -4,48 +4,21 @@ using System.Runtime.InteropServices;
 using Foundation;
 using AppKit;
 
-using Swift.Interop;
-
 namespace SwiftUI
 {
 	public unsafe partial struct Color
 	{
+		#region Constructors
 		public Color (NSColor color)
 		{
-			// We can't guarantee the NSColor will have RGBA components so will null for now. Otherwise we need to jump through hoops and trap execptions
-			RedComponent = null;
-			GreenComponent = null;
-			BlueComponent = null;
-			OpacityComponent = null;
-
-			ColorSpace = null;
-
-			HueComponent = null;
-			SaturationComponent = null;
-			BrightnessComponent = null;
-
-			WhiteComponent = null;
-
-			_ = CreateFromNSColor (color.Handle.ToPointer ());
+			data = CreateFromNSColor (color.Handle.ToPointer ());
 		}
 
 		public Color (string name, NSBundle? bundle = null)
 		{
-			RedComponent = null;
-			GreenComponent = null;
-			BlueComponent = null;
-			OpacityComponent = null;
-
-			ColorSpace = null;
-
-			HueComponent = null;
-			SaturationComponent = null;
-			BrightnessComponent = null;
-
-			WhiteComponent = null;
-
-			_ = CreateFromStringBundle (name, bundle == null ? IntPtr.Zero.ToPointer () : bundle.Handle.ToPointer ());  
+			data = CreateFromStringBundle (name, bundle == null ? IntPtr.Zero.ToPointer () : bundle.Handle.ToPointer ());  
         }
+		#endregion
 
 		#region DllImports
 		// Initialisers
