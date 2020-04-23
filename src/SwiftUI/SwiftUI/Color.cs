@@ -14,7 +14,8 @@ namespace SwiftUI
 		RGB,
 		RGBLinear,
 	};
-	
+
+	[SwiftImport (SwiftUILib.Path)]
 	public unsafe partial class Color : View
 	{
 		public IntPtr Data { get; private set; }
