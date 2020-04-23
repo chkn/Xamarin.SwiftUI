@@ -46,6 +46,11 @@
   <ItemGroup>
     <Compile Remove="SwiftUI\TextExtensions.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Update="SwiftUI\ModifiedBackground.cs">
+      <SubType></SubType>
+    </Compile>
+  </ItemGroup>
   <Target Name="CreateDummyApiDefinition" BeforeTargets="_GenerateBindings">
     <WriteLinesToFile Lines="" File="@(ObjcBindingApiDefinition)" Condition="!Exists('@(ObjcBindingApiDefinition)')" />
   </Target>

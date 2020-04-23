@@ -15,23 +15,22 @@ namespace SwiftUI
 		RGBLinear,
 	};
 	
-
-	[StructLayout (LayoutKind.Sequential, Size = 8)]
-	public unsafe partial struct Color : ISwiftBlittableStruct<Color>, IDisposable
+	public unsafe partial class Color : View
 	{
 		public static SwiftType SwiftType => SwiftUILib.Types.Color;
-		SwiftType ISwiftValue.SwiftType => SwiftUILib.Types.Color;
-
-		public static Color Empty => default;
-
-		public Color Copy () => SwiftType.Transfer (in this, TransferFuncType.InitWithCopy);
-
-		public void Dispose () => SwiftType.Destroy (in this);
+		public override SwiftType ViewType => SwiftUILib.Types.Color;
 
 		public IntPtr Data { get; private set; }
 
 		#region Static Colour Spaces
-		public static IntPtr ColorSpaceDisplayP3 => GetColorSpaceDisplayP3 (0, RGBColorSpaceMetadata ());
+		public static IntPtr ColorSpaceDisplayP3 {
+			get {
+				var fullMeta = RGBColorSpaceMetadata (0);
+				var meta = &fullMeta->Metadata;
+				return GetColorSpaceDisplayP3 (meta);
+			}
+		}
+
 		public static IntPtr ColorSpaceRGB => GetColorSpaceRGB ();
 		public static IntPtr ColorSpaceRGBLinear => GetColorSpaceRGBLinear ();
 		#endregion
@@ -52,6 +51,10 @@ namespace SwiftUI
 		public static Color White => new Color (GetColorWhite (0, SwiftType.Metadata));
 		public static Color Yellow => new Color (GetColorYellow (0, SwiftType.Metadata));
 		#endregion
+
+		protected override void InitNativeData (void* handle)
+		{
+		}
 
 		#region Constructors
 		internal Color (IntPtr data)
@@ -74,13 +77,6 @@ namespace SwiftUI
 			Data = CreateFromHSBO (hue, saturation, brightness, opacity);
 		}
 		#endregion
-
-		// FIXME: Remove when this is fixed: https://github.com/mono/mono/issues/17869
-		MemoryHandle ISwiftValue.GetHandle ()
-		{
-			var gch = GCHandle.Alloc (this, GCHandleType.Pinned);
-			return new MemoryHandle ((void*)gch.AddrOfPinnedObject (), gch);
-		}
 
 		#region DllImports
 
@@ -118,7 +114,7 @@ namespace SwiftUI
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV13RGBColorSpaceO9displayP3yA2EmFWC")]
-		static extern IntPtr GetColorSpaceDisplayP3 (long metadataReq, IntPtr colorSpaceMetadata);
+		static extern IntPtr GetColorSpaceDisplayP3 (TypeMetadata* colorSpaceMetadata);
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
@@ -129,6 +125,11 @@ namespace SwiftUI
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV13RGBColorSpaceO10sRGBLinearyA2EmFWC")]
 		static extern IntPtr GetColorSpaceRGBLinear ();
+
+		[DllImport (SwiftUILib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "$s7SwiftUI5ColorV13RGBColorSpaceOMa")]
+		static extern FullTypeMetadata* RGBColorSpaceMetadata (long metadataReq);
 		#endregion
 
 		#region Static Colours
@@ -196,13 +197,6 @@ namespace SwiftUI
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV5yellowACvgZ")]
 		static extern IntPtr GetColorYellow (long metadataReq, TypeMetadata* valueType);
-		#endregion
-
-		#region RGBColorSpace
-		[DllImport (SwiftUILib.Path,
-			CallingConvention = CallingConvention.Cdecl,
-			EntryPoint = "$s7SwiftUI5ColorV13RGBColorSpaceOMa")]
-		static extern IntPtr RGBColorSpaceMetadata ();
 		#endregion
 
 		#endregion

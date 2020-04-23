@@ -45,6 +45,10 @@ namespace SwiftUI
 		public IntPtr ViewOpacityTypeDescriptor
 			=> _viewOpacityTypeDescriptor == IntPtr.Zero ? (_viewOpacityTypeDescriptor = RequireSymbol("$s7SwiftUI4ViewPAAE7opacityyQrSdFQOMQ")) : _viewOpacityTypeDescriptor;
 
+		IntPtr _viewBackgroundTypeDescriptor;
+		public IntPtr ViewBackgroundTypeDescriptor
+			=> _viewBackgroundTypeDescriptor == IntPtr.Zero ? (_viewBackgroundTypeDescriptor = RequireSymbol ("$s7SwiftUI4ViewPAAE10background_9alignmentQrqd___AA9AlignmentVtAaBRd__lFQOMQ")) : _viewBackgroundTypeDescriptor;
+
 		// Generic type metadata accessors:
 		//  For values for the first arg, see https://github.com/apple/swift/blob/ffc0f6f783a53573eb79440f16584e0422378b16/include/swift/ABI/MetadataValues.h#L1594
 		//  (generally we pass 0 for complete metadata)

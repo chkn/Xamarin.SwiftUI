@@ -8,7 +8,7 @@ using Swift.Interop;
 
 namespace SwiftUI
 {
-	public unsafe partial struct Color
+	public unsafe partial class Color
 	{
 		#region Constructors
 		public Color (UIColor color)

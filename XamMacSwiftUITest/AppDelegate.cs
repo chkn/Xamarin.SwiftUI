@@ -36,20 +36,18 @@ namespace XamMacSwiftUITest
 	public class ClickButton : View
 	{
 		State<int> counter = new State<int> (0);
-		public ModifiedOpacity<Button<Text>> Body
-		{
-			get
-			{
+		public ModifiedBackground<Button<Text>, Color> Body {
+		//public ModifiedOpacity<Button<Text>> Body {
+			get {
 				Button<Text> button = null;
-				button = new Button<Text>(
-					() =>
-					{
+				button = new Button<Text> (
+					() => {
 						counter.Value += 1;
 					}, new Text (string.Format ("Clicked {0} times", counter.Value))
 				);
-
-				return button.Opacity (counter.Value % 2 == 0 ? 0.5 : 1.0);
+				return button.Background (Color.Red);
+				//return button.Opacity (counter.Value % 2 == 0 ? 0.5 : 1.0);
 			}
 		}
-    }
+	}
 }
