@@ -7,10 +7,6 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 
-// FIXME: Break this backward dep
-using SwiftUI;
-using SwiftUI.Interop;
-
 namespace Swift.Interop
 {
 	using static TransferFuncType;
@@ -65,11 +61,15 @@ namespace Swift.Interop
 
 		readonly SwiftType []? genericArgs; // null if empty
 
+		// only holding on to this to keep it from being finalized
+		readonly NativeLib? lib;
+
 		// Delegates from the value witness table...
 		DestroyFunc? _destroy;
 		TransferFunc? _copyInit;
 		TransferFunc? _moveInit;
 		TransferFunc? _copyAssign;
+		GetEnumTagSinglePayloadFunc? _getEnumTagSinglePayload;
 		StoreEnumTagSinglePayloadFunc? _storeEnumTagSinglePayload;
 
 		TransferFunc GetTransferFunc (TransferFuncType type)
@@ -161,8 +161,11 @@ namespace Swift.Interop
 		{
 		}
 
-		public SwiftType (IntPtr typeMetadata, Type? managedType = null, SwiftType []? genericArgs = null)
+		// Using IntPtr typeMetadata arg here instead of FullTypeMetadata* so it's easier
+		//  to just pass the result of lib.RequireSymbol
+		public SwiftType (NativeLib? lib, IntPtr typeMetadata, Type? managedType = null, SwiftType []? genericArgs = null)
 		{
+			this.lib = lib;
 			this.fullMetadata = (FullTypeMetadata*)(typeMetadata - IntPtr.Size);
 			this.genericArgs = genericArgs;
 
@@ -183,10 +186,11 @@ namespace Swift.Interop
 		/// <summary>
 		/// Creates a new <see cref="SwiftType"/> that references a type from a native library.
 		/// </summary>
+		/// <param name="mangledName">The mangled name of the Swift type.</param>
 		public SwiftType (NativeLib lib, string mangledName, Type? managedType = null)
-			: this (lib.RequireSymbol ("$s" + mangledName + "N"), managedType)
+			: this (lib, lib.RequireSymbol ("$s" + NormalizeMangledName (mangledName) + "N"), managedType)
 		{
-			this.mangledName = mangledName;
+			this.mangledName = NormalizeMangledName (mangledName);
 		}
 
 		/// <summary>
@@ -198,7 +202,7 @@ namespace Swift.Interop
 		}
 
 		public SwiftType (NativeLib lib, Type managedType)
-			: this (lib, managedType.Namespace, GetSwiftTypeName (managedType), GetSwiftTypeCode (managedType), managedType)
+			: this (lib, Mangle (managedType), managedType)
 		{
 		}
 
@@ -213,46 +217,76 @@ namespace Swift.Interop
 		/// </remarks>
 		//
 		// Sync with SwiftValue.ToSwiftValue
-		public static SwiftType? Of (Type type)
+		public static SwiftType? Of (Type type, Nullability? givenNullability = default)
 		{
 			SwiftType? result;
+			var nullability = givenNullability ?? Nullability.Of (type);
 			lock (registry) {
 				if (!registry.TryGetValue (type, out result)) {
-					result = Type.GetTypeCode (type) switch
-					{
-						TypeCode.String => SwiftCoreLib.Types.String,
-						TypeCode.Byte => SwiftCoreLib.Types.Int8,
-						TypeCode.Int16 => SwiftCoreLib.Types.Int16,
-						TypeCode.Int32 => SwiftCoreLib.Types.Int32,
-						TypeCode.Double => SwiftCoreLib.Types.Double,
-						// FIXME: ...
-						_ => type.GetProperty ("SwiftType", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)?.GetValue (null) as SwiftType
-					};
+					// First see if it is a core type
+					result = SwiftCoreLib.GetSwiftType (type);
+
+					// Otherwise, see if the type has an attribute that can provide a SwiftType
 					if (result == null) {
-						// Special handling for certain types..
-						//   Custom views
-						if (type.IsSubclassOf (typeof (View))) {
-							result = new CustomViewType (type);
-						} else if (type.IsNullable ()) {
-							//  Nullable types -> Swift optional
-							var underlyingType = type.GetNullableUnderlyingType ();
-							var underlyingSwiftType = SwiftType.Of (underlyingType);
-							if (underlyingSwiftType != null)
-								result = SwiftCoreLib.Types.Optional (underlyingSwiftType);
+						// First pass inherit: false to get a SwiftImport that overrides a different
+						//  type of inherited attribute (e.g. CustomViewAttribute)
+						var attr = type.GetCustomAttribute<SwiftTypeAttribute> (inherit: false) ??
+						           type.GetCustomAttribute<SwiftTypeAttribute> (inherit: true);
+						if (attr != null) {
+							SwiftType []? typeArgs = null;
+							if (type.IsGenericType) {
+								var genericArgs = type.GenericTypeArguments;
+								if (genericArgs.Length == 0)
+									throw new ArgumentException ("Type is a generic type definition", nameof (type));
+
+								typeArgs = new SwiftType [genericArgs.Length];
+								for (var i = 0; i < genericArgs.Length; i++) {
+									var argType = genericArgs [i];
+									typeArgs [i] = Of (argType, nullability [i]) ??
+										throw new UnknownSwiftTypeException (argType);
+								}
+							}
+							result = attr.GetSwiftType (type, typeArgs);
 						}
+					}
+
+					// If it's a nullable type, try to unwrap it
+					//  Only handle reified nullables here because we are caching this result
+					if (result == null && Nullability.IsReifiedNullable (type)) {
+						//  Nullable types -> Swift optional
+						var underlyingType = Nullability.GetUnderlyingType (type);
+						var underlyingSwiftType = SwiftType.Of (underlyingType, nullability.Strip ());
+						if (underlyingSwiftType != null)
+							result = SwiftCoreLib.GetOptionalType (underlyingSwiftType);
 					}
 					if (result != null)
 						registry.Add (type, result);
 				}
 			}
+			// If it's a non-reified nullable, also wrap the type in an Optional
+			//  (but note that we won't cache this result)
+			if (result != null && nullability.IsNullable && !Nullability.IsReifiedNullable (type)) {
+				result = SwiftCoreLib.GetOptionalType (result);
+			}
 			return result;
 		}
+
+		internal static string Mangle (Type managedType)
+			=> Mangle (managedType.Namespace, GetSwiftTypeName (managedType), GetSwiftTypeCode (managedType));
 
 		internal static string Mangle (string module, string name)
 			=> (module == "Swift" ? "s" : module.Length + module) + name.Length + name;
 
 		internal static string Mangle (string module, string name, SwiftTypeCode code)
 			=> Mangle (module, name) + ((char) code);
+
+		static string NormalizeMangledName (string mangledName)
+		{
+			var ln1 = mangledName.Length - 1;
+			var len = (mangledName [ln1] == 'N') ? ln1 : mangledName.Length;
+			var offs = mangledName.StartsWith ("$s", StringComparison.Ordinal) ? 2 : 0;
+			return mangledName.Substring (offs, len);
+		}
 
 		internal static string GetSwiftTypeName (Type ty)
 		{
@@ -310,6 +344,18 @@ namespace Swift.Interop
 				result = src;
 			}
 			return result;
+		}
+
+		/// <summary>
+		/// Gets the tag for an enum that has a single payload of this type.
+		/// </summary>
+		internal int GetEnumTagSinglePayload (void* ptr, int emptyCases)
+		{
+			if (_getEnumTagSinglePayload is null)
+				_getEnumTagSinglePayload = Marshal.GetDelegateForFunctionPointer<GetEnumTagSinglePayloadFunc> (ValueWitnessTable->GetEnumTagSinglePayload);
+			checked {
+				return (int)_getEnumTagSinglePayload (ptr, (uint)emptyCases, Metadata);
+			}
 		}
 
 		/// <summary>

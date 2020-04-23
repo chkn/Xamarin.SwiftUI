@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 using Swift;
@@ -9,15 +10,16 @@ namespace SwiftUI
 {
 	using static State;
 
+	[SwiftImport (SwiftUILib.Path)]
 	public sealed class State<TValue> : SwiftStruct
 	{
-		static SwiftType ValueType { get; } = SwiftType.Of (typeof (TValue)) ??
-			throw new ArgumentException ("Expected SwiftType", nameof (TValue));
-
-		public static SwiftType SwiftType { get; } = SwiftUILib.Types.State (ValueType);
-		protected override SwiftType SwiftStructType => SwiftType;
-
 		TValue initialValue;
+
+		SwiftType? valueType;
+		Nullability valueNullability;
+
+		SwiftType ValueType
+			=> valueType ??= SwiftType.Of (typeof (TValue), valueNullability) ?? throw new UnknownSwiftTypeException (typeof (TValue));
 
 		public unsafe TValue Value {
 			get {
@@ -30,9 +32,9 @@ namespace SwiftUI
 				var ptr = Marshal.AllocHGlobal (ValueType.NativeDataSize);
 				try {
 					// FIXME: Results in 2 copies- can we do better?
-					using (var handle = GetHandle ())
+					using (var handle = GetSwiftHandle ())
 						GetWrappedValue ((void*)ptr, handle.Pointer, ValueType.Metadata);
-					return SwiftValue.FromNative<TValue> (ptr);
+					return SwiftValue.FromNative<TValue> (ptr, valueNullability);
 				} finally {
 					Marshal.FreeHGlobal (ptr);
 				}
@@ -45,9 +47,9 @@ namespace SwiftUI
 					return;
 				}
 
-				using (var handle = GetHandle ())
-				using (var valueHandle = value.ToSwiftValue ().GetHandle ())
-					SetWrappedValue (handle.Pointer, valueHandle.Pointer, ValueType.Metadata);
+				using (var handle = GetSwiftHandle ())
+				using (var valueHandle = value.GetSwiftHandle (valueNullability))
+					SetWrappedValue (handle.Pointer, valueHandle.Pointer, valueHandle.SwiftType.Metadata);
 			}
 		}
 
@@ -56,10 +58,16 @@ namespace SwiftUI
 			this.initialValue = initialValue;
 		}
 
+		protected override void SetNullability (Nullability nullability)
+		{
+			Debug.Assert (valueType == null);
+			valueNullability = nullability [0];
+		}
+
 		protected override unsafe void InitNativeData (void* handle)
 		{
-			using (var value = initialValue.ToSwiftValue ().GetHandle ())
-				Init (handle, value.Pointer, ValueType.Metadata);
+			using (var value = initialValue.GetSwiftHandle (valueNullability))
+				Init (handle, value.Pointer, value.SwiftType.Metadata);
 		}
 	}
 

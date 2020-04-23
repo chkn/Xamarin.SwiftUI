@@ -9,16 +9,11 @@ namespace SwiftUI
 {
 	using static Button;
 
+	[SwiftImport (SwiftUILib.Path)]
 	public sealed class Button<TLabel> : View where TLabel : View
 	{
-		static SwiftType LabelType => SwiftType.Of (typeof (TLabel)) ??
-			throw new ArgumentException ("Expected SwiftType", nameof (TLabel));
-
-		public static SwiftType SwiftType { get; } = SwiftUILib.Types.Button (LabelType);
-		public override SwiftType ViewType => SwiftType;
-
-		Action action;
-		TLabel label;
+		readonly Action action;
+		readonly TLabel label;
 
 		public Button (Action action, TLabel label)
 		{
@@ -29,8 +24,10 @@ namespace SwiftUI
 		protected override unsafe void InitNativeData (void* handle)
 		{
 			var ctx = GCHandle.ToIntPtr (GCHandle.Alloc (action));
-			using (var labelData = label.GetHandle ())
-				Init (handle, OnActionDel, OnDisposeDel, ctx, labelData.Pointer, LabelType.Metadata, LabelType.GetProtocolConformance (SwiftUILib.Types.View));
+			using (var lbl = label.GetSwiftHandle ()) {
+				var lty = lbl.SwiftType;
+				Init (handle, OnActionDel, OnDisposeDel, ctx, lbl.Pointer, lty.Metadata, lty.GetProtocolConformance (SwiftUILib.ViewProtocol));
+			}
 		}
 	}
 

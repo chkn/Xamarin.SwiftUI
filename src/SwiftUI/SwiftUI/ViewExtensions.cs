@@ -8,22 +8,18 @@ namespace SwiftUI
 {
 	public unsafe static class ViewExtensions
 	{
-		public static ModifiedOpacity<T> Opacity <T> (this T view, double opacity) where T : View
+		public static ModifiedOpacity<T> Opacity<T> (this T view, double opacity) where T : View
 		{
-			var opaqueOpacityMetadata = ModifiedOpacity<T>.SwiftType;
-			var resultPointer = Marshal.AllocHGlobal (opaqueOpacityMetadata.NativeDataSize);
-			try
-			{
-				using (var viewHandle = view.GetHandle ())
-				{
-					ViewOpacity (resultPointer.ToPointer (), viewHandle.Pointer, opacity, view.ViewType.Metadata, view.ViewType.GetProtocolConformance (SwiftUILib.Types.View));
-
-					return new ModifiedOpacity<T> (new TaggedPointer(resultPointer, true), opaqueOpacityMetadata);
+			var opaqueOpacityMetadata = SwiftType.Of (typeof (ModifiedOpacity<T>))!;
+			var result = TaggedPointer.AllocHGlobal (opaqueOpacityMetadata.NativeDataSize);
+			try {
+				using (var viewHandle = view.GetSwiftHandle ()) {
+					var viewType = viewHandle.SwiftType;
+					ViewOpacity (result.Pointer, viewHandle.Pointer, opacity, viewType.Metadata, viewType.GetProtocolConformance (SwiftUILib.ViewProtocol));
+					return new ModifiedOpacity<T> (result);
 				}
-			}
-			catch
-			{
-				Marshal.FreeHGlobal (resultPointer);
+			} catch {
+				result.Dispose ();
 				throw;
 			}
 		}

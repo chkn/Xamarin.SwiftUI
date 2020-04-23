@@ -6,12 +6,10 @@ using Swift.Interop;
 
 namespace SwiftUI
 {
+	[SwiftImport (SwiftUILib.Path)]
 	public unsafe sealed class Text : View
 	{
-		public static SwiftType SwiftType => SwiftUILib.Types.Text;
-		public override SwiftType ViewType => SwiftUILib.Types.Text;
-
-		string verbatim;
+		readonly string verbatim;
 
 		public Text (string verbatim)
 		{

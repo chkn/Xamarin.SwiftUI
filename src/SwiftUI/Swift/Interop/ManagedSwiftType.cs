@@ -9,16 +9,19 @@ using System.Text.RegularExpressions;
 
 namespace Swift.Interop
 {
+	[StructLayout (LayoutKind.Auto)]
 	public readonly struct SwiftFieldInfo
 	{
 		public readonly FieldInfo Field;
 		public readonly SwiftType SwiftType;
+		public readonly Nullability Nullability;
 		public readonly int Offset;
 
-		public SwiftFieldInfo (FieldInfo field, SwiftType swiftType, int offset)
+		public SwiftFieldInfo (FieldInfo field, SwiftType swiftType, Nullability nullability, int offset)
 		{
 			Field = field;
 			SwiftType = swiftType;
+			Nullability = nullability;
 			Offset = offset;
 		}
 	}
@@ -26,10 +29,7 @@ namespace Swift.Interop
 	/// <summary>
 	/// A <see cref="SwiftType"/> that is declared and implemented in managed code.
 	/// </summary>
-	/// <typeparam name="TNativeData">
-	/// A blittable struct type representing the native data payload that comes before
-	///  any <see cref="ISwiftFieldExposable"/> fields in the data structure exposed to Swift.
-	/// </typeparam>
+	//
 	// FIXME: Ultimately, we should emit all metadata into one large allocation,
 	//  to make sharing a module and relative pointers easier.
 	public unsafe class ManagedSwiftType : SwiftType, IDisposable
@@ -122,10 +122,11 @@ namespace Swift.Interop
 			foreach (var fld in managedFields) {
 				if (!typeof (ISwiftFieldExposable).IsAssignableFrom (fld.FieldType))
 					continue;
-				var swiftType = SwiftType.Of (fld.FieldType);
+				var nullability = Nullability.Of (fld);
+				var swiftType = SwiftType.Of (fld.FieldType, nullability);
 				Debug.Assert (swiftType != null, "ISwiftFieldExposable types must be SwiftTypes");
 				// FIXME: '!' shouldn't be needed as we have Debug.Assert
-				swiftFields.Add (new SwiftFieldInfo (fld, swiftType!, offset));
+				swiftFields.Add (new SwiftFieldInfo (fld, swiftType!, nullability, offset));
 				offset += swiftType!.NativeDataSize; // FIXME: alignment?
 			}
 			return swiftFields.ToArray ();
@@ -135,6 +136,7 @@ namespace Swift.Interop
 		{
 			foreach (var fldInfo in NativeFields) {
 				var fld = (ISwiftFieldExposable)fldInfo.Field.GetValue (instance);
+				fld.SetSwiftType (fldInfo.SwiftType, fldInfo.Nullability);
 				fld.InitNativeData ((byte*)data + fldInfo.Offset);
 			}
 		}

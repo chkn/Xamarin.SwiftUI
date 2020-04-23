@@ -15,21 +15,13 @@ namespace Swift.Interop
 	/// </summary>
 	public interface ISwiftValue
 	{
-		// by convention:
-		//  FIXME: Make an actual requirement when/if we get
-		//   https://github.com/Partydonk/roslyn/tree/dev/abock/asim/asim-playground
-		// public static SwiftType SwiftType { get; }
-
-		// should be implemented explicitly:
-		SwiftType SwiftType { get; }
-
 		/// <summary>
-		/// Gets a <see cref="MemoryHandle"/> to the native data.
+		/// Gets a <see cref="SwiftHandle"/> to the native Swift data.
 		/// </summary>
 		/// <remarks>
-		/// The returned <see cref="MemoryHandle"/> must be disposed when no longer needed.
+		/// The returned <see cref="SwiftHandle"/> must be disposed when no longer needed.
 		/// </remarks>
-		MemoryHandle GetHandle ();
+		SwiftHandle GetSwiftHandle ();
 
 		/// <summary>
 		/// Decrements any references to reference-counted data held by this
@@ -49,22 +41,23 @@ namespace Swift.Interop
 	/// A Swift struct that is fully represented as a blittable managed struct.
 	/// </summary>
 	/// <typeparam name="T">The blittable managed struct type.
-	///	  This must be the type that implements this interface.</typeparam>
+	///	  This should be the type that implements this interface.</typeparam>
 	public interface ISwiftBlittableStruct<T> : ISwiftValue
 		where T : unmanaged, ISwiftBlittableStruct<T>
 	{
+		/// <summary>
+		/// Gets a <see cref="SwiftHandle"/> to the native Swift data.
+		/// </summary>
 		/// <remarks>
+		/// The returned <see cref="SwiftHandle"/> must be disposed when no longer needed.
+		/// <para/>
 		/// This is a fallback that should be avoided because it causes boxing.
 		///  Methods that deal with Swift values should provide a generic overload
 		///  for <see cref="ISwiftBlittableStruct{T}"/> that takes a pointer to the value
 		///  directly (e.g. using a <c>fixed</c> statement), rather than calling
-		///  this property.
+		///  this method.
 		/// </remarks>
-		unsafe MemoryHandle ISwiftValue.GetHandle ()
-		{
-			var gch = GCHandle.Alloc (this, GCHandleType.Pinned);
-			return new MemoryHandle ((void*)gch.AddrOfPinnedObject (), gch);
-		}
+		SwiftHandle ISwiftValue.GetSwiftHandle () => new SwiftHandle (this, SwiftType.Of (typeof (T))!);
 
 		// Default implementation provided for POD only.
 		void ISwiftValue.Dispose ()
@@ -76,121 +69,103 @@ namespace Swift.Interop
 	public static class SwiftValue
 	{
 		/// <summary>
-		/// Returns an <see cref="ISwiftValue"/> representing the given object.
+		/// Returns a <see cref="SwiftHandle"/> bridging the given object to Swift.
 		/// </summary>
+		/// <remarks>
+		/// The returned <see cref="SwiftHandle"/> must be disposed when no longer needed.
+		/// </remarks>
 		/// <param name="obj">The managed object to bridge to Swift</param>
-		/// <param name="asOptional"><c>true</c> to bridge the value to Swift
-		///  as an Optional value. This is done regardless if <typeparamref name="T"/> is
-		///  identified as a known nullable wrapper, such as <see cref="Nullable"/>.</param>
+		/// <param name="nullability">Determines whether to bridge the value to Swift
+		///  as an Optional value. If <typeparamref name="T"/> is identified as a known
+		///  nullable wrapper, such as <see cref="Nullable"/>, then the value is bridged
+		///  as an Optional regardless of the value of this parameter.</param>
 		/// <exception cref="ArgumentNullException">Thrown when <paramref name="obj"/> is
 		///	 <c>null</c>, <typeparamref name="T"/> is not a known nullable wrapper type,
-		///	 and <paramref name="asOptional"/> is <c>false</c>.</exception>
+		///	 and <paramref name="nullability"/> returns <c>false</c> from <see cref="Nullability.IsNullable"/>.</exception>
 		/// <exception cref="ArgumentException">Thrown when the type <typeparamref name="T"/> cannot
 		///  be directly bridged to Swift</exception>
-		public static ISwiftValue ToSwiftValue<T> (this T obj, bool asOptional = false)
+		public static unsafe SwiftHandle GetSwiftHandle<T> (this T obj, Nullability nullability = default)
 		{
-			switch (obj) {
-			case ISwiftValue swiftValue: return swiftValue;
-
-			// FIXME: This might leak; we should maybe box this into a custom box that
-			//  has a finalizer?
-			case string val: return new Swift.String (val);
-			}
-
 			var type = typeof (T);
-			var swiftType = SwiftType.Of (type);
-			if (swiftType is null)
+			var swiftType = SwiftType.Of (type, nullability);
+			if (swiftType == null && obj != null) {
+				type = obj.GetType ();
+				swiftType = SwiftType.Of (type, nullability);
+			}
+			if (swiftType == null)
 				throw new ArgumentException ($"Type '{type}' cannot be bridged to Swift");
 
 			// Nullable types are bridged to Swift optionals
-			if (asOptional || type.IsNullable ()) {
-				var underlyingType = type.GetNullableUnderlyingType ();
-				var underlyingSwiftType = SwiftType.Of (underlyingType);
-				if (underlyingSwiftType is null)
-					throw new ArgumentException ($"Type '{underlyingType}' cannot be bridged to Swift");
-
-				// FIXME: Handle non-POD types
-				return new OptionalPOD (obj!, swiftType, underlyingSwiftType);
+			if (nullability.IsNullable || Nullability.IsReifiedNullable (type)) {
+				if (Nullability.IsNull (obj)) {
+					var underlyingType = Nullability.GetUnderlyingType (type);
+					var underlyingSwiftType = SwiftType.Of (underlyingType, nullability.Strip ())!;
+					return CopyAsOptional (null, swiftType, underlyingSwiftType);
+				} else {
+					var unwrapped = Nullability.Unwrap (obj);
+					using (var unwrappedHandle = unwrapped.GetSwiftHandle (nullability.Strip ()))
+						return CopyAsOptional (unwrappedHandle.Pointer, swiftType, unwrappedHandle.SwiftType);
+				}
 			} else if (obj is null) {
 				throw new ArgumentNullException (nameof (obj));
 			}
 
-			return new POD (obj, swiftType);
+			return obj switch {
+				ISwiftValue swiftValue => swiftValue.GetSwiftHandle (),
+				string val => new SwiftHandle (new Swift.String (val), swiftType, destroyOnDispose: true),
+				_ when type.IsPrimitive => new SwiftHandle (obj, swiftType),
+				_ => throw new NotImplementedException (type.ToString ())
+			};
 		}
 
-		public static TSwiftValue FromNative<TSwiftValue> (IntPtr ptr)
+		unsafe static SwiftHandle CopyAsOptional (void* src, SwiftType optionalType, SwiftType wrappedType)
 		{
-			// FIXME: Handle nullables
+			var data = new byte [optionalType.NativeDataSize];
+			fixed (void* dest = &data [0]) {
+				var tag = 1; // nil
+				if (src != null) {
+					tag = 0;
+					wrappedType.Transfer (dest, src, TransferFuncType.InitWithCopy);
+				}
+				wrappedType.StoreEnumTagSinglePayload (dest, tag, 1);
+			}
+			return new SwiftHandle (data, optionalType, destroyOnDispose: true);
+		}
 
-			var ty = typeof (TSwiftValue);
+		public unsafe static TValue FromNative<TValue> (IntPtr ptr, Nullability nullability = default)
+		{
+			var ty = typeof (TValue);
+
+			if (nullability.IsNullable || Nullability.IsReifiedNullable (ty)) {
+				// assume this is a Swift Optional
+				var underlyingType = Nullability.GetUnderlyingType (ty);
+				var wrappedType = SwiftType.Of (underlyingType);
+				if (wrappedType == null)
+					throw new ArgumentException ($"Type '{underlyingType}' cannot be bridged to Swift");
+
+				if (wrappedType.GetEnumTagSinglePayload ((void*)ptr, 1) == 1 /*nil*/)
+					return Nullability.Wrap<TValue> (null);
+				else
+					return Nullability.Wrap<TValue> (FromNative (ptr, underlyingType));
+			}
+
+			return (TValue)FromNative (ptr, ty);
+		}
+
+		static object FromNative (IntPtr ptr, Type ty)
+		{
+			switch (Type.GetTypeCode (ty)) {
+
+			case TypeCode.String:
+				var str = Marshal.PtrToStructure<Swift.String> (ptr);
+				// FIXME: lifetime?? Should we dispose this? Depends on where the ptr is coming from
+				return str.ToString ();
+			}
+
 			if (ty.IsValueType)
-				return Marshal.PtrToStructure<TSwiftValue> (ptr);
+				return Marshal.PtrToStructure (ptr, ty);
 
-			return (TSwiftValue)Activator.CreateInstance (typeof (TSwiftValue), ptr);
-		}
-
-		/// <summary>
-		/// A wrapper for POD types to expose them as <see cref="ISwiftValue"/>s.
-		/// </summary>
-		class POD : ISwiftValue
-		{
-			public SwiftType SwiftType { get; }
-
-			object value;
-
-			public unsafe MemoryHandle GetHandle ()
-			{
-				var gch = GCHandle.Alloc (value, GCHandleType.Pinned);
-				return new MemoryHandle ((void*)gch.AddrOfPinnedObject (), gch);
-			}
-
-			public POD (object value, SwiftType swiftType)
-			{
-				this.value = value;
-				SwiftType = swiftType;
-				unsafe {
-					Debug.Assert (!swiftType.ValueWitnessTable->IsNonPOD);
-				}
-			}
-
-			public void Dispose ()
-			{
-				// nop, since this is POD
-			}
-		}
-
-		unsafe class OptionalPOD : ISwiftValue
-		{
-			public SwiftType SwiftType { get; }
-
-			byte [] data;
-
-			public MemoryHandle GetHandle ()
-			{
-				var gch = GCHandle.Alloc (data, GCHandleType.Pinned);
-				return new MemoryHandle ((void*)gch.AddrOfPinnedObject (), gch);
-			}
-
-			public OptionalPOD (object value, SwiftType swiftType, SwiftType wrappedSwiftType)
-			{
-				SwiftType = swiftType;
-				Debug.Assert (!swiftType.ValueWitnessTable->IsNonPOD);
-
-				data = new byte [swiftType.NativeDataSize];
-				fixed (void* ptr = &data[0]) {
-					var tag = 1; // nil
-					if (value != null) {
-						tag = 0;
-						Marshal.StructureToPtr (value, (IntPtr)ptr, false);
-					}
-					wrappedSwiftType.StoreEnumTagSinglePayload (ptr, tag, 1);
-				}
-			}
-
-			public void Dispose ()
-			{
-				// nop, since this is POD
-			}
+			return Activator.CreateInstance (ty, ptr); // FIXME: Be more creative
 		}
 	}
 }

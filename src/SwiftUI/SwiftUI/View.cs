@@ -20,29 +20,34 @@ namespace SwiftUI
 		public View View => (View)GCHandle.FromIntPtr (GcHandleToView).Target;
 	}
 
+	[AttributeUsage (AttributeTargets.Class, Inherited = true)]
+	sealed class CustomViewAttribute : SwiftTypeAttribute
+	{
+		protected internal override SwiftType GetSwiftType (Type attributedType, SwiftType []? genericArgs)
+			=> new CustomViewType (attributedType);
+	}
+
 	/// <summary>
 	/// A SwiftUI view.
 	/// </summary>
 	/// <remarks>
 	/// This class is used as a base class, both for bindings of built-in
-	///  SwiftUI views, and to define new custom views. 
-	/// Bindings of built-in SwiftUI views must override the <see cref="ViewType"/>
-	///  property.
+	///  SwiftUI views, and to define new custom views.
+	/// Bindings of built-in SwiftUI views must have a <see cref="SwiftImportAttribute"/>,
+	///  otherwise the type is assumed to be a custom view.
 	/// New custom views must supply a read-only property called <c>Body</c> that
 	///  declares its return type as a concrete subclass of <see cref="View"/>
 	///   (it may not declare its return type as the <see cref="View"/> base class itself).
 	/// </remarks>
+	[CustomView]
+	[SwiftProtocol (SwiftUILib.Path, "SwiftUI", "View")]
 	public unsafe abstract class View : SwiftStruct
 	{
-		SwiftType? viewType;
-		public virtual SwiftType ViewType => viewType ??= SwiftType.Of (GetType ())!;
-		protected sealed override SwiftType SwiftStructType => ViewType;
-
 		// by convention:
 		//public abstract TBody Body { get; }
 
 		// non-null if this is a custom (managed) View implementation
-		CustomViewType? CustomViewType => ViewType as CustomViewType;
+		internal CustomViewType? CustomViewType => SwiftType as CustomViewType;
 
 		GCHandle gch;
 		long refCount = 0; // number of refs passed to native code
@@ -51,10 +56,12 @@ namespace SwiftUI
 		{
 		}
 
-		internal View (TaggedPointer data, SwiftType viewType)
+		/// <summary>
+		/// Only to be used for opaque <c>some View</c> return types.
+		/// </summary>
+		protected View (TaggedPointer data)
 		{
 			this.data = data;
-			this.viewType = viewType;
 		}
 
 		internal void AddRef ()
