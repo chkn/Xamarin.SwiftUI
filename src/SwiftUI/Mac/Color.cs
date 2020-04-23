@@ -6,7 +6,7 @@ using AppKit;
 
 namespace SwiftUI
 {
-	public unsafe partial struct Color
+	public unsafe partial class Color
 	{
 		#region Constructors
 		public Color (NSColor color)

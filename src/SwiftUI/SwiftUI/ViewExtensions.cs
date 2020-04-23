@@ -24,22 +24,23 @@ namespace SwiftUI
 			}
 		}
 
-		public static ModifiedBackground<T> Background<T> (this T view, Color color) where T : View
+		public static ModifiedBackground<TView, TBackground> Background<TView, TBackground> (this TView view, TBackground background)
+			where TView : View
+			where TBackground: View
 		{
-			var opaqueBackgroundMetadata = ModifiedBackground<T>.SwiftType;
-			var resultPointer = Marshal.AllocHGlobal (opaqueBackgroundMetadata.NativeDataSize);
-			try
-			{
-				using (var viewHandle = view.GetHandle())
+			var opaqueBackgroundMetadata = SwiftType.Of (typeof (ModifiedBackground<TView, TBackground>))!;
+			var result = TaggedPointer.AllocHGlobal (opaqueBackgroundMetadata.NativeDataSize);
+			try {
+				using (var viewHandle = view.GetSwiftHandle ())
+				using (var backgroundHandle = background.GetSwiftHandle ())
 				{
-					ViewBackground (resultPointer.ToPointer(), viewHandle.Pointer, color.Data, view.ViewType.Metadata, view.ViewType.GetProtocolConformance (SwiftUILib.Types.View));
+					var viewType = viewHandle.SwiftType;
+					ViewBackground (result.Pointer, viewHandle.Pointer, backgroundHandle.Pointer, viewType.Metadata, viewType.GetProtocolConformance (SwiftUILib.ViewProtocol));
 
-					return new ModifiedBackground<T >(new TaggedPointer (resultPointer, true), opaqueBackgroundMetadata);
+					return new ModifiedBackground<TView, TBackground> (result);
 				}
-			}
-			catch
-			{
-				Marshal.FreeHGlobal(resultPointer);
+			} catch {
+				result.Dispose ();
 				throw;
 			}
 		}
@@ -52,6 +53,6 @@ namespace SwiftUI
 		[DllImport(SwiftGlueLib.Path,
 		CallingConvention = CallingConvention.Cdecl,
 		EntryPoint = "swiftui_View_background")]
-		internal static extern void ViewBackground (void* resultPointer, void* viewPointer, IntPtr colorPointer, TypeMetadata* viewMetatdata, ProtocolWitnessTable* viewConformance);
+		internal static extern void ViewBackground (void* resultPointer, void* viewPointer, void* backgroundPointer, TypeMetadata* viewMetatdata, ProtocolWitnessTable* viewConformance);
 	}
 }

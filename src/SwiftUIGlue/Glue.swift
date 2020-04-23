@@ -147,7 +147,7 @@ public func SetViewOpacity<T: View>(dest : UnsafeMutableRawPointer, view : T, va
 }
 
 @_silgen_name("swiftui_View_background")
-public func SetViewBackground<T: View>(dest : UnsafeMutableRawPointer, view : T, value : Color)
+public func SetViewBackground<TView: View, TBackground: View>(dest : UnsafeMutableRawPointer, view : TView, value : TBackground)
 {
     let result = view.background(value)
     dest.initializeMemory(as: type(of: result), repeating: result, count: 1)
