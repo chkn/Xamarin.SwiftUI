@@ -46,7 +46,7 @@ namespace XamMacSwiftUITest
 					{
 						var value = counter.Value ?? 0;
 						counter.Value = value + 1;
-					}, new Text (string.Format ("Clicked {0} times", counter.Value))
+					}, new Text (string.Format (counter.Value.HasValue ? "Clicked {0} times" : "Never been clicked", counter.Value))
 				);
 
 				return button.Opacity (counter.Value % 2 == 0 ? 0.5 : 1.0);
