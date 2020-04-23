@@ -13,7 +13,7 @@ type AppDelegate () =
 
     override __.ApplicationShouldTerminateAfterLastWindowClosed (_) = 
         GC.Collect (); 
-        true
+        false
 
     override __.DidFinishLaunching (_) =
         let flags = NSWindowStyle.Titled ||| NSWindowStyle.Closable ||| NSWindowStyle.Miniaturizable ||| NSWindowStyle.Resizable ||| NSWindowStyle.FullSizeContentView

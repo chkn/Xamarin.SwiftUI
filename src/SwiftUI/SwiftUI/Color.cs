@@ -17,9 +17,6 @@ namespace SwiftUI
 	
 	public unsafe partial class Color : View
 	{
-		public static SwiftType SwiftType => SwiftUILib.Types.Color;
-		public override SwiftType ViewType => SwiftUILib.Types.Color;
-
 		public IntPtr Data { get; private set; }
 
 		#region Static Colour Spaces
@@ -37,7 +34,7 @@ namespace SwiftUI
 
 		#region Static Colours
 		// TODO: Most of these should be cached
-		public static Color Black => new Color (GetColorBlack (0, SwiftType.Metadata));
+		/* public static Color Black => new Color (GetColorBlack (0, SwiftType.Metadata));
 		public static Color Blue => new Color (GetColorBlue (0, SwiftType.Metadata));
 		public static Color Clear => new Color (GetColorClear (0, SwiftType.Metadata));
 		public static Color Gray => new Color (GetColorGray (0, SwiftType.Metadata));
@@ -49,7 +46,7 @@ namespace SwiftUI
 		public static Color Red => new Color (GetColorRed (0, SwiftType.Metadata));
 		public static Color Secondary => new Color (GetColorSecondary (0, SwiftType.Metadata));
 		public static Color White => new Color (GetColorWhite (0, SwiftType.Metadata));
-		public static Color Yellow => new Color (GetColorYellow (0, SwiftType.Metadata));
+		public static Color Yellow => new Color (GetColorYellow (0, SwiftType.Metadata));*/
 		#endregion
 
 		protected override void InitNativeData (void* handle)

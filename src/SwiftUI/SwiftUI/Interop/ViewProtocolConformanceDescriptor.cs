@@ -21,13 +21,13 @@ namespace SwiftUI.Interop
 		// requirement introduced in a later version of the protocol."
 		static readonly IntPtr [] reqs = new [] {
 			// associated conformance descriptor for SwiftUI.View.Body: SwiftUI.View
-			SwiftUILib.Types.TryGetSymbol ("$s7SwiftUI4ViewP4BodyAC_AaBTn"),
+			SwiftUILib.Lib.TryGetSymbol ("$s7SwiftUI4ViewP4BodyAC_AaBTn"),
 
 			// associated type descriptor for Body
-			SwiftUILib.Types.TryGetSymbol ("$s4Body7SwiftUI4ViewPTl"),
+			SwiftUILib.Lib.TryGetSymbol ("$s4Body7SwiftUI4ViewPTl"),
 
 			// method descriptor for SwiftUI.View.body.getter : A.Body
-			SwiftUILib.Types.TryGetSymbol ("$s7SwiftUI4ViewP4body4BodyQzvgTq")
+			SwiftUILib.Lib.TryGetSymbol ("$s7SwiftUI4ViewP4body4BodyQzvgTq")
 		};
 
 		// Swift metadata makes copious use of RelativePointers: int32 offsets,
@@ -85,7 +85,7 @@ namespace SwiftUI.Interop
 			var flags = new ConformanceFlags (TypeReferenceKind.IndirectTypeDescriptor,
 				hasResilientWitnesses: true, hasGenericWitnessTable: true);
 
-			ProtocolDescriptor = SwiftUILib.Types.View;
+			ProtocolDescriptor = SwiftUILib.ViewProtocol;
 			TypeDescriptor = conformingType;
 			ConformanceDescriptor.WitnessTablePatternPtr.Target = null;
 			ConformanceDescriptor.Flags = flags;
@@ -131,7 +131,7 @@ namespace SwiftUI.Interop
 			// See HACK note above. This method sets our witnesses to their proper values..
 
 			var wt = (IntPtr)witnessTable;
-			var loops = SwiftUILib.Types.View->NumRequirements + WitnessTableFirstRequirementOffset;
+			var loops = SwiftUILib.ViewProtocol->NumRequirements + WitnessTableFirstRequirementOffset;
 			for (var i = WitnessTableFirstRequirementOffset; i < loops; i++) {
 				var offs = i * IntPtr.Size;
 				var req = (void*)Marshal.ReadIntPtr (wt, offs);

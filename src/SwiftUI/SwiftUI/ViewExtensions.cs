@@ -10,20 +10,16 @@ namespace SwiftUI
 	{
 		public static ModifiedOpacity<T> Opacity<T> (this T view, double opacity) where T : View
 		{
-			var opaqueOpacityMetadata = ModifiedOpacity<T>.SwiftType;
-			var resultPointer = Marshal.AllocHGlobal (opaqueOpacityMetadata.NativeDataSize);
-			try
-			{
-				using (var viewHandle = view.GetHandle ())
-				{
-					ViewOpacity (resultPointer.ToPointer (), viewHandle.Pointer, opacity, view.ViewType.Metadata, view.ViewType.GetProtocolConformance (SwiftUILib.Types.View));
-
-					return new ModifiedOpacity<T> (new TaggedPointer(resultPointer, true), opaqueOpacityMetadata);
+			var opaqueOpacityMetadata = SwiftType.Of (typeof (ModifiedOpacity<T>))!;
+			var result = TaggedPointer.AllocHGlobal (opaqueOpacityMetadata.NativeDataSize);
+			try {
+				using (var viewHandle = view.GetSwiftHandle ()) {
+					var viewType = viewHandle.SwiftType;
+					ViewOpacity (result.Pointer, viewHandle.Pointer, opacity, viewType.Metadata, viewType.GetProtocolConformance (SwiftUILib.ViewProtocol));
+					return new ModifiedOpacity<T> (result);
 				}
-			}
-			catch
-			{
-				Marshal.FreeHGlobal (resultPointer);
+			} catch {
+				result.Dispose ();
 				throw;
 			}
 		}
@@ -32,18 +28,19 @@ namespace SwiftUI
 			where TView : View
 			where TBackground: View
 		{
-			var opaqueBackgroundMetadata = ModifiedBackground<TView, TBackground>.SwiftType;
-			var resultPointer = Marshal.AllocHGlobal (opaqueBackgroundMetadata.NativeDataSize);
+			var opaqueBackgroundMetadata = SwiftType.Of (typeof(ModifiedBackground<TView, TBackground>))!;
+			var result = TaggedPointer.AllocHGlobal (opaqueBackgroundMetadata.NativeDataSize);
 			try {
-				using (var viewHandle = view.GetHandle ())
-				using (var backgroundHandle = background.GetHandle ())
+				using (var viewHandle = view.GetSwiftHandle ())
+				using (var backgroundHandle = background.GetSwiftHandle ())
 				{
-					ViewBackground (resultPointer.ToPointer (), viewHandle.Pointer, backgroundHandle.Pointer, view.ViewType.Metadata, view.ViewType.GetProtocolConformance (SwiftUILib.Types.View));
+					var viewType = viewHandle.SwiftType;
+					ViewBackground (result.Pointer, viewHandle.Pointer, backgroundHandle.Pointer, viewType.Metadata, viewType.GetProtocolConformance (SwiftUILib.ViewProtocol));
 
-					return new ModifiedBackground<TView, TBackground> (new TaggedPointer (resultPointer, true), opaqueBackgroundMetadata);
+					return new ModifiedBackground<TView, TBackground> (result);
 				}
 			} catch {
-				Marshal.FreeHGlobal (resultPointer);
+				result.Dispose ();
 				throw;
 			}
 		}

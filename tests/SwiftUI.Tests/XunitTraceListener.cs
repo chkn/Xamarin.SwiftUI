@@ -13,9 +13,7 @@ namespace SwiftUI.Tests
 
 		public ThrowingTraceListener ()
 		{
-			oldListeners = new TraceListener [Trace.Listeners.Count];
-			for (var i = 0; i < oldListeners.Length; i++)
-				oldListeners [i] = Trace.Listeners [i];
+			oldListeners = Trace.Listeners.Cast<TraceListener> ().ToArray ();
 			Trace.Listeners.Clear ();
 			Trace.Listeners.Add (this);
 		}

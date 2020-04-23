@@ -12,21 +12,17 @@ using SwiftUI.Tests.FSharp;
 
 namespace SwiftUI.Tests
 {
-	public class SwiftTypes
+	public class TypeTests : TestFixture
 	{
-		[Theory]
-		[InlineData (typeof (SwiftCoreLib))]
-		[InlineData (typeof (SwiftUILib))]
-		public void AllNonGenericTypesCanBeCreated (Type libType)
+		[Fact]
+		public void AllSwiftTypesCanBeCreated ()
 		{
-			var lib = Activator.CreateInstance (libType, nonPublic: true);
-			Assert.NotNull (lib);
-
-			var props = libType.GetProperties ()
-			                   .Where (prop => typeof (SwiftType).IsAssignableFrom (prop.PropertyType));
-
-			using (new ThrowingTraceListener ())
-				Assert.All (props, prop => Assert.NotNull (prop.GetValue (lib)));
+			var types = typeof (SwiftCoreLib)
+				.Assembly
+				.GetTypes ()
+				.Where (ty => !ty.IsAbstract && Attribute.IsDefined (ty, typeof (SwiftTypeAttribute), true))
+				.Select (ty => ty.IsGenericTypeDefinition? ty.MakeGenericType (Array.ConvertAll (ty.GetGenericArguments (), _ => typeof (Text))) : ty);
+			Assert.All (types, ty => Assert.NotNull (SwiftType.Of (ty)));
 		}
 
 		[Theory]
@@ -39,6 +35,8 @@ namespace SwiftUI.Tests
 			Assert.NotNull (sty);
 
 			Assert.Equal (1, sty!.NativeFields.Count);
+			Assert.False (sty.NativeFields [0].Nullability.IsNullable);
+			Assert.True (sty.NativeFields [0].Nullability [0].IsNullable);
 
 			var gargs = sty.NativeFields [0].SwiftType.GenericArguments;
 			Assert.NotNull (gargs);

@@ -78,7 +78,7 @@ namespace SwiftUI.Interop
 		}
 
 		public override ProtocolWitnessTable* GetProtocolConformance (ProtocolDescriptor* descriptor)
-			=> descriptor == SwiftUILib.Types.View? ViewConformance : base.GetProtocolConformance (descriptor);
+			=> descriptor == SwiftUILib.ViewProtocol? ViewConformance : base.GetProtocolConformance (descriptor);
 
 		protected virtual ProtocolWitnessTable* CreateViewConformance ()
 		{
@@ -89,14 +89,14 @@ namespace SwiftUI.Interop
 			viewConformanceDesc->Populate (Metadata->TypeDescriptor);
 
 			var bodySwiftType = SwiftType.Of (BodyProperty.PropertyType)!;
-			var bodyConformance = bodySwiftType.GetProtocolConformance (SwiftUILib.Types.View);
+			var bodyConformance = bodySwiftType.GetProtocolConformance (SwiftUILib.ViewProtocol);
 			var witnessTable = SwiftCoreLib.GetProtocolWitnessTable (&viewConformanceDesc->ConformanceDescriptor, Metadata, null);
 
 			viewConformanceDesc->FixupAndRegister (
 				witnessTable,
 				bodyConformance,
 				bodySwiftType.Metadata,
-				SwiftGlueLib.Pointers.BodyProtocolWitness);
+				SwiftGlueLib.BodyProtocolWitness);
 
 			return witnessTable;
 		}
@@ -130,11 +130,11 @@ namespace SwiftUI.Interop
 			view.OverwriteNativeData (data);
 
 			// Now, when we call Body, it will operate on the new data
-			var body = (View)((CustomViewType)view.ViewType).BodyProperty.GetValue (view);
+			var body = (View)view.CustomViewType!.BodyProperty.GetValue (view);
 
 			// Copy the returned view into dest
-			using (var handle = body.GetHandle ())
-				body.ViewType.Transfer (dest, handle.Pointer, TransferFuncType.InitWithCopy);
+			using (var handle = body.GetSwiftHandle ())
+				handle.SwiftType.Transfer (dest, handle.Pointer, TransferFuncType.InitWithCopy);
 		}
 		static readonly PtrPtrFunc bodyFn = Body;
 

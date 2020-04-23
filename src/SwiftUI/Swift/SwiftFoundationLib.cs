@@ -5,7 +5,7 @@ using Swift.Interop;
 
 namespace Swift
 {
-	public static class SwiftFoundationLib //: NativeLib
+	public static class SwiftFoundationLib
 	{
 		public const string Path = "/usr/lib/swift/libswiftFoundation.dylib";
 	}
