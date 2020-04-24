@@ -25,5 +25,5 @@ type AppDelegate () =
         )
         window.Center ()
 
-        window.ContentView <- NSHostingView.Create (ClickButton ())
+        window.ContentView <- new NSHostingView (ClickButton ())
         window.MakeKeyAndOrderFront (__)

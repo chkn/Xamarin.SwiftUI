@@ -59,6 +59,8 @@ namespace Swift.Interop
 
 		protected bool NativeDataInitialized => data != null;
 
+		// NOTE: If we ever change this implementation such that the returned SwiftHandle
+		//  needs to be disposed, we must update NSHostingView and UIHostingView constructors.
 		public SwiftHandle GetSwiftHandle ()
 		{
 			if (data == null) {
