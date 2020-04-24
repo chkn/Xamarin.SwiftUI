@@ -23,17 +23,20 @@ stages:
         displayName: 'dotnet test SwiftUI.Tests'
         inputs:
           command: 'test'
+          arguments: '--configuration Release'
           projects: 'tests/SwiftUI.Tests/SwiftUI.Tests.csproj'
           testRunTitle: 'SwiftUI.Tests'
       - task: DotNetCoreCLI@2
         displayName: 'dotnet build SwiftUI.Tests.FSharp'
         inputs:
           command: 'build'
+          arguments: '--configuration Release'
           projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
       - task: DotNetCoreCLI@2
         displayName: 'dotnet test SwiftUI.Tests.FSharp'
         inputs:
           command: 'test'
+          arguments: '--configuration Release'
           projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
           testRunTitle: 'SwiftUI.Tests.FSharp'
       - task: MSBuild@1

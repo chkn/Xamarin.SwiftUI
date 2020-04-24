@@ -25,7 +25,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="Subjects\" />
-		<None Include="..\..\native\Debug\xamarin.mac20\libSwiftUIGlue.dylib" Visible="false">
+		<None Include="..\..\native\$(Configuration)\xamarin.mac20\libSwiftUIGlue.dylib" Visible="false">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
