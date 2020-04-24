@@ -8,6 +8,18 @@ namespace Swift.Interop
 	unsafe interface ISwiftFieldExposable : ISwiftValue
 	{
 		/// <summary>
+		/// Sets updated <see cref="SwiftType"/> and <see cref="Nullability"/> information.
+		/// </summary>
+		/// <remarks>
+		/// When exposed as a field, nullability information for reference types is
+		///  only available as attributes on the field. If it is to be nullable, the
+		///  <see cref="SwiftType"/> must be wrapped in a Swift Optional. Thus, this
+		///  method may be called to provide updated <see cref="SwiftType"/> and
+		///  <see cref="Nullability"/> information not available through <c>SwiftType.Of(GetType())</c>.
+		/// </remarks>
+		void SetSwiftType (SwiftType swiftType, Nullability nullability);
+
+		/// <summary>
 		/// Initializes the native data for this Swift type at the given location.
 		/// </summary>
 		void InitNativeData (void* handle);
@@ -38,21 +50,21 @@ namespace Swift.Interop
 	/// </remarks>
 	public unsafe abstract class SwiftStruct : ISwiftFieldExposable
 	{
-		// implementing classes must add, by convention:
-		// public static SwiftType SwiftType { get; }
-
-		protected abstract SwiftType SwiftStructType { get; } // => SwiftType;
-		SwiftType ISwiftValue.SwiftType => SwiftStructType;
+		SwiftType? swiftType;
+		protected SwiftType SwiftType
+			=> swiftType ??= SwiftType.Of (GetType ()) ?? throw new UnknownSwiftTypeException (GetType ());
 
 		// This is a tagged pointer that indicates whether we allocated the memory or not.
 		private protected TaggedPointer data;
 
 		protected bool NativeDataInitialized => data != null;
 
-		public MemoryHandle GetHandle ()
+		// NOTE: If we ever change this implementation such that the returned SwiftHandle
+		//  needs to be disposed, we must update NSHostingView and UIHostingView constructors.
+		public SwiftHandle GetSwiftHandle ()
 		{
 			if (data == null) {
-				data = TaggedPointer.AllocHGlobal (SwiftStructType.NativeDataSize);
+				data = TaggedPointer.AllocHGlobal (SwiftType.NativeDataSize);
 				try {
 					InitNativeData (data.Pointer);
 				} catch {
@@ -60,7 +72,26 @@ namespace Swift.Interop
 					throw;
 				}
 			}
-			return new MemoryHandle (data.Pointer);
+			return new SwiftHandle (data.Pointer, SwiftType);
+		}
+
+		/// <summary>
+		/// Sets the nullability of this instance when used as a field.
+		/// </summary>
+		/// <remarks>
+		/// Nullability for reference types in C# is not reified in the type
+		///  system, but instead annotated with custom attributes at the declaration
+		///  site. This method is called when this instance is used as a field that
+		///  is exposed to Swift.
+		/// </remarks>
+		protected virtual void SetNullability (Nullability nullability)
+		{
+		}
+
+		void ISwiftFieldExposable.SetSwiftType (SwiftType swiftType, Nullability nullability)
+		{
+			this.swiftType = swiftType;
+			SetNullability (nullability);
 		}
 
 		void ISwiftFieldExposable.InitNativeData (void* handle)
@@ -79,13 +110,13 @@ namespace Swift.Interop
 		{
 			var dest = data.Pointer;
 			Debug.Assert (dest != null);
-			SwiftStructType.Transfer (dest, newData, TransferFuncType.AssignWithCopy);
+			SwiftType.Transfer (dest, newData, TransferFuncType.AssignWithCopy);
 		}
 
 		protected virtual void Dispose (bool disposing)
 		{
 			if (data.IsOwned)
-				SwiftStructType.Destroy (data.Pointer);
+				SwiftType.Destroy (data.Pointer);
 			data.Dispose ();
 			GC.SuppressFinalize (this);
 		}

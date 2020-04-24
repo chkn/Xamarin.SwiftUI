@@ -14,7 +14,7 @@ namespace XamMacSwiftUITest
 		public override bool ApplicationShouldTerminateAfterLastWindowClosed (NSApplication sender)
 		{
 			GC.Collect ();
-			return true;
+			return false;
 		}
 
         public override void DidFinishLaunching (NSNotification notification)
@@ -27,7 +27,7 @@ namespace XamMacSwiftUITest
 			};
 			window.Center ();
 
-			window.ContentView = NSHostingView.Create (new ClickButton ());
+			window.ContentView = new NSHostingView (new ClickButton ());
 
 			window.MakeKeyAndOrderFront (this);
 		}
@@ -35,7 +35,7 @@ namespace XamMacSwiftUITest
 
 	public class ClickButton : View
 	{
-		State<int> counter = new State<int> (0);
+		State<int?> counter = new State<int?> (null);
 		public ModifiedOpacity<Button<Text>> Body
 		{
 			get
@@ -44,8 +44,9 @@ namespace XamMacSwiftUITest
 				button = new Button<Text>(
 					() =>
 					{
-						counter.Value += 1;
-					}, new Text (string.Format ("Clicked {0} times", counter.Value))
+						var value = counter.Value ?? 0;
+						counter.Value = value + 1;
+					}, new Text (string.Format (counter.Value.HasValue ? "Clicked {0} times" : "Never been clicked", counter.Value))
 				);
 
 				return button.Opacity (counter.Value % 2 == 0 ? 0.5 : 1.0);

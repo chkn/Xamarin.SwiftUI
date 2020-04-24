@@ -10,21 +10,20 @@ namespace SwiftUI
 {
 	public unsafe class NSHostingView : NSView, /*INSUserInterfaceValidations,*/ INSDraggingSource
 	{
-		public static NSHostingView Create (View view)
+		public NSHostingView (View view)
+			: this (view.GetSwiftHandle ())
 		{
-			using (var handle = view.GetHandle ())
-				return Create (handle.Pointer, view.ViewType);
 		}
 
-		static NSHostingView Create (void* viewData, SwiftType swiftType)
+		public NSHostingView (SwiftHandle viewHandle)
+			: this (Init (viewHandle.Pointer, viewHandle.SwiftType.Metadata, viewHandle.SwiftType.GetProtocolConformance (SwiftUILib.ViewProtocol)))
 		{
-			var obj = new NSHostingView (Init (viewData, swiftType.Metadata, swiftType.GetProtocolConformance (SwiftUILib.Types.View)));
 			// release extra ref added by Xamarin runtime
-			obj.DangerousRelease ();
-			return obj;
+			DangerousRelease ();
 		}
 
-		NSHostingView (IntPtr handle): base (handle)
+		public NSHostingView (IntPtr handle)
+			: base (handle)
 		{
 		}
 

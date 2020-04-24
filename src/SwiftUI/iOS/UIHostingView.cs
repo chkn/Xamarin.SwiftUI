@@ -8,23 +8,22 @@ using Swift.Interop;
 
 namespace SwiftUI
 {
-    public unsafe class UIHostingViewController: UIViewController
+    public unsafe class UIHostingViewController : UIViewController
     {
-		public static UIHostingViewController Create (View view)
+		public UIHostingViewController (View view)
+			: this (view.GetSwiftHandle ())
 		{
-			using (var handle = view.GetHandle())
-				return Create (handle.Pointer, view.ViewType);
 		}
 
-		static UIHostingViewController Create (void* viewData, SwiftType swiftType)
+		public UIHostingViewController (SwiftHandle viewHandle)
+			: this (Init (viewHandle.Pointer, viewHandle.SwiftType.Metadata, viewHandle.SwiftType.GetProtocolConformance (SwiftUILib.ViewProtocol)))
 		{
-			var obj = new UIHostingViewController(Init (viewData, swiftType.Metadata, swiftType.GetProtocolConformance (SwiftUILib.Types.View)));
 			// release extra ref added by Xamarin runtime
-			obj.DangerousRelease ();
-			return obj;
+			DangerousRelease ();
 		}
 
-		UIHostingViewController(IntPtr handle) : base (handle)
+		public UIHostingViewController (IntPtr handle)
+			: base (handle)
 		{
 		}
 

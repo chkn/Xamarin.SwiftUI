@@ -1,16 +1,25 @@
 ﻿using System;
+using System.Linq;
 using System.Diagnostics;
 
 using Xunit;
 
 namespace SwiftUI.Tests
 {
-	public class ThrowingTraceListener : TraceListener
+	// Xunit doesn't hook Debug.Assert (https://github.com/xunit/xunit/issues/382)
+	class ThrowingTraceListener : TraceListener
 	{
-		public override void Fail (string message, string detailMessage)
+		readonly TraceListener [] oldListeners;
+
+		public ThrowingTraceListener ()
 		{
-			throw new DebugAssertFailureException (message, detailMessage);
+			oldListeners = Trace.Listeners.Cast<TraceListener> ().ToArray ();
+			Trace.Listeners.Clear ();
+			Trace.Listeners.Add (this);
 		}
+
+		public override void Fail (string message, string detailMessage)
+			=> throw new DebugAssertFailureException (message, detailMessage);
 
 		public override void Write (string message)
 		{
@@ -19,11 +28,20 @@ namespace SwiftUI.Tests
 		public override void WriteLine (string message)
 		{
 		}
+
+		protected override void Dispose (bool disposing)
+		{
+			if (disposing) {
+				Trace.Listeners.Clear ();
+				Trace.Listeners.AddRange (oldListeners);
+			}
+			base.Dispose (disposing);
+		}
 	}
 
 	//https://github.com/dotnet/roslyn/pull/7896
 	[Serializable]
-	public class DebugAssertFailureException : Exception
+	class DebugAssertFailureException : Exception
 	{
 		public DebugAssertFailureException (string message, string detailMessage)
 			: base (message + Environment.NewLine + detailMessage)

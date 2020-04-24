@@ -10,9 +10,6 @@ namespace Swift
 	[StructLayout (LayoutKind.Sequential)]
 	readonly unsafe struct String : ISwiftBlittableStruct<String>, IDisposable
 	{
-		public static SwiftType SwiftType => SwiftCoreLib.Types.String;
-		SwiftType ISwiftValue.SwiftType => SwiftCoreLib.Types.String;
-
 		public static String Empty => default;
 
 		[StructLayout (LayoutKind.Sequential)]
@@ -22,13 +19,6 @@ namespace Swift
 		readonly Data data;
 
 		public int Length => checked ((int)GetLength (data));
-
-		// FIXME: Remove when this is fixed: https://github.com/mono/mono/issues/17869
-		MemoryHandle ISwiftValue.GetHandle ()
-		{
-			var gch = GCHandle.Alloc (this, GCHandleType.Pinned);
-			return new MemoryHandle ((void*)gch.AddrOfPinnedObject (), gch);
-		}
 
 		public String (string str)
 		{
@@ -51,15 +41,15 @@ namespace Swift
 					return null;
 				}
 			}, null, arr,
-				elementType: SwiftCoreLib.Types.Int8.Metadata,
-				resultType: SwiftCoreLib.Types.UnsafeRawPointer.Metadata);
+				elementType: SwiftType.Of (typeof (byte))!.Metadata,
+				resultType: SwiftType.Of (typeof (IntPtr))!.Metadata);
 
 			return str!;
 		}
 
-		public String Copy () => SwiftType.Transfer (in this, TransferFuncType.InitWithCopy);
+		public String Copy () => SwiftType.Of (typeof (string))!.Transfer (in this, TransferFuncType.InitWithCopy);
 
-		public void Dispose () => SwiftType.Destroy (in this);
+		public void Dispose () => SwiftType.Of (typeof (string))!.Destroy (in this);
 
 		// NOTE: Calling the Swift.String entry point that takes a UTF-16 string, as this shouldn't
 		//  require managed marshaling.

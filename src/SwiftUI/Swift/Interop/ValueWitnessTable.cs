@@ -60,15 +60,16 @@ namespace Swift.Interop
 		/// dest object.
 		public IntPtr AssignWithTake;
 
-		/// unsigned (*getEnumTagSinglePayload)(const T* enum, UINT_TYPE emptyCases)
+		/// unsigned (*getEnumTagSinglePayload)(const T* enum, UINT_TYPE emptyCases,
+		///                                     M *self);
 		/// Given an instance of valid single payload enum with a payload of this
-		/// witness table's type (e.g Optional&lt;ThisType&gt;) , get the tag of the enum.
+		/// witness table's type (e.g Optional<ThisType>) , get the tag of the enum.
 		public IntPtr GetEnumTagSinglePayload;
 
 		/// void (*storeEnumTagSinglePayload)(T* enum, UINT_TYPE whichCase,
-		///                                   UINT_TYPE emptyCases)
+		///                                   UINT_TYPE emptyCases, M *self);
 		/// Given uninitialized memory for an instance of a single payload enum with a
-		/// payload of this witness table's type (e.g Optional&lt;ThisType&gt;), store the
+		/// payload of this witness table's type (e.g Optional<ThisType>), store the
 		/// tag.
 		public IntPtr StoreEnumTagSinglePayload;
 

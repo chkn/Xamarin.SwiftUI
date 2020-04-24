@@ -18,28 +18,43 @@ stages:
         inputs:
           solution: build.proj
           configuration: Release
-          msbuildArguments: /restore /v:diag
+          msbuildArguments: /restore
       - task: DotNetCoreCLI@2
         displayName: 'dotnet test SwiftUI.Tests'
         inputs:
           command: 'test'
+          arguments: '--configuration Release'
           projects: 'tests/SwiftUI.Tests/SwiftUI.Tests.csproj'
           testRunTitle: 'SwiftUI.Tests'
+      - task: DotNetCoreCLI@2
+        displayName: 'dotnet build SwiftUI.Tests.FSharp'
+        inputs:
+          command: 'build'
+          arguments: '--configuration Release'
+          projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
+      - task: DotNetCoreCLI@2
+        displayName: 'dotnet test SwiftUI.Tests.FSharp'
+        inputs:
+          command: 'test'
+          arguments: '--configuration Release'
+          projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
+          testRunTitle: 'SwiftUI.Tests.FSharp'
       - task: MSBuild@1
         displayName: 'Build MacOS C# project XamMacSwiftUITest/XamMacSwiftUITest.csproj'
         inputs:
           solution: XamMacSwiftUITest/XamMacSwiftUITest.csproj
           configuration: Release
-          msbuildArguments: /restore /v:diag
+          msbuildArguments: /restore
       - task: MSBuild@1
         displayName: 'Build MacOS F# project XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj'
         inputs:
           solution: XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj
           configuration: Release
-          msbuildArguments: /restore /v:diag
+          msbuildArguments: /restore
       - task: MSBuild@1
         displayName: 'Build iOS C# project XamiOSSwiftUITest/XamiOSSwiftUITest.csproj'
         inputs:
           solution: XamiOSSwiftUITest/XamiOSSwiftUITest.csproj
           configuration: Release
-          msbuildArguments: /restore /v:diag
+          msbuildArguments: /restore
+  
