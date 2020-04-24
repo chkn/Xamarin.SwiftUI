@@ -27,7 +27,7 @@ namespace XamMacSwiftUITest
 			};
 			window.Center ();
 
-			window.ContentView = NSHostingView.Create (new ClickButton ());
+			window.ContentView = new NSHostingView (new ClickButton ());
 
 			window.MakeKeyAndOrderFront (this);
 		}
