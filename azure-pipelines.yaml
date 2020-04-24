@@ -44,16 +44,17 @@ stages:
         inputs:
           solution: XamMacSwiftUITest/XamMacSwiftUITest.csproj
           configuration: Release
-          msbuildArguments: /restore /v:diag
+          msbuildArguments: /restore
       - task: MSBuild@1
         displayName: 'Build MacOS F# project XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj'
         inputs:
           solution: XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj
           configuration: Release
-          msbuildArguments: /restore /v:diag
+          msbuildArguments: /restore
       - task: MSBuild@1
         displayName: 'Build iOS C# project XamiOSSwiftUITest/XamiOSSwiftUITest.csproj'
         inputs:
           solution: XamiOSSwiftUITest/XamiOSSwiftUITest.csproj
           configuration: Release
-          msbuildArguments: /restore /v:diag
+          msbuildArguments: /restore
+  
