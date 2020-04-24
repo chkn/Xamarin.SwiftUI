@@ -34,20 +34,41 @@ namespace SwiftUI
 		#endregion
 
 		#region Static Colours
-		// TODO: Most of these should be cached
-		public static Color Black => new Color (GetColorBlack (0));
-		public static Color Blue => new Color (GetColorBlue (0));
+		static Color? black = null;
+		public static Color Black => black ??= new Color (GetColorBlack (0));
+
+		static Color? blue = null;
+		public static Color Blue => blue ??= new Color (GetColorBlue (0));
+
 		public static Color Clear => new Color (GetColorClear (0));
-		public static Color Gray => new Color (GetColorGray (0));
-		public static Color Green => new Color (GetColorGreen (0));
-		public static Color Orange => new Color (GetColorOrange (0));
-		public static Color Pink => new Color (GetColorPink (0));
+
+		static Color? gray = null;
+		public static Color Gray => gray ??= new Color (GetColorGray (0));
+
+		static Color? green = null;
+		public static Color Green => green ??= new Color (GetColorGreen (0));
+
+		static Color? orange = null;
+		public static Color Orange => orange ??= new Color (GetColorOrange (0));
+
+		static Color? pink = null;
+		public static Color Pink => pink ??= new Color (GetColorPink (0));
+
 		public static Color Primary => new Color (GetColorPrimary (0));
-		public static Color Purple => new Color (GetColorPurple (0));
-		public static Color Red => new Color (GetColorRed (0));
+
+		static Color? purple = null;
+		public static Color Purple => purple ??= new Color (GetColorPurple (0));
+
+		static Color? red = null;
+		public static Color Red => red ??= new Color (GetColorRed (0));
+
 		public static Color Secondary => new Color (GetColorSecondary (0));
-		public static Color White => new Color (GetColorWhite (0));
-		public static Color Yellow => new Color (GetColorYellow (0));
+
+		static Color? white = null;
+		public static Color White => white ??= new Color (GetColorWhite (0));
+
+		static Color? yellow = null;
+		public static Color Yellow => yellow ??= new Color (GetColorYellow (0));
 		#endregion
 
 		protected override void InitNativeData (void* handle)
