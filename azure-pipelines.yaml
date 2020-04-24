@@ -18,13 +18,24 @@ stages:
         inputs:
           solution: build.proj
           configuration: Release
-          msbuildArguments: /restore /v:diag
+          msbuildArguments: /restore
       - task: DotNetCoreCLI@2
         displayName: 'dotnet test SwiftUI.Tests'
         inputs:
           command: 'test'
           projects: 'tests/SwiftUI.Tests/SwiftUI.Tests.csproj'
           testRunTitle: 'SwiftUI.Tests'
+      - task: DotNetCoreCLI@2
+        displayName: 'dotnet build SwiftUI.Tests.FSharp'
+        inputs:
+          command: 'build'
+          projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
+      - task: DotNetCoreCLI@2
+        displayName: 'dotnet test SwiftUI.Tests.FSharp'
+        inputs:
+          command: 'test'
+          projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
+          testRunTitle: 'SwiftUI.Tests.FSharp'
       - task: MSBuild@1
         displayName: 'Build MacOS C# project XamMacSwiftUITest/XamMacSwiftUITest.csproj'
         inputs:
