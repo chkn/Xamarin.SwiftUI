@@ -8,7 +8,7 @@
     <Folder Include="Subjects\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\native\Debug\xamarin.mac20\libSwiftUIGlue.dylib" Visible="false">
+    <None Include="..\..\native\$(Configuration)\xamarin.mac20\libSwiftUIGlue.dylib" Visible="false">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="Subjects\ViewWithOptionState.fs" />
