@@ -49,7 +49,7 @@ namespace XamMacSwiftUITest
 				);
 				var colour = counter.Value % 2 == 0 ? Color.Blue : Color.Red;
 
-				return button.Background (Color.Black);
+				return button.Background (colour);
 				//return button.Opacity (counter.Value % 2 == 0 ? 0.5 : 1.0)
 			}
 		}
