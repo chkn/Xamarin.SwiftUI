@@ -16,6 +16,7 @@ The Swift calling convention is based on the C calling convention with some modi
 ### Direct P/Invoke
 
 When P/Invoking a Swift function, you must keep in mind that Swift may pass some hidden arguments. In addition to the declared arguments in the Swift signature, Swift appends a `this` argument for instance members, followed by type metadata for each generic parameter, first for generic arguments on the declaring type, then for those on the method itself. If the generic parameter is constrained by a protocol, there is another argument for the conformance pointer following the type metadata.
+When passing more than 1 generic parameter, the order is *important*. The order must be Generic1Pointer, Generic2Pointer, Generic1Metadata, Generic2Metadata, Generic1Prototcol, Generic2Prototcol
 
 ### Glue Function
 

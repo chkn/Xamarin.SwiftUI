@@ -73,6 +73,9 @@ namespace SwiftUI
 
 		protected override void InitNativeData (void* handle)
 		{
+			using (var dataHandle = Data.GetSwiftHandle ()) {
+				dataHandle.SwiftType.Transfer (handle, dataHandle.Pointer, TransferFuncType.InitWithCopy);
+			}
 		}
 
 		#region Constructors
@@ -159,7 +162,7 @@ namespace SwiftUI
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
-			EntryPoint = "$s7SwiftUI5ColorV5blueACvgZ")]
+			EntryPoint = "$s7SwiftUI5ColorV4blueACvgZ")]
 		static extern IntPtr GetColorBlue (long metadataReq);
 
 		[DllImport (SwiftUILib.Path,
@@ -214,7 +217,7 @@ namespace SwiftUI
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
-			EntryPoint = "$s7SwiftUI5ColorV5yellowACvgZ")]
+			EntryPoint = "$s7SwiftUI5ColorV6yellowACvgZ")]
 		static extern IntPtr GetColorYellow (long metadataReq);
 		#endregion
 
