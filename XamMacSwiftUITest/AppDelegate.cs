@@ -42,12 +42,14 @@ namespace XamMacSwiftUITest
 				Button<Text> button = null;
 				button = new Button<Text> (
 					() => {
-						counter.Value += 1;
+						var value = counter.Value ?? 0;
+						counter.Value = value + 1;
 					}, new Text (string.Format (counter.Value.HasValue ? "Clicked {0} times" : "Never been clicked", counter.Value))
 				);
 
-				return button.Background (Color.Red);
-				//return button.Opacity (counter.Value % 2 == 0 ? 0.5 : 1.0);
+				var colour = counter.Value.HasValue ? counter.Value % 2 == 0 ? Color.Red : Color.Blue : Color.Yellow;
+				return button.Background (colour);
+				//return button.Opacity (counter.Value % 2 == 0 ? 0.5 : 1.0)
 			}
 		}
 	}

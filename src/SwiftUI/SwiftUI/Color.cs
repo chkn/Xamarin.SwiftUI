@@ -74,7 +74,8 @@ namespace SwiftUI
 		protected override void InitNativeData (void* handle)
 		{
 			using (var dataHandle = Data.GetSwiftHandle ()) {
-				dataHandle.SwiftType.Transfer (handle, dataHandle.Pointer, TransferFuncType.InitWithCopy);
+				// Using TransferFuncType.InitWithTake here in case we leak. 
+				dataHandle.SwiftType.Transfer (handle, dataHandle.Pointer, TransferFuncType.InitWithTake);
 			}
 		}
 
