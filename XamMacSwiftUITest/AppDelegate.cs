@@ -33,6 +33,14 @@ namespace XamMacSwiftUITest
 		}
     }
 
+	public class ButtonModifier: ViewModifier<ModifiedBackground<Content, Color>>
+	{
+		public override ModifiedBackground<Content, Color> Body (Content content)
+		{
+			return content.Background (Color.Red);
+		}
+	}
+
 	public class ClickButton : View
 	{
 		State<int?> counter = new State<int?> (null);

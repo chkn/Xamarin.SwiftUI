@@ -1,15 +1,13 @@
-﻿using System;
-using Swift;
-using Swift.Interop;
+﻿using Swift.Interop;
 
 namespace SwiftUI
 {
 	[SwiftImport (SwiftUILib.Path, "$s7SwiftUI4ViewPAAE10background_9alignmentQrqd___AA9AlignmentVtAaBRd__lFQOMQ")]
-    public class ModifiedBackground<TView, TBackground> : View
+    public class ModifiedView<TView, TViewModifier> : View
         where TView : View
-        where TBackground : View
+        where TViewModifier : ViewModifier<View>
     {
-        internal ModifiedBackground (TaggedPointer taggedPointer)
+        internal ModifiedView (TaggedPointer taggedPointer)
             : base (taggedPointer)
         {
         }

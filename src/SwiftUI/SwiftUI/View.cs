@@ -59,7 +59,7 @@ namespace SwiftUI
 		/// <summary>
 		/// Only to be used for opaque <c>some View</c> return types.
 		/// </summary>
-		protected View (TaggedPointer data)
+		internal View (TaggedPointer data)
 		{
 			this.data = data;
 		}

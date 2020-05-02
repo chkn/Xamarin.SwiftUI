@@ -7,11 +7,19 @@ using Swift.Interop;
 namespace SwiftUI
 {
 	[SwiftImport (SwiftUILib.Path)]
-	public unsafe sealed class Text : View
+	public unsafe class Text : View
 	{
 		readonly string verbatim;
 
+		public string Verbatim => verbatim;
+
 		public Text (string verbatim)
+		{
+			this.verbatim = verbatim;
+		}
+
+		internal Text (string verbatim, TaggedPointer taggedPointer)
+			: base (taggedPointer)
 		{
 			this.verbatim = verbatim;
 		}
