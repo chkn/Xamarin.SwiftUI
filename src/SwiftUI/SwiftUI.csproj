@@ -42,15 +42,6 @@
     <ObjcBindingNativeFramework Include="..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework" Condition="Exists('..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework')" Visible="false" />
     <ObjcBindingNativeLibrary Include="..\..\native\$(Configuration)\$(TargetFramework)\*.dylib" Visible="false" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="SwiftUI\TextExtensions.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="SwiftUI\ModifiedBackground.cs">
-      <SubType></SubType>
-    </Compile>
-  </ItemGroup>
   <Target Name="CreateDummyApiDefinition" BeforeTargets="_GenerateBindings">
     <WriteLinesToFile Lines="" File="@(ObjcBindingApiDefinition)" Condition="!Exists('@(ObjcBindingApiDefinition)')" />
   </Target>
