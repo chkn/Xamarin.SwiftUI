@@ -152,3 +152,10 @@ public func SetViewBackground<TView: View, TBackground: View>(dest : UnsafeMutab
     let result = view.background(value)
     dest.initializeMemory(as: type(of: result), repeating: result, count: 1)
 }
+
+@_silgen_name("swiftui_View_modifier")
+public func SetViewModifier<TView: View, TViewModifier: ViewModifier>(dest : UnsafeMutableRawPointer, view : TView, value : TViewModifier)
+{
+    let result = view.modifier(value)
+    dest.initializeMemory(as: type(of: result), repeating: result, count: 1)
+}

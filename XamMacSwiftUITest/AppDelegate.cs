@@ -33,9 +33,18 @@ namespace XamMacSwiftUITest
 		}
     }
 
+	public class ButtonModifier: ViewModifier<ModifiedBackground<Content, Color>>
+	{
+		public override ModifiedBackground<Content, Color> Body (Content content)
+		{
+			return content.Background (Color.Red);
+		}
+	}
+
 	public class ClickButton : View
 	{
 		State<int?> counter = new State<int?> (null);
+		//public ModifiedView<Button<Text>, ButtonModifier> Body {
 		public ModifiedBackground<Button<Text>, Color> Body {
 		//public ModifiedOpacity<Button<Text>> Body {
 			get {
@@ -48,8 +57,9 @@ namespace XamMacSwiftUITest
 				);
 
 				var colour = counter.Value.HasValue ? counter.Value % 2 == 0 ? Color.Red : Color.Blue : Color.Yellow;
-				return button.Background (colour);
 				//return button.Opacity (counter.Value % 2 == 0 ? 0.5 : 1.0)
+				return button.Background (colour);
+				//return button.Modifier (new ButtonModifier ());
 			}
 		}
 	}
