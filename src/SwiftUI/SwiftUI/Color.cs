@@ -10,15 +10,15 @@ namespace SwiftUI
 
 	public enum RGBColorSpace
 	{
+		sRGB,
 		DisplayP3,
-		RGB,
-		RGBLinear,
+		sRGBLinear,
 	};
 
 	[SwiftImport (SwiftUILib.Path)]
 	public unsafe partial class Color : View
 	{
-		public IntPtr Data { get; private set; }
+		internal IntPtr Data { get; private set; }
 
 		#region Static Colour Spaces
 		public static IntPtr ColorSpaceDisplayP3 {
@@ -35,40 +35,40 @@ namespace SwiftUI
 
 		#region Static Colours
 		static Color? black = null;
-		public static Color Black => black ??= new Color (GetColorBlack (0));
+		public static Color Black => black ??= new Color (GetColorBlack ());
 
 		static Color? blue = null;
-		public static Color Blue => blue ??= new Color (GetColorBlue (0));
+		public static Color Blue => blue ??= new Color (GetColorBlue ());
 
-		public static Color Clear => new Color (GetColorClear (0));
+		public static Color Clear => new Color (GetColorClear ());
 
 		static Color? gray = null;
-		public static Color Gray => gray ??= new Color (GetColorGray (0));
+		public static Color Gray => gray ??= new Color (GetColorGray ());
 
 		static Color? green = null;
-		public static Color Green => green ??= new Color (GetColorGreen (0));
+		public static Color Green => green ??= new Color (GetColorGreen ());
 
 		static Color? orange = null;
-		public static Color Orange => orange ??= new Color (GetColorOrange (0));
+		public static Color Orange => orange ??= new Color (GetColorOrange ());
 
 		static Color? pink = null;
-		public static Color Pink => pink ??= new Color (GetColorPink (0));
+		public static Color Pink => pink ??= new Color (GetColorPink ());
 
-		public static Color Primary => new Color (GetColorPrimary (0));
+		public static Color Primary => new Color (GetColorPrimary ());
 
 		static Color? purple = null;
-		public static Color Purple => purple ??= new Color (GetColorPurple (0));
+		public static Color Purple => purple ??= new Color (GetColorPurple ());
 
 		static Color? red = null;
-		public static Color Red => red ??= new Color (GetColorRed (0));
+		public static Color Red => red ??= new Color (GetColorRed ());
 
-		public static Color Secondary => new Color (GetColorSecondary (0));
+		public static Color Secondary => new Color (GetColorSecondary ());
 
 		static Color? white = null;
-		public static Color White => white ??= new Color (GetColorWhite (0));
+		public static Color White => white ??= new Color (GetColorWhite ());
 
 		static Color? yellow = null;
-		public static Color Yellow => yellow ??= new Color (GetColorYellow (0));
+		public static Color Yellow => yellow ??= new Color (GetColorYellow ());
 		#endregion
 
 		protected override void InitNativeData (void* handle)
@@ -158,67 +158,67 @@ namespace SwiftUI
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV5blackACvgZ")]
-		static extern IntPtr GetColorBlack (long metadataReq);
+		static extern IntPtr GetColorBlack ();
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV4blueACvgZ")]
-		static extern IntPtr GetColorBlue (long metadataReq);
+		static extern IntPtr GetColorBlue ();
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV5clearACvgZ")]
-		static extern IntPtr GetColorClear (long metadataReq);
+		static extern IntPtr GetColorClear ();
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV4grayACvgZ")]
-		static extern IntPtr GetColorGray (long metadataReq);
+		static extern IntPtr GetColorGray ();
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV5greenACvgZ")]
-		static extern IntPtr GetColorGreen (long metadataReq);
+		static extern IntPtr GetColorGreen ();
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV6orangeACvgZ")]
-		static extern IntPtr GetColorOrange (long metadataReq);
+		static extern IntPtr GetColorOrange ();
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV4pinkACvgZ")]
-		static extern IntPtr GetColorPink (long metadataReq);
+		static extern IntPtr GetColorPink ();
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV7primaryACvgZ")]
-		static extern IntPtr GetColorPrimary (long metadataReq);
+		static extern IntPtr GetColorPrimary ();
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV6purpleACvgZ")]
-		static extern IntPtr GetColorPurple (long metadataReq);
+		static extern IntPtr GetColorPurple ();
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV3redACvgZ")]
-		static extern IntPtr GetColorRed (long metadataReq);
+		static extern IntPtr GetColorRed ();
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV9secondaryACvgZ")]
-		static extern IntPtr GetColorSecondary (long metadataReq);
+		static extern IntPtr GetColorSecondary ();
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV5whiteACvgZ")]
-		static extern IntPtr GetColorWhite (long metadataReq);
+		static extern IntPtr GetColorWhite ();
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV6yellowACvgZ")]
-		static extern IntPtr GetColorYellow (long metadataReq);
+		static extern IntPtr GetColorYellow ();
 		#endregion
 
 		#endregion
