@@ -36,8 +36,8 @@ namespace XamMacSwiftUITest
 	public class ClickButton : View
 	{
 		State<int?> counter = new State<int?> (null);
-		public ModifiedBackground<Button<Text>, Color> Body {
-		//public ModifiedOpacity<Button<Text>> Body {
+
+		public ModifiedBackground<Button<Text>, ModifiedBackground<Text, Color>> Body {
 			get {
 				Button<Text> button = null;
 				button = new Button<Text> (
@@ -48,8 +48,9 @@ namespace XamMacSwiftUITest
 				);
 
 				var colour = counter.Value.HasValue ? counter.Value % 2 == 0 ? Color.Red : Color.Blue : Color.Yellow;
-				return button.Background (colour);
-				//return button.Opacity (counter.Value % 2 == 0 ? 0.5 : 1.0)
+				var colourText = counter.Value.HasValue ? counter.Value % 2 == 0 ? nameof (Color.Red) : nameof (Color.Blue) : nameof (Color.Yellow);
+
+				return button.Background (new Text (colourText).Background (colour));
 			}
 		}
 	}
