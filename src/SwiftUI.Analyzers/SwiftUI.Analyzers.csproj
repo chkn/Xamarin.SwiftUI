@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    
+    <!-- FIXME: Currently need both: "Nullable" for Windows, "NullableContextOptions" for Mac -->
+    <Nullable>enable</Nullable>
+    <NullableContextOptions>enable</NullableContextOptions>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
+    <StartAction>Program</StartAction>
+    <StartProgram>/usr/local/share/dotnet/sdk/5.0.100-preview.3.20216.6/Roslyn/bincore/csc.dll</StartProgram>
+    <StartArguments>-a:SwiftUI.Analyzers.dll -r:$(SolutionDir)/managed/Debug/netstandard2.1/SwiftUI.dll $(SolutionDir)/tests/SwiftUI.Analyzers.Tests/Subjects/TestView.cs</StartArguments>
+    <ExternalConsole>false</ExternalConsole>
+  </PropertyGroup>
+
+  <Import Project="../../RoslynNugets.targets" />
+</Project>

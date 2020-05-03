@@ -16,6 +16,14 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "XamSwiftUITestShared", "Xam
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SwiftUI.Tests.FSharp", "tests\SwiftUI.Tests.FSharp\SwiftUI.Tests.FSharp.fsproj", "{D9211517-73D3-4548-B5DA-CAFB0A5B74A5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwiftUI.Analyzers", "src\SwiftUI.Analyzers\SwiftUI.Analyzers.csproj", "{5009CB3A-FF2B-46C8-B75B-2BD05F67BA60}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwiftUI.Analyzers.Tests", "tests\SwiftUI.Analyzers.Tests\SwiftUI.Analyzers.Tests.csproj", "{28883268-FEE9-48E7-90A2-FDCED575CDE2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{96D409C9-7355-4EAA-8091-14802423E32E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{0A30EAB4-9484-4C3D-B7AF-3FF29EF250EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -98,11 +106,44 @@ Global
 		{D9211517-73D3-4548-B5DA-CAFB0A5B74A5}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 		{D9211517-73D3-4548-B5DA-CAFB0A5B74A5}.Debug|iPhone.ActiveCfg = Debug|Any CPU
 		{D9211517-73D3-4548-B5DA-CAFB0A5B74A5}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{5009CB3A-FF2B-46C8-B75B-2BD05F67BA60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5009CB3A-FF2B-46C8-B75B-2BD05F67BA60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5009CB3A-FF2B-46C8-B75B-2BD05F67BA60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5009CB3A-FF2B-46C8-B75B-2BD05F67BA60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5009CB3A-FF2B-46C8-B75B-2BD05F67BA60}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{5009CB3A-FF2B-46C8-B75B-2BD05F67BA60}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{5009CB3A-FF2B-46C8-B75B-2BD05F67BA60}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{5009CB3A-FF2B-46C8-B75B-2BD05F67BA60}.Release|iPhone.Build.0 = Release|Any CPU
+		{5009CB3A-FF2B-46C8-B75B-2BD05F67BA60}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{5009CB3A-FF2B-46C8-B75B-2BD05F67BA60}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+		{5009CB3A-FF2B-46C8-B75B-2BD05F67BA60}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{5009CB3A-FF2B-46C8-B75B-2BD05F67BA60}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Release|iPhone.Build.0 = Release|Any CPU
+		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Debug|iPhone.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D2D9F5E8-13B8-4BA0-8746-07FA70910234}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CCA6EDBD-0F63-4C2C-95E8-FEDBFA9BD0ED} = {96D409C9-7355-4EAA-8091-14802423E32E}
+		{28883268-FEE9-48E7-90A2-FDCED575CDE2} = {96D409C9-7355-4EAA-8091-14802423E32E}
+		{D9211517-73D3-4548-B5DA-CAFB0A5B74A5} = {96D409C9-7355-4EAA-8091-14802423E32E}
+		{72CBF528-4225-44FC-B9DC-CD34DF3FC6C7} = {0A30EAB4-9484-4C3D-B7AF-3FF29EF250EC}
+		{24332183-3269-4D12-BC4B-F0C397E99E4C} = {0A30EAB4-9484-4C3D-B7AF-3FF29EF250EC}
+		{A509E396-F462-4528-8485-4F7698FA4848} = {0A30EAB4-9484-4C3D-B7AF-3FF29EF250EC}
+		{99F5F4F5-135E-46B4-941B-135F3420F1D9} = {0A30EAB4-9484-4C3D-B7AF-3FF29EF250EC}
 	EndGlobalSection
 EndGlobal

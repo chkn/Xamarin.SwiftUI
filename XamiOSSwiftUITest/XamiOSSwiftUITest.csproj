@@ -131,6 +131,13 @@
         <Project>{31E05277-F5C7-47C7-988B-EFA3A8057F07}</Project>
         <Name>SwiftUI</Name>
       </ProjectReference>
+      <ProjectReference Include="..\src\SwiftUI.Analyzers\SwiftUI.Analyzers.csproj">
+        <Project>{5009CB3A-FF2B-46C8-B75B-2BD05F67BA60}</Project>
+        <Name>SwiftUI.Analyzers</Name>
+        <PrivateAssets>all</PrivateAssets>
+        <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+        <OutputItemType>Analyzer</OutputItemType>
+      </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>
