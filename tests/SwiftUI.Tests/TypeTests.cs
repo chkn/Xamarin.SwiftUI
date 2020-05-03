@@ -48,20 +48,21 @@ namespace SwiftUI.Tests
 			}
 		}
 
-		[Theory]
-		[InlineData (typeof (Swift.String))]
-		[InlineData (typeof (IntPtr))]
-		public void PackedOptionalTypes (Type wrappedType)
-			=> typeof (Optional.Packed<>).MakeGenericType (wrappedType).TypeInitializer!.Invoke (null, null);
-
-		[Theory]
-		[InlineData (typeof (byte))]
-		[InlineData (typeof (sbyte))]
-		[InlineData (typeof (int))]
-		[InlineData (typeof (long))]
-		[InlineData (typeof (double))]
-		[InlineData (typeof (float))]
-		public void UnpackedOptionalTypes (Type wrappedType)
-			=> typeof (Optional.Unpacked<>).MakeGenericType (wrappedType).TypeInitializer!.Invoke (null, null);
+		[SkippableTheory]
+		[InlineData (typeof (Optional.Packed<>), typeof (Swift.String))]
+		[InlineData (typeof (Optional.Packed<>), typeof (IntPtr))]
+		[InlineData (typeof (Optional.Unpacked<>), typeof (byte))]
+		[InlineData (typeof (Optional.Unpacked<>), typeof (sbyte))]
+		[InlineData (typeof (Optional.Unpacked<>), typeof (int))]
+		[InlineData (typeof (Optional.Unpacked<>), typeof (long))]
+		[InlineData (typeof (Optional.Unpacked<>), typeof (double))]
+		[InlineData (typeof (Optional.Unpacked<>), typeof (float))]
+		public void OptionalTypes (Type optionalType, Type wrappedType)
+		{
+			// static constructor has asserts, but it is only included for DEBUG builds..
+			var cctor = optionalType.MakeGenericType (wrappedType).TypeInitializer;
+			Skip.If (cctor is null, "Asserts only compiled in debug builds");
+			cctor!.Invoke (null, null);
+		}
 	}
 }
