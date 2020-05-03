@@ -21,7 +21,7 @@ namespace Swift
 			if (type == typeof (IntPtr))
 				return new SwiftType (Lib, "SV");
 			return Type.GetTypeCode (type) switch {
-				TypeCode.String => new SwiftType (Lib, "SS", typeof (Swift.String)),
+				TypeCode.String => SwiftType.Of (typeof (Swift.String)),
 				TypeCode.Byte => new SwiftType (Lib, "Swift", "UInt8", SwiftTypeCode.Struct),
 				TypeCode.SByte => new SwiftType (Lib, "Swift", "Int8", SwiftTypeCode.Struct),
 				TypeCode.Int16 => new SwiftType (Lib, "Swift", "Int16", SwiftTypeCode.Struct, typeof (Int16)),

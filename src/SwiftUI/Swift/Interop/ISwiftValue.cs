@@ -100,11 +100,11 @@ namespace Swift.Interop
 				if (Nullability.IsNull (obj)) {
 					var underlyingType = Nullability.GetUnderlyingType (type);
 					var underlyingSwiftType = SwiftType.Of (underlyingType, nullability.Strip ())!;
-					return CopyAsOptional (null, swiftType, underlyingSwiftType);
+					return Optional.Wrap (null, swiftType, underlyingSwiftType);
 				} else {
 					var unwrapped = Nullability.Unwrap (obj);
 					using (var unwrappedHandle = unwrapped.GetSwiftHandle (nullability.Strip ()))
-						return CopyAsOptional (unwrappedHandle.Pointer, swiftType, unwrappedHandle.SwiftType);
+						return Optional.Wrap (unwrappedHandle.Pointer, swiftType, unwrappedHandle.SwiftType);
 				}
 			} else if (obj is null) {
 				throw new ArgumentNullException (nameof (obj));
@@ -116,20 +116,6 @@ namespace Swift.Interop
 				_ when type.IsPrimitive => new SwiftHandle (obj, swiftType),
 				_ => throw new NotImplementedException (type.ToString ())
 			};
-		}
-
-		unsafe static SwiftHandle CopyAsOptional (void* src, SwiftType optionalType, SwiftType wrappedType)
-		{
-			var data = new byte [optionalType.NativeDataSize];
-			fixed (void* dest = &data [0]) {
-				var tag = 1; // nil
-				if (src != null) {
-					tag = 0;
-					wrappedType.Transfer (dest, src, TransferFuncType.InitWithCopy);
-				}
-				wrappedType.StoreEnumTagSinglePayload (dest, tag, 1);
-			}
-			return new SwiftHandle (data, optionalType, destroyOnDispose: true);
 		}
 
 		public unsafe static TValue FromNative<TValue> (IntPtr ptr, Nullability nullability = default)

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Diagnostics;
 
 using Xunit;
@@ -46,5 +47,21 @@ namespace SwiftUI.Tests
 				Assert.Equal ("Optional", gargs [0].Metadata->TypeDescriptor->Name);
 			}
 		}
+
+		[Theory]
+		[InlineData (typeof (Swift.String))]
+		[InlineData (typeof (IntPtr))]
+		public void PackedOptionalTypes (Type wrappedType)
+			=> typeof (Optional.Packed<>).MakeGenericType (wrappedType).TypeInitializer!.Invoke (null, null);
+
+		[Theory]
+		[InlineData (typeof (byte))]
+		[InlineData (typeof (sbyte))]
+		[InlineData (typeof (int))]
+		[InlineData (typeof (long))]
+		[InlineData (typeof (double))]
+		[InlineData (typeof (float))]
+		public void UnpackedOptionalTypes (Type wrappedType)
+			=> typeof (Optional.Unpacked<>).MakeGenericType (wrappedType).TypeInitializer!.Invoke (null, null);
 	}
 }

@@ -8,6 +8,7 @@ using Swift.Interop;
 namespace Swift
 {
 	[StructLayout (LayoutKind.Sequential)]
+	[SwiftImport (SwiftCoreLib.Path, "SS")]
 	readonly unsafe struct String : ISwiftBlittableStruct<String>, IDisposable
 	{
 		public static String Empty => default;

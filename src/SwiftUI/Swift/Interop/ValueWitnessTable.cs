@@ -3,16 +3,19 @@ using System.Runtime.InteropServices;
 
 namespace Swift.Interop
 {
+	// https://github.com/apple/swift/blob/a021e6ca020e667ce4bc8ee174e2de1cc0d9be73/include/swift/ABI/MetadataValues.h#L117
 	[Flags]
 	public enum ValueWitnessFlags
 	{
 		AlignmentMask = 0x0000FFFF,
 		IsNonPOD = 0x00010000,
 		IsNonInline = 0x00020000,
-		HasExtraInhabitants = 0x00040000,
+		// unused 0x00040000,
 		HasSpareBits = 0x00080000,
 		IsNonBitwiseTakable = 0x00100000,
-		HasEnumWitnesses = 0x00200000
+		HasEnumWitnesses = 0x00200000,
+		Incomplete = 0x00400000,
+		// unused 0xFF800000,
 	}
 
 	/// <summary>
@@ -86,10 +89,17 @@ namespace Swift.Interop
 
 		public ValueWitnessFlags Flags;
 
+		///   UINT_TYPE extraInhabitantCount;
+		///
+		/// The number of extra inhabitants in the type.
+		public uint ExtraInhabitantCount;
+
 		public int Alignment => (int)((Flags & ValueWitnessFlags.AlignmentMask) + 1);
 
 		public bool IsNonPOD => Flags.HasFlag (ValueWitnessFlags.IsNonPOD);
 
 		public bool IsNonBitwiseTakable => Flags.HasFlag (ValueWitnessFlags.IsNonBitwiseTakable);
+
+		public bool HasExtraInhabitants => ExtraInhabitantCount != 0;
 	}
 }

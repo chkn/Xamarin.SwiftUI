@@ -171,6 +171,12 @@ namespace Swift.Interop
 
 			// Assert assumed invariants..
 			Debug.Assert (!ValueWitnessTable->IsNonBitwiseTakable, $"expected bitwise movable: {managedType?.Name}");
+			SanityCheck (managedType);
+		}
+
+		[Conditional ("DEBUG")]
+		internal void SanityCheck (Type? managedType)
+		{
 			if (managedType is null)
 				return;
 			checked {
