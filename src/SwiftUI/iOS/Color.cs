@@ -18,7 +18,7 @@ namespace SwiftUI
 
 		public Color (string name, NSBundle? bundle = null)
 		{
-			Data = CreateFromStringBundle (name, bundle == null ? IntPtr.Zero.ToPointer() : bundle.Handle.ToPointer());
+			Data = CreateFromStringBundle (new Swift.String (name), bundle == null ? IntPtr.Zero.ToPointer() : bundle.Handle.ToPointer());
 		}
 		#endregion
 
@@ -34,7 +34,7 @@ namespace SwiftUI
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV_6bundleACSS_So8NSBundleCSgtcfC")]
 		static extern IntPtr CreateFromStringBundle (
-			[MarshalAs(UnmanagedType.LPWStr)] string str,
+			Swift.String str,
 			void* bundlePointer);
 		#endregion
 	}
