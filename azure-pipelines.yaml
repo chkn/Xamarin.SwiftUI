@@ -6,6 +6,37 @@ trigger:
 stages:
   - stage: Build
     jobs:
+    - job: DebugBuildAndTest
+      displayName: 'Debug build and test Xamarin.SwiftUI'
+      pool:
+        vmImage: macOS-latest
+      steps:
+      - task: MSBuild@1
+        displayName: 'msbuild build.proj'
+        inputs:
+          solution: build.proj
+          configuration: Debug
+          msbuildArguments: /restore
+      - task: DotNetCoreCLI@2
+        displayName: 'dotnet test SwiftUI.Tests'
+        inputs:
+          command: 'test'
+          arguments: '--configuration Debug'
+          projects: 'tests/SwiftUI.Tests/SwiftUI.Tests.csproj'
+          testRunTitle: 'SwiftUI.Tests'
+      - task: DotNetCoreCLI@2
+        displayName: 'dotnet build SwiftUI.Tests.FSharp'
+        inputs:
+          command: 'build'
+          arguments: '--configuration Debug'
+          projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
+      - task: DotNetCoreCLI@2
+        displayName: 'dotnet test SwiftUI.Tests.FSharp'
+        inputs:
+          command: 'test'
+          arguments: '--configuration Debug'
+          projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
+          testRunTitle: 'SwiftUI.Tests.FSharp'
     - job: BuildSwiftUIGlueAndNuGets
       displayName: 'Build, test, and package Xamarin.SwiftUI'
       pool:
