@@ -21,7 +21,7 @@ namespace SwiftUI
 		internal IntPtr Data { get; private set; }
 
 		#region Static Colour Spaces
-		public static IntPtr ColorSpaceDisplayP3 {
+		internal static IntPtr ColorSpaceDisplayP3 {
 			get {
 				var fullMeta = RGBColorSpaceMetadata (0);
 				var meta = &fullMeta->Metadata.TypeDescriptor;
