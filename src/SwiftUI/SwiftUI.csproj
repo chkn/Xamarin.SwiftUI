@@ -47,7 +47,6 @@
       Include="..\..\native\$(Configuration)\$(TargetFramework)\*.dylib"
       Visible="false" />
   </ItemGroup>
-
   <Target Name="CreateDummyApiDefinition" BeforeTargets="_GenerateBindings">
     <WriteLinesToFile
       Lines=""
