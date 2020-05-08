@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Diagnostics;
 
 using Xunit;
@@ -45,6 +46,23 @@ namespace SwiftUI.Tests
 			unsafe {
 				Assert.Equal ("Optional", gargs [0].Metadata->TypeDescriptor->Name);
 			}
+		}
+
+		[SkippableTheory]
+		[InlineData (typeof (Optional.Packed<>), typeof (Swift.String))]
+		[InlineData (typeof (Optional.Packed<>), typeof (IntPtr))]
+		[InlineData (typeof (Optional.Unpacked<>), typeof (byte))]
+		[InlineData (typeof (Optional.Unpacked<>), typeof (sbyte))]
+		[InlineData (typeof (Optional.Unpacked<>), typeof (int))]
+		[InlineData (typeof (Optional.Unpacked<>), typeof (long))]
+		[InlineData (typeof (Optional.Unpacked<>), typeof (double))]
+		[InlineData (typeof (Optional.Unpacked<>), typeof (float))]
+		public void OptionalTypes (Type optionalType, Type wrappedType)
+		{
+			// static constructor has asserts, but it is only included for DEBUG builds..
+			var cctor = optionalType.MakeGenericType (wrappedType).TypeInitializer;
+			Skip.If (cctor is null, "Asserts only compiled in debug builds");
+			cctor!.Invoke (null, null);
 		}
 	}
 }

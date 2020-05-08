@@ -1,14 +1,8 @@
 using System;
 namespace SwiftUI.Tests
 {
-	public class TestFixture : IDisposable
+	public class TestFixture
 	{
-		ThrowingTraceListener? throwForFailedAsserts = new ThrowingTraceListener ();
-
-		public void Dispose ()
-		{
-			throwForFailedAsserts?.Dispose ();
-			throwForFailedAsserts = null;
-		}
+		internal static readonly ThrowingTraceListener? ThrowForFailedAsserts = new ThrowingTraceListener ();
 	}
 }
