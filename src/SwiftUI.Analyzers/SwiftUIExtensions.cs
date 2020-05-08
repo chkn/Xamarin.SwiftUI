@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Collections.Immutable;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -65,10 +67,16 @@ namespace SwiftUI.Analyzers
 			return !exact && symbol.BaseType.Is (ns, typeName);
 		}
 
+		internal static bool ContainsId (this ImmutableArray<Diagnostic> diags, string id)
+		{
+			foreach (var diag in diags) {
+				if (diag.Id == id)
+					return true;
+			}
+			return false;
+		}
+
 		internal static bool HasModifier (this ClassDeclarationSyntax cls, SyntaxKind modifier)
 			=> cls.Modifiers.Any (m => m.IsKind (modifier));
-
-		internal static ClassDeclarationSyntax AddModifierIfMissing (this ClassDeclarationSyntax cls, SyntaxKind modifier)
-			=> cls.HasModifier (modifier) ? cls : cls.AddModifiers (Token (modifier));
 	}
 }

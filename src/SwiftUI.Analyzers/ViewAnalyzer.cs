@@ -10,28 +10,28 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace SwiftUI.Analyzers
 {
 	/// <summary>
-	/// An analyzer that ensures that custom views declare a proper <c>Body</c> property.
+	/// An analyzer to ensure custom views are partial and declare a proper <c>Body</c> property.
 	/// </summary>
 	[DiagnosticAnalyzer (LanguageNames.CSharp)]
-	public class ViewBodyAnalyzer : DiagnosticAnalyzer
+	public class ViewAnalyzer : DiagnosticAnalyzer
 	{
 		public const string MissingBodyId = "SWUI001";
-		public const string BodyReturnTypeId = "SWUI002";
+		public const string NotPartialClassId = "SWUI002";
 
 		public static readonly DiagnosticDescriptor MissingBodyDiag = new DiagnosticDescriptor (
 			MissingBodyId,
-			"View Body",
+			"Custom View Body",
 			"Custom view '{0}' does not declare a 'Body' property",
 			"SwiftUI", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-		public static readonly DiagnosticDescriptor BodyReturnTypeDiag = new DiagnosticDescriptor (
-			BodyReturnTypeId,
-			"View Body Return Type",
-			"'Body' property must use exact return type if declaring class is not partial",
+		public static readonly DiagnosticDescriptor NotPartialClassDiag = new DiagnosticDescriptor (
+			NotPartialClassId,
+			"Custom View must be Partial Class",
+			"Custom view '{0}' is not declared as a partial class",
 			"SwiftUI", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
 		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-			=> ImmutableArray.Create (MissingBodyDiag, BodyReturnTypeDiag);
+			=> ImmutableArray.Create (MissingBodyDiag, NotPartialClassDiag);
 
 		public override void Initialize (AnalysisContext context)
 		{
@@ -47,14 +47,11 @@ namespace SwiftUI.Analyzers
 			if (symbol is null || !symbol.IsCustomView ())
 				return;
 
-			var body = symbol.GetBody ();
-			if (body is null) {
+			if (symbol.GetBody () is null)
 				ctx.ReportDiagnostic (Diagnostic.Create (MissingBodyDiag, decl.Identifier.GetLocation (), decl.Identifier));
-				return;
-			}
 
-			if (!decl.HasModifier (SyntaxKind.PartialKeyword) && body.Type.Is ("SwiftUI", "View", exact: true))
-				ctx.ReportDiagnostic (Diagnostic.Create (BodyReturnTypeDiag, body.Locations.First (loc => loc.SourceTree == decl.SyntaxTree)));
+			if (!decl.HasModifier (SyntaxKind.PartialKeyword))
+				ctx.ReportDiagnostic (Diagnostic.Create (NotPartialClassDiag, decl.Identifier.GetLocation (), decl.Identifier));
 		}
 	}
 }
