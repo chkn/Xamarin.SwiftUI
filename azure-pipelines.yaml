@@ -94,10 +94,10 @@ jobs:
       msbuildArguments: /restore
   - task: NuGetAuthenticate@0
     displayName: 'NuGet Authenticate'
-    #condition: and( succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master') )
+    condition: and( succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master') )
   - task: NuGetCommand@2
     displayName: 'NuGet push to master feed'
-    #condition: and( succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master') )
+    condition: and( succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master') )
     inputs:
       command: push
       publishVstsFeed: 'Xamarin.SwiftUI/master'
