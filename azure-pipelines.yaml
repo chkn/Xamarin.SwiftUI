@@ -101,4 +101,5 @@ jobs:
     inputs:
       command: push
       publishVstsFeed: 'alcorra/Xamarin.SwiftUI'
+      packagesToPush: '$(System.DefaultWorkingDirectory)/artifacts/*.nupkg'
       allowPackageConflicts: true
