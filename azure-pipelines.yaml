@@ -1,91 +1,90 @@
+# The version of the produced packages is defined here.
+name: '0.1.$(BuildID)'
 trigger:
   branches:
     include:
       - master
       - refs/tags/*
-stages:
-  - stage: Build
-    jobs:
-    - job: DebugBuildAndTest
-      displayName: 'Debug build and test Xamarin.SwiftUI'
-      pool:
-        vmImage: macOS-latest
-      steps:
-      - task: MSBuild@1
-        displayName: 'msbuild build.proj'
-        inputs:
-          solution: build.proj
-          configuration: Debug
-          msbuildArguments: /restore
-      - task: DotNetCoreCLI@2
-        displayName: 'dotnet test SwiftUI.Tests'
-        inputs:
-          command: 'test'
-          arguments: '--configuration Debug'
-          projects: 'tests/SwiftUI.Tests/SwiftUI.Tests.csproj'
-          testRunTitle: 'SwiftUI.Tests'
-      - task: DotNetCoreCLI@2
-        displayName: 'dotnet build SwiftUI.Tests.FSharp'
-        inputs:
-          command: 'build'
-          arguments: '--configuration Debug'
-          projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
-      - task: DotNetCoreCLI@2
-        displayName: 'dotnet test SwiftUI.Tests.FSharp'
-        inputs:
-          command: 'test'
-          arguments: '--configuration Debug'
-          projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
-          testRunTitle: 'SwiftUI.Tests.FSharp'
-    - job: BuildSwiftUIGlueAndNuGets
-      displayName: 'Build, test, and package Xamarin.SwiftUI'
-      pool:
-        vmImage: macOS-latest
-      steps:
-      - task: NuGetToolInstaller@1
-        displayName: 'Install NuGet tools'
-      - task: MSBuild@1
-        displayName: 'msbuild build.proj'
-        inputs:
-          solution: build.proj
-          configuration: Release
-          msbuildArguments: /restore
-      - task: DotNetCoreCLI@2
-        displayName: 'dotnet test SwiftUI.Tests'
-        inputs:
-          command: 'test'
-          arguments: '--configuration Release'
-          projects: 'tests/SwiftUI.Tests/SwiftUI.Tests.csproj'
-          testRunTitle: 'SwiftUI.Tests'
-      - task: DotNetCoreCLI@2
-        displayName: 'dotnet build SwiftUI.Tests.FSharp'
-        inputs:
-          command: 'build'
-          arguments: '--configuration Release'
-          projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
-      - task: DotNetCoreCLI@2
-        displayName: 'dotnet test SwiftUI.Tests.FSharp'
-        inputs:
-          command: 'test'
-          arguments: '--configuration Release'
-          projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
-          testRunTitle: 'SwiftUI.Tests.FSharp'
-      - task: MSBuild@1
-        displayName: 'Build MacOS C# project XamMacSwiftUITest/XamMacSwiftUITest.csproj'
-        inputs:
-          solution: XamMacSwiftUITest/XamMacSwiftUITest.csproj
-          configuration: Release
-          msbuildArguments: /restore
-      - task: MSBuild@1
-        displayName: 'Build MacOS F# project XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj'
-        inputs:
-          solution: XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj
-          configuration: Release
-          msbuildArguments: /restore
-      - task: MSBuild@1
-        displayName: 'Build iOS C# project XamiOSSwiftUITest/XamiOSSwiftUITest.csproj'
-        inputs:
-          solution: XamiOSSwiftUITest/XamiOSSwiftUITest.csproj
-          configuration: Release
-          msbuildArguments: /restore
-  
+jobs:
+- job: DebugBuildAndTest
+  displayName: 'Debug build and test Xamarin.SwiftUI'
+  pool:
+    vmImage: macOS-latest
+  steps:
+  - task: MSBuild@1
+    displayName: 'msbuild build.proj'
+    inputs:
+      solution: build.proj
+      configuration: Debug
+      msbuildArguments: '/restore /t:Build'
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet test SwiftUI.Tests'
+    inputs:
+      command: 'test'
+      arguments: '--configuration Debug'
+      projects: 'tests/SwiftUI.Tests/SwiftUI.Tests.csproj'
+      testRunTitle: 'SwiftUI.Tests'
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet build SwiftUI.Tests.FSharp'
+    inputs:
+      command: 'build'
+      arguments: '--configuration Debug'
+      projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet test SwiftUI.Tests.FSharp'
+    inputs:
+      command: 'test'
+      arguments: '--configuration Debug'
+      projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
+      testRunTitle: 'SwiftUI.Tests.FSharp'
+- job: ReleaseBuildTestAndPackage
+  displayName: 'Release build, test, and package Xamarin.SwiftUI'
+  pool:
+    vmImage: macOS-latest
+  steps:
+  - task: NuGetToolInstaller@1
+    displayName: 'Install NuGet tools'
+  - task: MSBuild@1
+    displayName: 'msbuild build.proj'
+    inputs:
+      solution: build.proj
+      configuration: Release
+      msbuildArguments: '/restore /p:Version=$(Build.BuildNumber)'
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet test SwiftUI.Tests'
+    inputs:
+      command: 'test'
+      arguments: '--configuration Release'
+      projects: 'tests/SwiftUI.Tests/SwiftUI.Tests.csproj'
+      testRunTitle: 'SwiftUI.Tests'
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet build SwiftUI.Tests.FSharp'
+    inputs:
+      command: 'build'
+      arguments: '--configuration Release'
+      projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet test SwiftUI.Tests.FSharp'
+    inputs:
+      command: 'test'
+      arguments: '--configuration Release'
+      projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
+      testRunTitle: 'SwiftUI.Tests.FSharp'
+  - task: MSBuild@1
+    displayName: 'Build MacOS C# project XamMacSwiftUITest/XamMacSwiftUITest.csproj'
+    inputs:
+      solution: XamMacSwiftUITest/XamMacSwiftUITest.csproj
+      configuration: Release
+      msbuildArguments: /restore
+  - task: MSBuild@1
+    displayName: 'Build MacOS F# project XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj'
+    inputs:
+      solution: XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj
+      configuration: Release
+      msbuildArguments: /restore
+  - task: MSBuild@1
+    displayName: 'Build iOS C# project XamiOSSwiftUITest/XamiOSSwiftUITest.csproj'
+    inputs:
+      solution: XamiOSSwiftUITest/XamiOSSwiftUITest.csproj
+      configuration: Release
+      msbuildArguments: /restore
