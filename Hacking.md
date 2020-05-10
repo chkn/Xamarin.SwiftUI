@@ -6,7 +6,7 @@ This document details some internals and useful information for working on the b
 
 Swift classes are reference counted. Swift structs may contain pointers to instances of classes--when they do, they are considered non-POD and care must be taken to call into Swift to copy or destroy them.
 
-- If possible, a Swift POD struct should be bound as a managed value type implementing `ISwiftBlittableStruct`.
+- If possible, a `@frozen` Swift POD struct should be bound as a managed value type implementing `ISwiftBlittableStruct`.
 - Other Swift structs should be bound as managed classes deriving from `SwiftStruct`, or for SwiftUI views, `View`. See the documentation on those classes for more discussion.
 
 ## Calling into Swift
