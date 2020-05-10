@@ -37,7 +37,7 @@ namespace SwiftUI.Analyzers
 				.WithAdditionalAnnotations (Formatter.Annotation);
 
 		public override ImmutableArray<string> FixableDiagnosticIds
-			=> ImmutableArray.Create (ViewAnalyzer.MissingBodyId, ViewAnalyzer.NotPartialClassId);
+			=> ImmutableArray.Create (Diagnostics.MissingBody.Id, Diagnostics.NotPartialClass.Id);
 
 		public override FixAllProvider GetFixAllProvider () => WellKnownFixAllProviders.BatchFixer;
 
@@ -61,10 +61,10 @@ namespace SwiftUI.Analyzers
 				var newDecl = decl!;
 				var diags = context.Diagnostics;
 
-				if (diags.ContainsId (ViewAnalyzer.MissingBodyId))
+				if (diags.ContainsId (Diagnostics.MissingBody.Id))
 					newDecl = newDecl.AddMembers (BodyPropertyDecl);
 
-				if (diags.ContainsId (ViewAnalyzer.NotPartialClassId))
+				if (diags.ContainsId (Diagnostics.NotPartialClass.Id))
 					newDecl = newDecl.AddModifiers (Token (SyntaxKind.PartialKeyword));
 
 				var newDoc = context.Document;

@@ -11,6 +11,7 @@ namespace SwiftUI.Analyzers.Tests
 	public static class Subjects
 	{
 		public static readonly Compilation TestViews = GetSubjectCompilation ("TestViews.cs");
+		public static readonly Compilation TestViewBuilders = GetSubjectCompilation ("TestViewBuilders.cs");
 
 		public static Compilation GetSubjectCompilation (string fileName)
 			=> CSharpCompilation.Create ("Program", options: new CSharpCompilationOptions (OutputKind.DynamicallyLinkedLibrary))

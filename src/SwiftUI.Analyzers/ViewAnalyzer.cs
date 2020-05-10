@@ -15,23 +15,8 @@ namespace SwiftUI.Analyzers
 	[DiagnosticAnalyzer (LanguageNames.CSharp)]
 	public class ViewAnalyzer : DiagnosticAnalyzer
 	{
-		public const string MissingBodyId = "SWUI001";
-		public const string NotPartialClassId = "SWUI002";
-
-		public static readonly DiagnosticDescriptor MissingBodyDiag = new DiagnosticDescriptor (
-			MissingBodyId,
-			"Custom View Body",
-			"Custom view '{0}' does not declare a 'Body' property",
-			"SwiftUI", DiagnosticSeverity.Error, isEnabledByDefault: true);
-
-		public static readonly DiagnosticDescriptor NotPartialClassDiag = new DiagnosticDescriptor (
-			NotPartialClassId,
-			"Custom View must be Partial Class",
-			"Custom view '{0}' is not declared as a partial class",
-			"SwiftUI", DiagnosticSeverity.Error, isEnabledByDefault: true);
-
 		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-			=> ImmutableArray.Create (MissingBodyDiag, NotPartialClassDiag);
+			=> ImmutableArray.Create (Diagnostics.MissingBody, Diagnostics.NotPartialClass);
 
 		public override void Initialize (AnalysisContext context)
 		{
@@ -47,11 +32,11 @@ namespace SwiftUI.Analyzers
 			if (symbol is null || !symbol.IsCustomView ())
 				return;
 
-			if (symbol.GetBody () is null)
-				ctx.ReportDiagnostic (Diagnostic.Create (MissingBodyDiag, decl.Identifier.GetLocation (), decl.Identifier));
+			if (symbol.GetBodyProperty () is null)
+				ctx.ReportDiagnostic (Diagnostic.Create (Diagnostics.MissingBody, decl.Identifier.GetLocation (), decl.Identifier));
 
 			if (!decl.HasModifier (SyntaxKind.PartialKeyword))
-				ctx.ReportDiagnostic (Diagnostic.Create (NotPartialClassDiag, decl.Identifier.GetLocation (), decl.Identifier));
+				ctx.ReportDiagnostic (Diagnostic.Create (Diagnostics.NotPartialClass, decl.Identifier.GetLocation (), decl.Identifier));
 		}
 	}
 }

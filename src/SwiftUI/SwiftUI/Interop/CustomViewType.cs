@@ -50,7 +50,9 @@ namespace SwiftUI.Interop
 		internal CustomViewType (Type customViewType): base (customViewType, MetadataKinds.Struct)
 		{
 			try {
-				BodyProperty = customViewType.GetProperty ("Body", BindingFlags.Public | BindingFlags.Instance);
+				BodyProperty =
+					customViewType.GetProperty ("Body__", BindingFlags.NonPublic | BindingFlags.Instance) ??
+					customViewType.GetProperty ("Body", BindingFlags.Public | BindingFlags.Instance);
 				if (BodyProperty is null || !BodyProperty.CanRead || BodyProperty.CanWrite || !BodyProperty.PropertyType.IsSubclassOf (typeof (View)))
 					throw new ArgumentException ($"View implementations must either override ViewType, or declare a public, read-only `Body` property returning a concrete type of `{nameof (View)}`");
 
