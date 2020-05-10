@@ -4,7 +4,6 @@ trigger:
   branches:
     include:
       - master
-      - refs/tags/*
 jobs:
 - job: DebugBuildAndTest
   displayName: 'Debug build and test Xamarin.SwiftUI'
@@ -71,7 +70,7 @@ jobs:
       projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
       testRunTitle: 'SwiftUI.Tests.FSharp'
   - task: PublishBuildArtifacts@1
-    displayName: 'Publish packages'
+    displayName: 'Publish artifacts'
     inputs:
       PathtoPublish: '$(System.DefaultWorkingDirectory)/artifacts'
       ArtifactName: packages
@@ -93,3 +92,13 @@ jobs:
       solution: XamiOSSwiftUITest/XamiOSSwiftUITest.csproj
       configuration: Release
       msbuildArguments: /restore
+  - task: NuGetAuthenticate@0
+    displayName: 'NuGet Authenticate'
+    #condition: and( succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master') )
+  - task: NuGetCommand@2
+    displayName: 'NuGet push to master feed'
+    #condition: and( succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master') )
+    inputs:
+      command: push
+      publishVstsFeed: 'alcorra/Xamarin.SwiftUI'
+      allowPackageConflicts: true
