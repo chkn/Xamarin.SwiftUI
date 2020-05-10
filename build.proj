@@ -4,6 +4,9 @@
 		<TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">netstandard2.1;xamarin.mac20;xamarin.ios10</TargetFrameworks>
 		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
 
+		<!-- Directory to place created packages -->
+		<ArtifactOutputPath Condition=" '$(ArtifactOutputPath)' == '' ">$(MSBuildThisFileDirectory)artifacts</ArtifactOutputPath>
+
 		<!-- Managed code -->
 		<SrcPath Condition=" '$(SrcPath)' == '' ">$(MSBuildThisFileDirectory)src\</SrcPath>
 		<BaseOutputPath Condition=" '$(BaseOutputPath)' == '' ">$(MSBuildThisFileDirectory)managed\</BaseOutputPath>
@@ -85,8 +88,9 @@
 	</Target>
 
 	<Target Name="Pack" DependsOnTargets="Build">
+		<MakeDir Directories="$(ArtifactOutputPath)" />
 		<Exec
-			Command="nuget pack Xamarin.SwiftUI.nuspec -Properties 'configuration=$(Configuration);version=$(Version)'" />
+			Command="nuget pack Xamarin.SwiftUI.nuspec -OutputDirectory '$(ArtifactOutputPath)' -Properties 'configuration=$(Configuration);version=$(Version)'" />
 	</Target>
 
 	<Target Name="Clean">

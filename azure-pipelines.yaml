@@ -70,6 +70,11 @@ jobs:
       arguments: '--configuration Release'
       projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
       testRunTitle: 'SwiftUI.Tests.FSharp'
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish packages'
+    inputs:
+      PathtoPublish: '$(System.DefaultWorkingDirectory)/artifacts'
+      ArtifactName: packages
   - task: MSBuild@1
     displayName: 'Build MacOS C# project XamMacSwiftUITest/XamMacSwiftUITest.csproj'
     inputs:
