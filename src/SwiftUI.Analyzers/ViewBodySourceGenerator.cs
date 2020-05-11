@@ -35,7 +35,7 @@ namespace SwiftUI.Analyzers
 				if (result != null) {
 					result = result.WithUsings (root.Usings).NormalizeWhitespace ();
 					var fileName = Path.ChangeExtension (Path.GetFileName (syntaxTree.FilePath), ".g.cs");
-					var sourceText = result.GetText ();
+					var sourceText = result.GetText (Encoding.UTF8);
 					//Console.WriteLine (sourceText.ToString ());
 					context.AddSource (fileName, sourceText);
 				}

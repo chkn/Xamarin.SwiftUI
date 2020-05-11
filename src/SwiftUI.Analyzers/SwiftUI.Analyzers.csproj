@@ -1,13 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../msbuild/Xamarin.SwiftUI.props" />
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>preview</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    
-    <!-- FIXME: Currently need both: "Nullable" for Windows, "NullableContextOptions" for Mac -->
-    <Nullable>enable</Nullable>
-    <NullableContextOptions>enable</NullableContextOptions>
+    <NoWarn>RS2008</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">

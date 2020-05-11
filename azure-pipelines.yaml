@@ -1,5 +1,5 @@
 # The version of the produced packages is defined here.
-name: '0.1.$(BuildID)'
+name: '0.1.$(BuildID)-pre'
 trigger:
   branches:
     include:

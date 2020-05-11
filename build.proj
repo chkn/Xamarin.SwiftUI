@@ -1,4 +1,5 @@
 <Project DefaultTargets="Pack">
+	<Import Project="msbuild/Xamarin.SwiftUI.props" />
 	<PropertyGroup>
 		<Version Condition=" '$(Version)' == '' ">99.0-pre</Version>
 		<TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">netstandard2.1;xamarin.mac20;xamarin.ios10</TargetFrameworks>
@@ -89,8 +90,11 @@
 
 	<Target Name="Pack" DependsOnTargets="Build">
 		<MakeDir Directories="$(ArtifactOutputPath)" />
+		<MSBuild
+			Projects="$(SrcPath)SwiftUI.Analyzers\SwiftUI.Analyzers.csproj"
+			Properties="Configuration=$(Configuration)" Targets="Restore;Build"/>
 		<Exec
-			Command="nuget pack Xamarin.SwiftUI.nuspec -OutputDirectory '$(ArtifactOutputPath)' -Properties 'configuration=$(Configuration);version=$(Version)'" />
+			Command="nuget pack Xamarin.SwiftUI.nuspec -OutputDirectory '$(ArtifactOutputPath)' -Properties 'configuration=$(Configuration);version=$(Version);roslynnugetversion=$(RoslynNugetVersion)'" />
 	</Target>
 
 	<Target Name="Clean">

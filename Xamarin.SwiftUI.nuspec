@@ -16,15 +16,12 @@
     </description>
     <tags>xamarin android ios tvos watchos ipados swiftui swift toolkit</tags>
     <dependencies>
-      <group targetFramework="netstandard2.1">
-      </group>
-      <group targetFramework="xamarin.ios10">
-      </group>
-      <group targetFramework="Xamarin.Mac20">
-      </group>
+      <dependency id="Microsoft.Net.Compilers.Toolset" version="$roslynnugetversion$" />
     </dependencies>
    </metadata>
    <files>
+    <file src="msbuild/*" exclude="**/.DS_Store" target="build" />
     <file src="managed/$configuration$/**/*" exclude="**/*.json;**/.DS_Store" target="lib" />
+    <file src="src/SwiftUI.Analyzers/bin/$configuration$/netstandard2.0/*" exclude="**/*.json;**/.DS_Store" target="analyzers/dotnet/cs" />
    </files>
 </package>
