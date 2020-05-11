@@ -21,15 +21,21 @@ namespace SwiftUI
 		internal IntPtr Data { get; private set; }
 
 		#region Static Colour Spaces
+		static IntPtr colorSpaceDisplayP3 = IntPtr.Zero;
 		internal static IntPtr ColorSpaceDisplayP3 {
 			get {
-				var fullMeta = RGBColorSpaceMetadata (0);
-				var meta = &fullMeta->Metadata.TypeDescriptor;
-				return GetColorSpaceDisplayP3 (meta);
+				if (colorSpaceDisplayP3 == IntPtr.Zero) {
+					var fullMeta = RGBColorSpaceMetadata (0);
+					var meta = &fullMeta->Metadata.TypeDescriptor;
+					colorSpaceDisplayP3 = GetColorSpaceDisplayP3 (meta);
+				}
+				return colorSpaceDisplayP3;
 			}
 		}
-
+		static IntPtr colorSpacesRGB = IntPtr.Zero;
 		internal static IntPtr ColorSpacesRGB => GetColorSpacesRGB ();
+
+		static IntPtr colorSpacesRGBLinear = IntPtr.Zero;
 		internal static IntPtr ColorSpacesRGBLinear => GetColorSpacesRGBLinear ();
 		#endregion
 
