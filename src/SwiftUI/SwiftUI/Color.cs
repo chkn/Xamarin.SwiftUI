@@ -20,6 +20,25 @@ namespace SwiftUI
 	{
 		internal IntPtr Data { get; private set; }
 
+		#region Static Colour Spaces
+		static IntPtr colorSpaceDisplayP3 = IntPtr.Zero;
+		internal static IntPtr ColorSpaceDisplayP3 {
+			get {
+				if (colorSpaceDisplayP3 == IntPtr.Zero) {
+					var fullMeta = RGBColorSpaceMetadata (0);
+					var meta = &fullMeta->Metadata.TypeDescriptor;
+					colorSpaceDisplayP3 = GetColorSpaceDisplayP3 (meta);
+				}
+				return colorSpaceDisplayP3;
+			}
+		}
+		static IntPtr colorSpacesRGB = IntPtr.Zero;
+		internal static IntPtr ColorSpacesRGB => GetColorSpacesRGB ();
+
+		static IntPtr colorSpacesRGBLinear = IntPtr.Zero;
+		internal static IntPtr ColorSpacesRGBLinear => GetColorSpacesRGBLinear ();
+		#endregion
+
 		#region Static Colours
 		static Color? black = null;
 		public static Color Black => black ??= new Color (GetColorBlack ());
@@ -75,6 +94,35 @@ namespace SwiftUI
 		{
 			Data = CreateFromHSBO (hue, saturation, brightness, opacity);
 		}
+
+		public Color (RGBColorSpace colorSpace, double red, double green, double blue, double opacity)
+		{
+			Data = CreateFromRGBColorSpaceRedGreenBlueOpacity (GetSwiftUIColorSpace (colorSpace), red, green, blue, opacity);
+		}
+
+		public Color (RGBColorSpace colorSpace, double white, double opacity)
+		{
+			Data = CreateFromRGBColorSpaceWhiteOpacity (GetSwiftUIColorSpace (colorSpace), white, opacity);
+		}
+
+		IntPtr GetSwiftUIColorSpace (RGBColorSpace colorSpace)
+		{
+			IntPtr swiftUIColorSpace = IntPtr.Zero;
+
+			switch (colorSpace) {
+			case RGBColorSpace.sRGB:
+				swiftUIColorSpace = ColorSpacesRGB;
+				break;
+			case RGBColorSpace.DisplayP3:
+				swiftUIColorSpace = ColorSpaceDisplayP3;
+				break;
+			case RGBColorSpace.sRGBLinear:
+				swiftUIColorSpace = ColorSpacesRGBLinear;
+				break;
+			}
+
+			return swiftUIColorSpace;
+		}
 		#endregion
 
 		#region DllImports
@@ -88,6 +136,46 @@ namespace SwiftUI
 			double saturation,
 			double brightness,
 			double opacity);
+
+		[DllImport (SwiftUILib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "$s7SwiftUI5ColorV_3red5green4blue7opacityA2C13RGBColorSpaceO_S4dtcfC")]
+		static extern IntPtr CreateFromRGBColorSpaceRedGreenBlueOpacity (
+			IntPtr swiftUIColourSpace,
+			double red,
+			double green,
+			double blue,
+			double opacity);
+
+		[DllImport (SwiftUILib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "$s7SwiftUI5ColorV_5white7opacityA2C13RGBColorSpaceO_S2dtcfC")]
+		static extern IntPtr CreateFromRGBColorSpaceWhiteOpacity (
+			IntPtr swiftUIColourSpace,
+			double white,
+			double opacity);
+		#endregion
+
+		#region RGBColorSpace
+		[DllImport (SwiftUILib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "$s7SwiftUI5ColorV13RGBColorSpaceO9displayP3yA2EmFWC")]
+		static extern IntPtr GetColorSpaceDisplayP3 (NominalTypeDescriptor** colorSpaceTypeMetadata);
+
+		[DllImport (SwiftUILib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "$s7SwiftUI5ColorV13RGBColorSpaceO4sRGByA2EmFWC")]
+		static extern IntPtr GetColorSpacesRGB ();
+
+		[DllImport (SwiftUILib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "$s7SwiftUI5ColorV13RGBColorSpaceO10sRGBLinearyA2EmFWC")]
+		static extern IntPtr GetColorSpacesRGBLinear ();
+
+		[DllImport (SwiftUILib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "$s7SwiftUI5ColorV13RGBColorSpaceOMa")]
+		static extern FullTypeMetadata* RGBColorSpaceMetadata (long metadataReq);
 		#endregion
 
 		#region Static Colours
