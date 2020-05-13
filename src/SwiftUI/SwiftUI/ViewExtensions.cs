@@ -49,11 +49,10 @@ namespace SwiftUI
 			}
 		}
 
-		public static ModifiedView<TView, TViewModifier> Modifier<TView, TViewModifier> (this TView view, TViewModifier viewmodifier)
+		public static ModifiedView<TView, ViewModifier<View>> Modifier<TView, TViewModifier> (this TView view, TViewModifier viewmodifier)
 			where TView : View
-			where TViewModifier : ViewModifier<View>
 		{
-			var opaqueBackgroundMetadata = SwiftType.Of (typeof (ModifiedView<TView, TViewModifier>))!;
+			var opaqueBackgroundMetadata = SwiftType.Of (typeof (ModifiedView<TView, ViewModifier<View>>))!;
 			var result = TaggedPointer.AllocHGlobal (opaqueBackgroundMetadata.NativeDataSize);
 			try {
 				using (var viewHandle = view.GetSwiftHandle ())
@@ -64,7 +63,7 @@ namespace SwiftUI
 					// Note : When passing 2 generic parameters (in this case TView and TViewModifier) the order is IMPORTANT. The order is Generic1Pointer, Generic2Pointer, Generic1Metadata, Generic2Metadata, Generic1Prototcol, Generic2Prototcol
 					ViewModifier (result.Pointer, viewHandle.Pointer, viewModifierHandle.Pointer, viewType.Metadata, viewModifierType.Metadata, viewType.GetProtocolConformance (SwiftUILib.ViewProtocol), viewModifierType.GetProtocolConformance (SwiftUILib.ViewProtocol));
 
-					return new ModifiedView<TView, TViewModifier> (result);
+					return new ModifiedView<TView, ViewModifier<View>> (result);
 				}
 			} catch {
 				result.Dispose ();
