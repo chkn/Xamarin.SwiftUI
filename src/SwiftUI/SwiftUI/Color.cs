@@ -25,9 +25,9 @@ namespace SwiftUI
 		internal static IntPtr ColorSpaceDisplayP3 {
 			get {
 				if (colorSpaceDisplayP3 == IntPtr.Zero) {
-					var fullMeta = RGBColorSpaceMetadata (0);
-					var meta = &fullMeta->Metadata.TypeDescriptor;
-					colorSpaceDisplayP3 = GetColorSpaceDisplayP3 (meta);
+					var typeMetadata = RGBColorSpaceMetadata (0);
+					var valueWitnessTable = (ValueWitnessTable*)(typeMetadata - 8);
+					colorSpaceDisplayP3 = GetColorSpaceDisplayP3 (typeMetadata, valueWitnessTable);
 				}
 				return colorSpaceDisplayP3;
 			}
@@ -105,23 +105,15 @@ namespace SwiftUI
 			Data = CreateFromRGBColorSpaceWhiteOpacity (GetSwiftUIColorSpace (colorSpace), white, opacity);
 		}
 
-		IntPtr GetSwiftUIColorSpace (RGBColorSpace colorSpace)
+		static IntPtr GetSwiftUIColorSpace (RGBColorSpace colorSpace)
 		{
-			IntPtr swiftUIColorSpace = IntPtr.Zero;
-
-			switch (colorSpace) {
-			case RGBColorSpace.sRGB:
-				swiftUIColorSpace = ColorSpacesRGB;
-				break;
-			case RGBColorSpace.DisplayP3:
-				swiftUIColorSpace = ColorSpaceDisplayP3;
-				break;
-			case RGBColorSpace.sRGBLinear:
-				swiftUIColorSpace = ColorSpacesRGBLinear;
-				break;
-			}
-
-			return swiftUIColorSpace;
+			return colorSpace switch
+			{
+				RGBColorSpace.DisplayP3 => ColorSpaceDisplayP3,
+				RGBColorSpace.sRGB => ColorSpacesRGB,
+				RGBColorSpace.sRGBLinear => ColorSpacesRGBLinear,
+				_ => IntPtr.Zero
+			};
 		}
 		#endregion
 
@@ -160,7 +152,7 @@ namespace SwiftUI
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV13RGBColorSpaceO9displayP3yA2EmFWC")]
-		static extern IntPtr GetColorSpaceDisplayP3 (NominalTypeDescriptor** colorSpaceTypeMetadata);
+		static extern IntPtr GetColorSpaceDisplayP3 (TypeMetadata* colorSpaceTypeMetadata, ValueWitnessTable* vwt);
 
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
@@ -175,7 +167,7 @@ namespace SwiftUI
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorV13RGBColorSpaceOMa")]
-		static extern FullTypeMetadata* RGBColorSpaceMetadata (long metadataReq);
+		static extern TypeMetadata* RGBColorSpaceMetadata (long metadataReq);
 		#endregion
 
 		#region Static Colours
