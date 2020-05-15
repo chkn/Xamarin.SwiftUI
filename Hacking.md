@@ -24,3 +24,59 @@ When P/Invoking a Swift function, you must keep in mind that Swift may pass some
 
 For cases where the Swift calling convention differs from the C calling convention, we must write a glue funtion in Swift to call that API. See `src/SwiftUIGlue/SwiftUIGlue/Glue.swift` for examples and explanations.
 
+### Using Hopper Dissasembler (https://www.hopperapp.com/) to work out parameters
+
+We've found that Hopper has proven invaluable in working out the order and expected parameters (hidden or otherwise) when PInvoking to Swift.
+What's worked for us...
+
+- Withing Xcode create a Swift project
+- Create the simplest version of the API call you are trying to PInvoke via glue code
+eg. Swift Code
+public func CallSetViewBackground()
+{
+    SetViewBackground(view: Text("Stuff"), value: Color.red)
+}
+
+public func SetViewBackground<TView: View, TBackground: View>(view : TView, value : TBackground)
+{
+}
+
+- build the project
+- Use Hopper to navigate to the executable or dylib and open it.
+- Run the Parse Swift Metadata script Alex wrote (need to add instructions on how to integrate this into Hopper)
+- Then do a search for `CallSetViewBackground()`
+It should look similar to this...
+
+- Then switch to the pseudo code view and uncheck "Remove potential dead code" and "Remove NOPs" at the top
+- Find the actual call to SetViewBackground()
+It should look similar to this...
+
+
+- Notice the parameter order of `(&var_70, &var_78, rdx, rcx)`
+    where var_70 is the result of the `SwiftUI.Text.init()` calls
+    where var_78 is the result of the static call to the `SwiftUI.Color.red.getter`
+    where rdx represents the `*type metadata for SwiftUI.Text`
+    where rcs represents the `*type metadata for SwiftUI.Color`
+Also worth noting that...
+    r8 holds the `*protocol witness table for SwiftUI.Text`
+    r9 holds the `*protocol witness table for SwiftUI.Color`
+These are hidden parameters which we'll need later.
+
+- With this information we can then create our glue function as...
+@_silgen_name("swiftui_View_background")
+public func SetViewBackground<TView: View, TBackground: View>(dest : UnsafeMutableRawPointer, view : TView, value : TBackground)
+{
+    let result = view.background(value)
+    dest.initializeMemory(as: type(of: result), repeating: result, count: 1)
+}
+
+- No in terms of .NET, as per our PInvoke notes above, when we call our glue function this becomes....
+ViewBackground (result.Pointer, viewHandle.Pointer, backgroundHandle.Pointer, viewType.Metadata, backgroundType.Metadata, viewType.GetProtocolConformance (SwiftUILib.ViewProtocol), backgroundType.GetProtocolConformance (SwiftUILib.ViewProtocol));
+    - where result.Pointer is the pre-memory allocated pointer we'll use once the call above returns
+    - where viewHandle.Pointer is the pointer to the View who's background we will change. This is equivalent to the Swift `SwiftUI.Text.init()` call above
+    - where backgroundHandle.Pointer is the pointer to the background we want to apply to the aforementioned View. This is equivalent to the Swift static call to the `SwiftUI.Color.red.getter` call above. Worth noting a Color, in SwiftUI is a View, so your background can be ANY View.
+    - where viewType.Metadata is the equivalent  to the `*type metadata for SwiftUI.Text` stored in rdx above.
+    - where backgroundType.Metadata is the equivalent  to the `*type metadata for SwiftUI.Color` stored in rcs above.
+    - where viewType.GetProtocolConformance (SwiftUILib.ViewProtocol) is the equivalent  to the `*protocol witness table for SwiftUI.Text` stored in r8 above.
+    - where backgroundType.Metadata is the equivalent  to the `*protocol witness table for SwiftUI.Color` stored in r9 above.
+So we have 4 "hidden" parameters that need to be passed for SwiftUI to correctly marshal all the required information through our glue code.
