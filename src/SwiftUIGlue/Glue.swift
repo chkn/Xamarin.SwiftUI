@@ -152,3 +152,24 @@ public func SetViewBackground<TView: View, TBackground: View>(dest : UnsafeMutab
     let result = view.background(value)
     dest.initializeMemory(as: type(of: result), repeating: result, count: 1)
 }
+
+@_silgen_name("swiftui_RGBColorSpace_displayP3")
+public func GetRGBColorSpaceDisplayP3(dest : UnsafeMutableRawPointer)
+{
+    let p3 = Color.RGBColorSpace.displayP3
+    dest.initializeMemory(as: type(of: p3), repeating: p3, count: 1)
+}
+
+@_silgen_name("swiftui_RGBColorSpace_sRGB")
+public func GetRGBColorSpacesRGB(dest : UnsafeMutableRawPointer)
+{
+    let sRGB = Color.RGBColorSpace.sRGB
+    dest.initializeMemory(as: type(of: sRGB), repeating: sRGB, count: 1)
+}
+
+@_silgen_name("swiftui_RGBColorSpace_sRGBLinear")
+public func GetRGBColorSpacesRGBLinear(dest : UnsafeMutableRawPointer)
+{
+    let sRGBLinear = Color.RGBColorSpace.sRGBLinear
+    dest.initializeMemory(as: type(of: sRGBLinear), repeating: sRGBLinear, count: 1)
+}
