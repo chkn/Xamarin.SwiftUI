@@ -108,7 +108,7 @@ namespace SwiftUI
 				RGBColorSpace.DisplayP3 => ColorSpaceDisplayP3 (result),
 				RGBColorSpace.sRGB => ColorSpacesRGB (result),
 				RGBColorSpace.sRGBLinear => ColorSpacesRGBLinear (result),
-				_ => throw new UnknownSwiftTypeException (typeof(RGBColorSpace)),
+				_ => throw new NotSupportedException (),
 			};
 		}
 
