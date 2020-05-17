@@ -24,19 +24,53 @@ When P/Invoking a Swift function, you must keep in mind that Swift may pass some
 
 For cases where the Swift calling convention differs from the C calling convention, we must write a glue funtion in Swift to call that API. See `src/SwiftUIGlue/SwiftUIGlue/Glue.swift` for examples and explanations.
 
-### Using Hopper Dissasembler (https://www.hopperapp.com/) to work out parameters
-
-We've found that Hopper has proven invaluable in working out the order and expected parameters (hidden or otherwise) when PInvoking to Swift.
+### Using Hopper Dissasembler (https://www.hopperapp.com/) to work out the signature for a native PInvoke call
+We've found that Hopper has proven useful in finding out what calls are happening under the hood for a particular native SwiftUI call.
 What's worked for us...
 
-- Withing Xcode create a Swift project
-- Create the simplest version of the API call you are trying to PInvoke via glue code
+- Within Xcode create a Swift project
+- Create the simplest version of the API call you are trying to PInvoke
+eg Swift Code for creating a Color via HSBO
+public func CreateColourViaHSBO () -> Color
+{
+    let ColorHSBO = Color.init( hue: 0, saturation: 0, brightness: 0, opacity: 0)
+    return ColorHSBO
+}
+
+- build the project
+- Use Hopper to navigate to the executable or dylib and open it.
+- Then do a search for `CreateColourViaHSBO()`
+- In ASM Mode you should see something like...
+call       imp___stubs__$s7SwiftUI5ColorV3hue10saturation10brightness7opacityACSd_S3dtcfC ; SwiftUI.Color.init(hue: Swift.Double, saturation: Swift.Double, brightness: Swift.Double, opacity: Swift.Double) -> SwiftUI.Color
+- SwiftUI signature tend to start with $ so form the above we see that the full PInvoke signature is `$s7SwiftUI5ColorV3hue10saturation10brightness7opacityACSd_S3dtcfC`
+- Also from the above you clearly see what types are expected for hue, saturation, brightness and opacity.
+- You can also confirm this on the command line by executing the following command
+echo '$s7SwiftUI5ColorV3hue10saturation10brightness7opacityACSd_S3dtcfC' | swift demangle
+- which should give you the following output
+SwiftUI.Color.init(hue: Swift.Double, saturation: Swift.Double, brightness: Swift.Double, opacity: Swift.Double) -> SwiftUI.Color
+- Then in .NET you can set this call up as
+		[DllImport (SwiftUILib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "$s7SwiftUI5ColorV3hue10saturation10brightness7opacityACSd_S3dtcfC")]
+		static extern IntPtr CreateFromHSBO (
+			double hue,
+			double saturation,
+			double brightness,
+			double opacity);
+- Where the IntPtr returned holds the data for the newly created Color object, in this instance.
+
+
+### Using Hopper Dissasembler to work out Glue parameters
+We've also found that Hopper has proven invaluable in working out the order and expected parameters (hidden or otherwise) when PInvoking to Swift.
+
+- As before, withing Xcode, create the simplest version of the API call you are trying to PInvoke via glue code
 eg. Swift Code
 public func CallSetViewBackground()
 {
     SetViewBackground(view: Text("Stuff"), value: Color.red)
 }
 
+// A View can have ANY view as a background
 public func SetViewBackground<TView: View, TBackground: View>(view : TView, value : TBackground)
 {
 }
@@ -70,10 +104,10 @@ public func SetViewBackground<TView: View, TBackground: View>(dest : UnsafeMutab
     dest.initializeMemory(as: type(of: result), repeating: result, count: 1)
 }
 
-- No in terms of .NET, as per our PInvoke notes above, when we call our glue function this becomes....
+- So in terms of .NET, as per our PInvoke notes above, when we call our glue function this becomes....
 ViewBackground (result.Pointer, viewHandle.Pointer, backgroundHandle.Pointer, viewType.Metadata, backgroundType.Metadata, viewType.GetProtocolConformance (SwiftUILib.ViewProtocol), backgroundType.GetProtocolConformance (SwiftUILib.ViewProtocol));
-    - where result.Pointer is the pre-memory allocated pointer we'll use once the call above returns
-    - where viewHandle.Pointer is the pointer to the View who's background we will change. This is equivalent to the Swift `SwiftUI.Text.init()` call above
+    - where result.Pointer is the pre-memory allocated pointer we'll use once the call above returns, which points to our newly created view.
+    - where viewHandle.Pointer is the pointer to the View who's background we will change. This is equivalent to the Swift `SwiftUI.Text.init()` call above.
     - where backgroundHandle.Pointer is the pointer to the background we want to apply to the aforementioned View. This is equivalent to the Swift static call to the `SwiftUI.Color.red.getter` call above. Worth noting a Color, in SwiftUI is a View, so your background can be ANY View.
     - where viewType.Metadata is the equivalent  to the `*type metadata for SwiftUI.Text` stored in rdx above.
     - where backgroundType.Metadata is the equivalent  to the `*type metadata for SwiftUI.Color` stored in rcs above.
