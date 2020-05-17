@@ -169,12 +169,12 @@ namespace SwiftUI
 			EntryPoint = "swiftui_RGBColorSpace_displayP3")]
 		static extern void GetRGBColorSpaceDisplayP3 (void* resultPointer);
 
-		[DllImport (SwiftUILib.Path,
+		[DllImport (SwiftGlueLib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "swiftui_RGBColorSpace_sRGB")]
 		static extern void GetRGBColorSpacesRGB (void* resultPointer);
 
-		[DllImport (SwiftUILib.Path,
+		[DllImport (SwiftGlueLib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "swiftui_RGBColorSpace_sRGBLinear")]
 		static extern void GetRGBColorSpacesRGBLinear (void* resultPointer);
