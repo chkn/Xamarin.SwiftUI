@@ -33,18 +33,18 @@ What's worked for us...
 
 eg Swift Code for creating a Color via HSBO
 
-`public func CreateColourViaHSBO () -> Color
-{
-    let ColorHSBO = Color.init( hue: 0, saturation: 0, brightness: 0, opacity: 0)
-    return ColorHSBO
-}`
+        public func CreateColourViaHSBO () -> Color
+        {
+            let ColorHSBO = Color.init( hue: 0, saturation: 0, brightness: 0, opacity: 0)
+            return ColorHSBO
+        }
 
 - build the project
 - Use Hopper to navigate to the executable or dylib and open it.
 - Then do a search for `CreateColourViaHSBO()`
 - In ASM Mode you should see something like...
 
-`call       imp___stubs__$s7SwiftUI5ColorV3hue10saturation10brightness7opacityACSd_S3dtcfC ; SwiftUI.Color.init(hue: Swift.Double, saturation: Swift.Double, brightness: Swift.Double, opacity: Swift.Double) -> SwiftUI.Color`
+        call       imp___stubs__$s7SwiftUI5ColorV3hue10saturation10brightness7opacityACSd_S3dtcfC ; SwiftUI.Color.init(hue: Swift.Double, saturation: Swift.Double, brightness: Swift.Double, opacity: Swift.Double) -> SwiftUI.Color
 
 - SwiftUI signature tend to start with $ so form the above we see that the full PInvoke signature is `$s7SwiftUI5ColorV3hue10saturation10brightness7opacityACSd_S3dtcfC`
 - Also from the above you clearly see what types are expected for hue, saturation, brightness and opacity.
@@ -54,7 +54,7 @@ eg Swift Code for creating a Color via HSBO
 
 - which should give you the following output
 
-`SwiftUI.Color.init(hue: Swift.Double, saturation: Swift.Double, brightness: Swift.Double, opacity: Swift.Double) -> SwiftUI.Color`
+        SwiftUI.Color.init(hue: Swift.Double, saturation: Swift.Double, brightness: Swift.Double, opacity: Swift.Double) -> SwiftUI.Color
 
 - Then in .NET you can set this call up as
 
@@ -77,15 +77,15 @@ We've also found that Hopper has proven invaluable in working out the order and 
 
 eg. Swift Code
 
-`public func CallSetViewBackground()
-{
-    SetViewBackground(view: Text("Stuff"), value: Color.red)
-}
+        public func CallSetViewBackground()
+        {
+            SetViewBackground(view: Text("Stuff"), value: Color.red)
+        }
 
-// A View can have ANY view as a background
-public func SetViewBackground<TView: View, TBackground: View>(view : TView, value : TBackground)
-{
-}`
+        // A View can have ANY view as a background
+        public func SetViewBackground<TView: View, TBackground: View>(view : TView, value : TBackground)
+        {
+        }
 
 - build the project
 - Use Hopper to navigate to the executable or dylib and open it.
@@ -93,27 +93,27 @@ public func SetViewBackground<TView: View, TBackground: View>(view : TView, valu
 - Then do a search for `CallSetViewBackground()`
 The beginning of the code in ASM mode should look similar to this...
 
-`                     _$s7testLib21CallSetViewBackgroundyyF:        // testLib.CallSetViewBackground() -> ()
-00000000000039d0         push       rbp
-00000000000039d1         mov        rbp, rsp
-00000000000039d4         sub        rsp, 0xf0
-00000000000039db         lea        rdi, qword [aStuff]                         ; "Stuff"
-00000000000039e2         mov        esi, 0x5
-00000000000039e7         mov        edx, 0x1
-00000000000039ec         call       imp___stubs__$sSS21_builtinStringLiteral17utf8CodeUnitCount7isASCIISSBp_BwBi1_tcfC ; Swift.String.init(_builtinStringLiteral: Builtin.RawPointer, utf8CodeUnitCount: Builtin.Word, isASCII: Builtin.Int1) -> Swift.String
-00000000000039f1         mov        rdi, rax
-00000000000039f4         mov        rsi, rdx
-00000000000039f7         call       imp___stubs__$s7SwiftUI18LocalizedStringKeyV13stringLiteralACSS_tcfC ; SwiftUI.LocalizedStringKey.init(stringLiteral: Swift.String) -> SwiftUI.LocalizedStringKey
-00000000000039fc         mov        qword [rbp+var_80], rax
-0000000000003a00         mov        qword [rbp+var_88], rdx
-0000000000003a07         mov        byte [rbp+var_89], cl
-0000000000003a0d         mov        qword [rbp+var_98], r8
-0000000000003a14         call       _$s7SwiftUI4TextV_9tableName6bundle7commentAcA18LocalizedStringKeyV_SSSgSo8NSBundleCSgs06StaticI0VSgtcfcfA0_ ; default argument 1 of SwiftUI.Text.init(_: SwiftUI.LocalizedStringKey, tableName: Swift.String?, bundle: __C.NSBundle?, comment: Swift.StaticString?) -> SwiftUI.Text
-0000000000003a19         mov        qword [rbp+var_A0], rax
-0000000000003a20         mov        qword [rbp+var_A8], rdx
-0000000000003a27         call       _$s7SwiftUI4TextV_9tableName6bundle7commentAcA18LocalizedStringKeyV_SSSgSo8NSBundleCSgs06StaticI0VSgtcfcfA1_ ; default argument 2 of SwiftUI.Text.init(_: SwiftUI.LocalizedStringKey, tableName: Swift.String?, bundle: __C.NSBundle?, comment: Swift.StaticString?) -> SwiftUI.Text
-0000000000003a2c         mov        qword [rbp+var_B0], rax
-0000000000003a33         call       _$s7SwiftUI4TextV_9tableName6bundle7commentAcA18LocalizedStringKeyV_SSSgSo8NSBundleCSgs06StaticI0VSgtcfcfA2_ ; default argument 3 of SwiftUI.Text.init(_: SwiftUI.LocalizedStringKey, tableName: Swift.String?, bundle: __C.NSBundle?, comment: Swift.StaticString?) -> SwiftUI.Text`
+                             _$s7testLib21CallSetViewBackgroundyyF:        // testLib.CallSetViewBackground() -> ()
+        00000000000039d0         push       rbp
+        00000000000039d1         mov        rbp, rsp
+        00000000000039d4         sub        rsp, 0xf0
+        00000000000039db         lea        rdi, qword [aStuff]                         ; "Stuff"
+        00000000000039e2         mov        esi, 0x5
+        00000000000039e7         mov        edx, 0x1
+        00000000000039ec         call       imp___stubs__$sSS21_builtinStringLiteral17utf8CodeUnitCount7isASCIISSBp_BwBi1_tcfC ; Swift.String.init(_builtinStringLiteral: Builtin.RawPointer, utf8CodeUnitCount: Builtin.Word, isASCII: Builtin.Int1) -> Swift.String
+        00000000000039f1         mov        rdi, rax
+        00000000000039f4         mov        rsi, rdx
+        00000000000039f7         call       imp___stubs__$s7SwiftUI18LocalizedStringKeyV13stringLiteralACSS_tcfC ; SwiftUI.LocalizedStringKey.init(stringLiteral: Swift.String) -> SwiftUI.LocalizedStringKey
+        00000000000039fc         mov        qword [rbp+var_80], rax
+        0000000000003a00         mov        qword [rbp+var_88], rdx
+        0000000000003a07         mov        byte [rbp+var_89], cl
+        0000000000003a0d         mov        qword [rbp+var_98], r8
+        0000000000003a14         call       _$s7SwiftUI4TextV_9tableName6bundle7commentAcA18LocalizedStringKeyV_SSSgSo8NSBundleCSgs06StaticI0VSgtcfcfA0_ ; default argument 1 of SwiftUI.Text.init(_: SwiftUI.LocalizedStringKey, tableName: Swift.String?, bundle: __C.NSBundle?, comment: Swift.StaticString?) -> SwiftUI.Text
+        0000000000003a19         mov        qword [rbp+var_A0], rax
+        0000000000003a20         mov        qword [rbp+var_A8], rdx
+        0000000000003a27         call       _$s7SwiftUI4TextV_9tableName6bundle7commentAcA18LocalizedStringKeyV_SSSgSo8NSBundleCSgs06StaticI0VSgtcfcfA1_ ; default argument 2 of SwiftUI.Text.init(_: SwiftUI.LocalizedStringKey, tableName: Swift.String?, bundle: __C.NSBundle?, comment: Swift.StaticString?) -> SwiftUI.Text
+        0000000000003a2c         mov        qword [rbp+var_B0], rax
+        0000000000003a33         call       _$s7SwiftUI4TextV_9tableName6bundle7commentAcA18LocalizedStringKeyV_SSSgSo8NSBundleCSgs06StaticI0VSgtcfcfA2_ ; default argument 3 of SwiftUI.Text.init(_: SwiftUI.LocalizedStringKey, tableName: Swift.String?, bundle: __C.NSBundle?, comment: Swift.StaticString?) -> SwiftUI.Text
 
 - Now switch to the pseudo code view and uncheck "Remove potential dead code" and "Remove NOPs" at the top. This sometimes hides crucial information.
 - Now in the psuedo code scroll down until you see  `testLib.SetViewBackground<A, B where A: SwiftUI.View, B: SwiftUI.View>`.
@@ -130,12 +130,12 @@ These are hidden parameters which we'll need later.
 
 - With this information we can then create our glue function as...
 
-`@_silgen_name("swiftui_View_background")
-public func SetViewBackground<TView: View, TBackground: View>(dest : UnsafeMutableRawPointer, view : TView, value : TBackground)
-{
-    let result = view.background(value)
-    dest.initializeMemory(as: type(of: result), repeating: result, count: 1)
-}`
+        @_silgen_name("swiftui_View_background")
+        public func SetViewBackground<TView: View, TBackground: View>(dest : UnsafeMutableRawPointer, view : TView, value : TBackground)
+        {
+            let result = view.background(value)
+            dest.initializeMemory(as: type(of: result), repeating: result, count: 1)
+        }
 
 - So in terms of .NET, as per our PInvoke notes above, when we call our glue function this becomes....
 ViewBackground (result.Pointer, viewHandle.Pointer, backgroundHandle.Pointer, viewType.Metadata, backgroundType.Metadata, viewType.GetProtocolConformance (SwiftUILib.ViewProtocol), backgroundType.GetProtocolConformance (SwiftUILib.ViewProtocol));
