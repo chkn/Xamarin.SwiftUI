@@ -22,41 +22,31 @@ namespace SwiftUI
 		internal IntPtr Data { get; private set; }
 
 		#region Static Colours
-		static Color? black = null;
-		public static Color Black => black ??= new Color (GetColorBlack ());
+		public static Color Black => new Color (GetColorBlack ());
 
-		static Color? blue = null;
-		public static Color Blue => blue ??= new Color (GetColorBlue ());
+		public static Color Blue => new Color (GetColorBlue ());
 
 		public static Color Clear => new Color (GetColorClear ());
 
-		static Color? gray = null;
-		public static Color Gray => gray ??= new Color (GetColorGray ());
+		public static Color Gray =>  new Color (GetColorGray ());
 
-		static Color? green = null;
-		public static Color Green => green ??= new Color (GetColorGreen ());
+		public static Color Green => new Color (GetColorGreen ());
 
-		static Color? orange = null;
-		public static Color Orange => orange ??= new Color (GetColorOrange ());
+		public static Color Orange => new Color (GetColorOrange ());
 
-		static Color? pink = null;
-		public static Color Pink => pink ??= new Color (GetColorPink ());
+		public static Color Pink => new Color (GetColorPink ());
 
 		public static Color Primary => new Color (GetColorPrimary ());
 
-		static Color? purple = null;
-		public static Color Purple => purple ??= new Color (GetColorPurple ());
+		public static Color Purple => new Color (GetColorPurple ());
 
-		static Color? red = null;
-		public static Color Red => red ??= new Color (GetColorRed ());
+		public static Color Red => new Color (GetColorRed ());
 
 		public static Color Secondary => new Color (GetColorSecondary ());
 
-		static Color? white = null;
-		public static Color White => white ??= new Color (GetColorWhite ());
+		public static Color White = new Color (GetColorWhite ());
 
-		static Color? yellow = null;
-		public static Color Yellow => yellow ??= new Color (GetColorYellow ());
+		public static Color Yellow => new Color (GetColorYellow ());
 		#endregion
 
 		protected override void InitNativeData (void* handle)
@@ -82,7 +72,7 @@ namespace SwiftUI
 			var opaqueRBGColorspaceMetadata = SwiftType.Of (typeof (RGBColorSpace))!;
 			var result = TaggedPointer.AllocHGlobal (opaqueRBGColorspaceMetadata.NativeDataSize);
 			try {
-				Data = CreateFromRGBColorSpaceRedGreenBlueOpacity (GetSwiftUIColorSpace (colorSpace, result).Pointer, red, green, blue, opacity);
+				Data = CreateFromRGBColorSpaceRedGreenBlueOpacity (GetSwiftUIColorSpace (colorSpace, result), red, green, blue, opacity);
 			} catch {
 				result.Dispose ();
 				throw;
@@ -94,39 +84,39 @@ namespace SwiftUI
 			var opaqueRBGColorspaceMetadata = SwiftType.Of (typeof (RGBColorSpace))!;
 			var result = TaggedPointer.AllocHGlobal (opaqueRBGColorspaceMetadata.NativeDataSize);
 			try {
-				Data = CreateFromRGBColorSpaceWhiteOpacity (GetSwiftUIColorSpace (colorSpace, result).Pointer, white, opacity);
+				Data = CreateFromRGBColorSpaceWhiteOpacity (GetSwiftUIColorSpace (colorSpace, result), white, opacity);
 			} catch {
 				result.Dispose ();
 				throw;
 			}
 		}
 
-		static TaggedPointer GetSwiftUIColorSpace (RGBColorSpace colorSpace, TaggedPointer result)
+		static void* GetSwiftUIColorSpace (RGBColorSpace colorSpace, TaggedPointer result)
 		{
 			return colorSpace switch
 			{
-				RGBColorSpace.DisplayP3 => ColorSpaceDisplayP3 (result),
-				RGBColorSpace.sRGB => ColorSpacesRGB (result),
-				RGBColorSpace.sRGBLinear => ColorSpacesRGBLinear (result),
+				RGBColorSpace.DisplayP3 => ColorSpaceDisplayP3 (result.Pointer),
+				RGBColorSpace.sRGB => ColorSpacesRGB (result.Pointer),
+				RGBColorSpace.sRGBLinear => ColorSpacesRGBLinear (result.Pointer),
 				_ => throw new NotSupportedException (),
 			};
 		}
 
-		static TaggedPointer ColorSpaceDisplayP3 (TaggedPointer  result)
+		static void* ColorSpaceDisplayP3 (void*  result)
 		{
-			GetRGBColorSpaceDisplayP3 (result.Pointer);
+			GetRGBColorSpaceDisplayP3 (result);
 			return result;
 		}
 
-		static TaggedPointer ColorSpacesRGB (TaggedPointer result)
+		static void* ColorSpacesRGB (void* result)
 		{
-			GetRGBColorSpacesRGB (result.Pointer);
+			GetRGBColorSpacesRGB (result);
 			return result;
 		}
 
-		static TaggedPointer ColorSpacesRGBLinear (TaggedPointer result)
+		static void* ColorSpacesRGBLinear (void* result)
 		{
-			GetRGBColorSpacesRGBLinear (result.Pointer);
+			GetRGBColorSpacesRGBLinear (result);
 			return result;
 		}
 		#endregion
