@@ -70,11 +70,11 @@ namespace SwiftUI
 		public Color (RGBColorSpace colorSpace, double red, double green, double blue, double opacity)
 		{
 			var opaqueRBGColorspaceMetadata = SwiftType.Of (typeof (RGBColorSpace))!;
-			var result = TaggedPointer.AllocHGlobal (opaqueRBGColorspaceMetadata.NativeDataSize);
+			var result = Marshal.AllocHGlobal (opaqueRBGColorspaceMetadata.NativeDataSize);
 			try {
-				Data = CreateFromRGBColorSpaceRedGreenBlueOpacity (GetSwiftUIColorSpace (colorSpace, result), red, green, blue, opacity);
+				Data = CreateFromRGBColorSpaceRedGreenBlueOpacity (GetSwiftUIColorSpace (colorSpace, result.ToPointer()), red, green, blue, opacity);
 			} catch {
-				result.Dispose ();
+				Marshal.FreeHGlobal (result);
 				throw;
 			}
 		}
@@ -82,22 +82,22 @@ namespace SwiftUI
 		public Color (RGBColorSpace colorSpace, double white, double opacity)
 		{
 			var opaqueRBGColorspaceMetadata = SwiftType.Of (typeof (RGBColorSpace))!;
-			var result = TaggedPointer.AllocHGlobal (opaqueRBGColorspaceMetadata.NativeDataSize);
+			var result = Marshal.AllocHGlobal (opaqueRBGColorspaceMetadata.NativeDataSize);
 			try {
-				Data = CreateFromRGBColorSpaceWhiteOpacity (GetSwiftUIColorSpace (colorSpace, result), white, opacity);
+				Data = CreateFromRGBColorSpaceWhiteOpacity (GetSwiftUIColorSpace (colorSpace, result.ToPointer ()), white, opacity);
 			} catch {
-				result.Dispose ();
+				Marshal.FreeHGlobal (result);
 				throw;
 			}
 		}
 
-		static void* GetSwiftUIColorSpace (RGBColorSpace colorSpace, TaggedPointer result)
+		static void* GetSwiftUIColorSpace (RGBColorSpace colorSpace, void* result)
 		{
 			return colorSpace switch
 			{
-				RGBColorSpace.DisplayP3 => ColorSpaceDisplayP3 (result.Pointer),
-				RGBColorSpace.sRGB => ColorSpacesRGB (result.Pointer),
-				RGBColorSpace.sRGBLinear => ColorSpacesRGBLinear (result.Pointer),
+				RGBColorSpace.DisplayP3 => ColorSpaceDisplayP3 (result),
+				RGBColorSpace.sRGB => ColorSpacesRGB (result),
+				RGBColorSpace.sRGBLinear => ColorSpacesRGBLinear (result),
 				_ => throw new NotSupportedException (),
 			};
 		}
