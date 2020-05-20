@@ -68,6 +68,7 @@ eg Swift Code for creating a Color via HSBO
 			double opacity);
 
 - Where the IntPtr returned holds the data for the newly created Color object, in this instance.
+- For a list of all the SwiftUI manged APIs you can call, please refer to this [SwiftUI.Framework](https://github.com/xybp888/iOS-SDKs/blob/master/iPhoneOS13.0.sdk/System/Library/Frameworks/SwiftUI.framework/SwiftUI.tbd) document.
 
 
 ### Using Hopper Dissasembler to work out Glue parameters
@@ -126,11 +127,12 @@ The beginning of the code in ASM mode should look similar to this...
     * where rdx represents the `*type metadata for SwiftUI.Text`
     * where rcs represents the `*type metadata for SwiftUI.Color`
 Also worth noting that...
-    * 8 holds the `*protocol witness table for SwiftUI.Text`
+    * r8 holds the `*protocol witness table for SwiftUI.Text`
     * r9 holds the `*protocol witness table for SwiftUI.Color`
 These are hidden parameters which we'll need later.
+For more information about Swift Registers please refer to the [64-Bit Architecture Register Usage](https://github.com/apple/swift/blob/master/docs/ABI/RegisterUsage.md) document
 
-- With this information we can then create our glue function as...
+- With the above information we can then create our glue function as...
 
         @_silgen_name("swiftui_View_background")
         public func SetViewBackground<TView: View, TBackground: View>(dest : UnsafeMutableRawPointer, view : TView, value : TBackground)
