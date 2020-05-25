@@ -6,7 +6,7 @@ trigger:
       - master
 jobs:
 - job: DebugBuildAndTest
-  displayName: 'Debug build and test Xamarin.SwiftUI'
+  displayName: 'Debug build and test'
   pool:
     vmImage: macOS-latest
   steps:
@@ -17,32 +17,30 @@ jobs:
       configuration: Debug
       msbuildArguments: '/restore /t:Build'
   - task: DotNetCoreCLI@2
-    displayName: 'dotnet test SwiftUI.Tests'
-    inputs:
-      command: 'test'
-      arguments: '--configuration Debug'
-      projects: 'tests/SwiftUI.Tests/SwiftUI.Tests.csproj'
-      testRunTitle: 'SwiftUI.Tests'
-  - task: DotNetCoreCLI@2
     displayName: 'dotnet build SwiftUI.Tests.FSharp'
     inputs:
       command: 'build'
       arguments: '--configuration Debug'
       projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
   - task: DotNetCoreCLI@2
-    displayName: 'dotnet test SwiftUI.Tests.FSharp'
+    displayName: 'dotnet test Xamarin.SwiftUI.sln'
     inputs:
       command: 'test'
       arguments: '--configuration Debug'
-      projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
-      testRunTitle: 'SwiftUI.Tests.FSharp'
+      projects: 'Xamarin.SwiftUI.sln'
+      testRunTitle: 'Xamarin.SwiftUI.sln (Debug)'
 - job: ReleaseBuildTestAndPackage
-  displayName: 'Release build, test, and package Xamarin.SwiftUI'
+  displayName: 'Release build, test, and package'
   pool:
     vmImage: macOS-latest
   steps:
   - task: NuGetToolInstaller@1
     displayName: 'Install NuGet tools'
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet restore Xamarin.SwiftUI.sln'
+    inputs:
+      command: 'restore'
+      projects: 'Xamarin.SwiftUI.sln'
   - task: MSBuild@1
     displayName: 'msbuild build.proj'
     inputs:
@@ -50,25 +48,18 @@ jobs:
       configuration: Release
       msbuildArguments: '/restore /p:Version=$(Build.BuildNumber)'
   - task: DotNetCoreCLI@2
-    displayName: 'dotnet test SwiftUI.Tests'
-    inputs:
-      command: 'test'
-      arguments: '--configuration Release'
-      projects: 'tests/SwiftUI.Tests/SwiftUI.Tests.csproj'
-      testRunTitle: 'SwiftUI.Tests'
-  - task: DotNetCoreCLI@2
     displayName: 'dotnet build SwiftUI.Tests.FSharp'
     inputs:
       command: 'build'
       arguments: '--configuration Release'
       projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
   - task: DotNetCoreCLI@2
-    displayName: 'dotnet test SwiftUI.Tests.FSharp'
+    displayName: 'dotnet test Xamarin.SwiftUI.sln'
     inputs:
       command: 'test'
       arguments: '--configuration Release'
-      projects: 'tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj'
-      testRunTitle: 'SwiftUI.Tests.FSharp'
+      projects: 'Xamarin.SwiftUI.sln'
+      testRunTitle: 'Xamarin.SwiftUI.sln (Release)'
   - task: PublishBuildArtifacts@1
     displayName: 'Publish artifacts'
     inputs:

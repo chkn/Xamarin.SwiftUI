@@ -41,14 +41,14 @@ namespace SwiftUI.Analyzers.Tests
 		[InlineData (nameof (CustomViewWithViewBody))]
 		public void HasBody (string typeName)
 		{
-			Assert.NotNull (Subjects.TestViews.GetTypeByMetadataName (typeName).GetBody ());
+			Assert.NotNull (Subjects.TestViews.GetTypeByMetadataName (typeName).GetBodyProperty ());
 		}
 
 		[Theory]
 		[InlineData (nameof (CustomViewWithoutBody))]
 		public void DoesNotHaveBody (string typeName)
 		{
-			Assert.Null (Subjects.TestViews.GetTypeByMetadataName (typeName).GetBody ());
+			Assert.Null (Subjects.TestViews.GetTypeByMetadataName (typeName).GetBodyProperty ());
 		}
 	}
 }

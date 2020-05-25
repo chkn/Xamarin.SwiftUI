@@ -1,7 +1,8 @@
 <Project Sdk="MSBuild.Sdk.Extras/2.0.54">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;xamarin.mac20;xamarin.ios10</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFrameworks Condition="'$(MSBuildRuntimeType)' != 'Core'">$(TargetFrameworks);xamarin.mac20;xamarin.ios10</TargetFrameworks>
     <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

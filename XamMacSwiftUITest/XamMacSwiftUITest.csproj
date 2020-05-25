@@ -78,5 +78,8 @@
       <OutputItemType>Analyzer</OutputItemType>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
+  <Target Name="VSTest" />
+  <Import
+    Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets"
+    Condition="Exists('$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets')" />
 </Project>

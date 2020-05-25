@@ -78,5 +78,8 @@
       <Name>SwiftUI</Name>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.FSharp.targets" />
+  <Target Name="VSTest" />
+  <Import
+    Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.FSharp.targets"
+    Condition="Exists('$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.FSharp.targets')" />
 </Project>
