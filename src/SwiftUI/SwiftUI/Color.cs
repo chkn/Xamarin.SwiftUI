@@ -72,7 +72,8 @@ namespace SwiftUI
 			var opaqueRBGColorspaceMetadata = SwiftType.Of (typeof (RGBColorSpace))!;
 			var result = Marshal.AllocHGlobal (opaqueRBGColorspaceMetadata.NativeDataSize);
 			try {
-				Data = CreateFromRGBColorSpaceRedGreenBlueOpacity (GetSwiftUIColorSpace (colorSpace, result.ToPointer()), red, green, blue, opacity);
+				GetSwiftUIColorSpace (colorSpace, result.ToPointer ());
+				Data = CreateFromRGBColorSpaceRedGreenBlueOpacity (result.ToPointer (), red, green, blue, opacity);
 			} catch {
 				Marshal.FreeHGlobal (result);
 				throw;
@@ -84,40 +85,29 @@ namespace SwiftUI
 			var opaqueRBGColorspaceMetadata = SwiftType.Of (typeof (RGBColorSpace))!;
 			var result = Marshal.AllocHGlobal (opaqueRBGColorspaceMetadata.NativeDataSize);
 			try {
-				Data = CreateFromRGBColorSpaceWhiteOpacity (GetSwiftUIColorSpace (colorSpace, result.ToPointer ()), white, opacity);
+				GetSwiftUIColorSpace (colorSpace, result.ToPointer ());
+				Data = CreateFromRGBColorSpaceWhiteOpacity (result.ToPointer (), white, opacity); ;
 			} catch {
 				Marshal.FreeHGlobal (result);
 				throw;
 			}
 		}
 
-		static void* GetSwiftUIColorSpace (RGBColorSpace colorSpace, void* result)
+		static void GetSwiftUIColorSpace (RGBColorSpace colorSpace, void* result)
 		{
-			return colorSpace switch
-			{
-				RGBColorSpace.DisplayP3 => ColorSpaceDisplayP3 (result),
-				RGBColorSpace.sRGB => ColorSpacesRGB (result),
-				RGBColorSpace.sRGBLinear => ColorSpacesRGBLinear (result),
-				_ => throw new NotSupportedException (),
-			};
-		}
-
-		static void* ColorSpaceDisplayP3 (void*  result)
-		{
-			GetRGBColorSpaceDisplayP3 (result);
-			return result;
-		}
-
-		static void* ColorSpacesRGB (void* result)
-		{
-			GetRGBColorSpacesRGB (result);
-			return result;
-		}
-
-		static void* ColorSpacesRGBLinear (void* result)
-		{
-			GetRGBColorSpacesRGBLinear (result);
-			return result;
+			switch (colorSpace) {
+				case RGBColorSpace.sRGB:
+					GetRGBColorSpacesRGB (result);
+					break;
+				case RGBColorSpace.DisplayP3:
+					GetRGBColorSpaceDisplayP3 (result);
+					break;
+				case RGBColorSpace.sRGBLinear:
+					GetRGBColorSpacesRGBLinear (result);
+					break;
+				default:
+					throw new NotSupportedException ();
+			}
 		}
 		#endregion
 
