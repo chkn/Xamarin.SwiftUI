@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Buffers;
 using System.Runtime.InteropServices;
-
+using Swift;
 using Swift.Interop;
 
 namespace SwiftUI
 {
 	using static Color;
 
+	[SwiftImport (SwiftUILib.Path)]
 	public enum RGBColorSpace
 	{
 		sRGB,
 		DisplayP3,
 		sRGBLinear,
-	};
+	}
 
 	[SwiftImport (SwiftUILib.Path)]
 	public unsafe partial class Color : View
@@ -21,41 +22,31 @@ namespace SwiftUI
 		internal IntPtr Data { get; private set; }
 
 		#region Static Colours
-		static Color? black = null;
-		public static Color Black => black ??= new Color (GetColorBlack ());
+		public static Color Black => new Color (GetColorBlack ());
 
-		static Color? blue = null;
-		public static Color Blue => blue ??= new Color (GetColorBlue ());
+		public static Color Blue => new Color (GetColorBlue ());
 
 		public static Color Clear => new Color (GetColorClear ());
 
-		static Color? gray = null;
-		public static Color Gray => gray ??= new Color (GetColorGray ());
+		public static Color Gray =>  new Color (GetColorGray ());
 
-		static Color? green = null;
-		public static Color Green => green ??= new Color (GetColorGreen ());
+		public static Color Green => new Color (GetColorGreen ());
 
-		static Color? orange = null;
-		public static Color Orange => orange ??= new Color (GetColorOrange ());
+		public static Color Orange => new Color (GetColorOrange ());
 
-		static Color? pink = null;
-		public static Color Pink => pink ??= new Color (GetColorPink ());
+		public static Color Pink => new Color (GetColorPink ());
 
 		public static Color Primary => new Color (GetColorPrimary ());
 
-		static Color? purple = null;
-		public static Color Purple => purple ??= new Color (GetColorPurple ());
+		public static Color Purple => new Color (GetColorPurple ());
 
-		static Color? red = null;
-		public static Color Red => red ??= new Color (GetColorRed ());
+		public static Color Red => new Color (GetColorRed ());
 
 		public static Color Secondary => new Color (GetColorSecondary ());
 
-		static Color? white = null;
-		public static Color White => white ??= new Color (GetColorWhite ());
+		public static Color White = new Color (GetColorWhite ());
 
-		static Color? yellow = null;
-		public static Color Yellow => yellow ??= new Color (GetColorYellow ());
+		public static Color Yellow => new Color (GetColorYellow ());
 		#endregion
 
 		protected override void InitNativeData (void* handle)
@@ -75,6 +66,49 @@ namespace SwiftUI
 		{
 			Data = CreateFromHSBO (hue, saturation, brightness, opacity);
 		}
+
+		public Color (RGBColorSpace colorSpace, double red, double green, double blue, double opacity)
+		{
+			var opaqueRBGColorspaceMetadata = SwiftType.Of (typeof (RGBColorSpace))!;
+			var result = Marshal.AllocHGlobal (opaqueRBGColorspaceMetadata.NativeDataSize);
+			try {
+				GetSwiftUIColorSpace (colorSpace, result.ToPointer ());
+				Data = CreateFromRGBColorSpaceRedGreenBlueOpacity (result.ToPointer (), red, green, blue, opacity);
+			} catch {
+				Marshal.FreeHGlobal (result);
+				throw;
+			}
+		}
+
+		public Color (RGBColorSpace colorSpace, double white, double opacity)
+		{
+			var opaqueRBGColorspaceMetadata = SwiftType.Of (typeof (RGBColorSpace))!;
+			var result = Marshal.AllocHGlobal (opaqueRBGColorspaceMetadata.NativeDataSize);
+			try {
+				GetSwiftUIColorSpace (colorSpace, result.ToPointer ());
+				Data = CreateFromRGBColorSpaceWhiteOpacity (result.ToPointer (), white, opacity); ;
+			} catch {
+				Marshal.FreeHGlobal (result);
+				throw;
+			}
+		}
+
+		static void GetSwiftUIColorSpace (RGBColorSpace colorSpace, void* result)
+		{
+			switch (colorSpace) {
+				case RGBColorSpace.sRGB:
+					GetRGBColorSpacesRGB (result);
+					break;
+				case RGBColorSpace.DisplayP3:
+					GetRGBColorSpaceDisplayP3 (result);
+					break;
+				case RGBColorSpace.sRGBLinear:
+					GetRGBColorSpacesRGBLinear (result);
+					break;
+				default:
+					throw new NotSupportedException ();
+			}
+		}
 		#endregion
 
 		#region DllImports
@@ -88,6 +122,42 @@ namespace SwiftUI
 			double saturation,
 			double brightness,
 			double opacity);
+
+		[DllImport (SwiftUILib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "$s7SwiftUI5ColorV_3red5green4blue7opacityA2C13RGBColorSpaceO_S4dtcfC")]
+		static extern IntPtr CreateFromRGBColorSpaceRedGreenBlueOpacity (
+			void* swiftUIColourSpace,
+			double red,
+			double green,
+			double blue,
+			double opacity);
+
+		[DllImport (SwiftUILib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "$s7SwiftUI5ColorV_5white7opacityA2C13RGBColorSpaceO_S2dtcfC")]
+		static extern IntPtr CreateFromRGBColorSpaceWhiteOpacity (
+			void* swiftUIColourSpace,
+			double white,
+			double opacity);
+		#endregion
+
+		#region RGBColorSpace
+		[DllImport (SwiftGlueLib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			// TODO Use Direct PInkoke rather than Glue call EntryPoint = "$s7SwiftUI5ColorV13RGBColorSpaceO9displayP3yA2EmFWC")]
+			EntryPoint = "swiftui_RGBColorSpace_displayP3")]
+		static extern void GetRGBColorSpaceDisplayP3 (void* resultPointer);
+
+		[DllImport (SwiftGlueLib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "swiftui_RGBColorSpace_sRGB")]
+		static extern void GetRGBColorSpacesRGB (void* resultPointer);
+
+		[DllImport (SwiftGlueLib.Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "swiftui_RGBColorSpace_sRGBLinear")]
+		static extern void GetRGBColorSpacesRGBLinear (void* resultPointer);
 		#endregion
 
 		#region Static Colours

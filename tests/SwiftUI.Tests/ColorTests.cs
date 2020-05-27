@@ -35,5 +35,31 @@ namespace SwiftUI.Tests
 
             Assert.Null (exception);
         }
+
+        [Fact]
+        public void ColorColorSpaceWOCallWorks ()
+        {
+            // In case we get an EntryPointNotFoundException
+            var exception = Record.Exception (() => {
+                var colour = new Color (RGBColorSpace.DisplayP3, 0.6f, 0.5f);
+
+                Assert.NotNull (colour);
+            });
+
+            Assert.Null (exception);
+        }
+
+        [Fact]
+        public void ColorColorSpaceRGBOCallWorks ()
+        {
+            // In case we get an EntryPointNotFoundException
+            var exception = Record.Exception (() => {
+                var colour = new Color (RGBColorSpace.sRGB, 0.0f, 0.6f, 0.0f, 0.5f);
+
+                Assert.NotNull (colour);
+            });
+
+            Assert.Null (exception);
+        }
     }
 }

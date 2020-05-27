@@ -27,7 +27,7 @@ namespace Swift.Interop
 	/// <summary>
 	/// Indicates the attributed managed type is imported from a Swift library.
 	/// </summary>
-	[AttributeUsage (AttributeTargets.Class | AttributeTargets.Struct, Inherited = false)]
+	[AttributeUsage (AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum, Inherited = false)]
 	public class SwiftImportAttribute : SwiftTypeAttribute
 	{
 		readonly NativeLib lib;
