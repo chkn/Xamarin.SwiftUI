@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../msbuild/Xamarin.SwiftUI.props" />
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>RS2008</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
+    <StartAction>Program</StartAction>
+    <StartProgram>$(HOME)/.nuget/packages/microsoft.net.compilers.toolset/3.7.0-1.20220.1/tasks/netcoreapp3.1/bincore/csc.dll</StartProgram>
+    <RefAsmPath>/usr/local/share/dotnet/packs/Microsoft.NETCore.App.Ref/5.0.0-preview.3.20214.6/ref/netcoreapp5.0</RefAsmPath>
+    <StartArguments>-langversion:preview -a:SwiftUI.Analyzers.dll -r:$(RefAsmPath)/System.Runtime.dll -r:$(RefAsmPath)/mscorlib.dll -r:$(RefAsmPath)/netstandard.dll -r:$(SolutionDir)/managed/Debug/netstandard2.1/SwiftUI.dll $(SolutionDir)/NetCoreTest/Program.cs</StartArguments>
+    <ExternalConsole>false</ExternalConsole>
+  </PropertyGroup>
+
+  <Import Project="../../RoslynNugets.targets" />
+</Project>

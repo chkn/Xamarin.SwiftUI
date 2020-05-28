@@ -1,0 +1,9 @@
+<Project>
+	<ItemGroup>
+		<!-- HACK: Try to detect if we're using packages.config, which doesn't pick up the analyzer automatically -->
+		<!--   FIXME: Remove this once Xamarin.Mac switches to PackageReference ? -->
+		<Analyzer
+			Include="$(MSBuildThisFileDirectory)/../analyzers/dotnet/cs/SwiftUI.Analyzers.dll"
+			Condition=" '@(PackageReference)' == '' " />
+	</ItemGroup>
+</Project>

@@ -30,7 +30,7 @@ namespace XamiOSSwiftUITest
         }
     }
 
-    public class ClickButton : View
+    public partial class ClickButton : View
     {
         State<int?> counter = new State<int?> (null);
 
