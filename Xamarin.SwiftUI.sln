@@ -24,6 +24,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{96D409C9
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{0A30EAB4-9484-4C3D-B7AF-3FF29EF250EC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XamTVOSSwiftUITest", "XamTVOSSwiftUITest\XamTVOSSwiftUITest.csproj", "{E0CEA2D1-E2D5-4D1B-9B46-5931E9CC0A8D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -130,6 +132,18 @@ Global
 		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Debug|iPhone.ActiveCfg = Debug|Any CPU
 		{28883268-FEE9-48E7-90A2-FDCED575CDE2}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{E0CEA2D1-E2D5-4D1B-9B46-5931E9CC0A8D}.Debug|Any CPU.ActiveCfg = Debug|iPhoneSimulator
+		{E0CEA2D1-E2D5-4D1B-9B46-5931E9CC0A8D}.Debug|Any CPU.Build.0 = Debug|iPhoneSimulator
+		{E0CEA2D1-E2D5-4D1B-9B46-5931E9CC0A8D}.Release|Any CPU.ActiveCfg = Release|iPhone
+		{E0CEA2D1-E2D5-4D1B-9B46-5931E9CC0A8D}.Release|Any CPU.Build.0 = Release|iPhone
+		{E0CEA2D1-E2D5-4D1B-9B46-5931E9CC0A8D}.Debug|iPhoneSimulator.ActiveCfg = Debug|iPhoneSimulator
+		{E0CEA2D1-E2D5-4D1B-9B46-5931E9CC0A8D}.Debug|iPhoneSimulator.Build.0 = Debug|iPhoneSimulator
+		{E0CEA2D1-E2D5-4D1B-9B46-5931E9CC0A8D}.Release|iPhone.ActiveCfg = Release|iPhone
+		{E0CEA2D1-E2D5-4D1B-9B46-5931E9CC0A8D}.Release|iPhone.Build.0 = Release|iPhone
+		{E0CEA2D1-E2D5-4D1B-9B46-5931E9CC0A8D}.Release|iPhoneSimulator.ActiveCfg = Release|iPhoneSimulator
+		{E0CEA2D1-E2D5-4D1B-9B46-5931E9CC0A8D}.Release|iPhoneSimulator.Build.0 = Release|iPhoneSimulator
+		{E0CEA2D1-E2D5-4D1B-9B46-5931E9CC0A8D}.Debug|iPhone.ActiveCfg = Debug|iPhone
+		{E0CEA2D1-E2D5-4D1B-9B46-5931E9CC0A8D}.Debug|iPhone.Build.0 = Debug|iPhone
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -145,5 +159,6 @@ Global
 		{24332183-3269-4D12-BC4B-F0C397E99E4C} = {0A30EAB4-9484-4C3D-B7AF-3FF29EF250EC}
 		{A509E396-F462-4528-8485-4F7698FA4848} = {0A30EAB4-9484-4C3D-B7AF-3FF29EF250EC}
 		{99F5F4F5-135E-46B4-941B-135F3420F1D9} = {0A30EAB4-9484-4C3D-B7AF-3FF29EF250EC}
+		{E0CEA2D1-E2D5-4D1B-9B46-5931E9CC0A8D} = {0A30EAB4-9484-4C3D-B7AF-3FF29EF250EC}
 	EndGlobalSection
 EndGlobal

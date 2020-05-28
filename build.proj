@@ -2,7 +2,7 @@
 	<Import Project="msbuild/Xamarin.SwiftUI.props" />
 	<PropertyGroup>
 		<Version Condition=" '$(Version)' == '' ">99.0-pre</Version>
-		<TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">netstandard2.1;xamarin.mac20;xamarin.ios10</TargetFrameworks>
+		<TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">netstandard2.1;xamarin.mac20;xamarin.ios10;xamarin.tvos10</TargetFrameworks>
 		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
 
 		<!-- Directory to place created packages -->
@@ -26,6 +26,7 @@
 	<ItemGroup>
 		<SwiftUIGlueTargets Condition="$(TargetFrameworks.Contains('xamarin.mac20'))" Include="SwiftUIGlueMac" />
 		<SwiftUIGlueTargets Condition="$(TargetFrameworks.Contains('xamarin.ios10'))" Include="SwiftUIGlueXcode" />
+    <SwiftUIGlueTargets Condition="$(TargetFrameworks.Contains('xamarin.tvos10'))" Include="SwiftUIGlueXcode" />
 
 		<SwiftUIGlueSources Include="$(SwiftUIGlueDir)*.swift" />
 
@@ -36,6 +37,7 @@
 
 		<!-- All other platforms -->
 		<SwiftUIGlueSdks Condition="$(TargetFrameworks.Contains('xamarin.ios10'))" Include="iphoneos;iphonesimulator" TargetFramework="xamarin.ios10" />
+    <SwiftUIGlueSdks Condition="$(TargetFrameworks.Contains('xamarin.tvos10'))" Include="appletvos;appletvsimulator" TargetFramework="xamarin.tvos10" />
 
 		<SwiftUIGlueSdks Update="@(SwiftUIGlueSdks)">
 			<IntermediateFrameworkDir>$(SwiftUIGlueDir)build\$(Configuration)-%(Identity)\SwiftUIGlue.framework\</IntermediateFrameworkDir>

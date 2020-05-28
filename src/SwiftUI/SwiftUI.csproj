@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
-    <TargetFrameworks Condition="'$(MSBuildRuntimeType)' != 'Core'">$(TargetFrameworks);xamarin.mac20;xamarin.ios10</TargetFrameworks>
+    <TargetFrameworks Condition="'$(MSBuildRuntimeType)' != 'Core'">$(TargetFrameworks);xamarin.mac20;xamarin.ios10;xamarin.tvos10</TargetFrameworks>
     <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -21,6 +21,7 @@
     <Folder Include="SwiftUI\Interop\" />
     <Folder Include="Mac\" />
     <Folder Include="iOS\" />
+    <Folder Include="TVOS\" />
   </ItemGroup>
 
   <!-- Conditionally exclude platform-specific source files -->
@@ -31,6 +32,10 @@
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != 'Xamarin.iOS' ">
     <Compile Remove="iOS\**\*.*" />
     <None Include="iOS\**\*.*" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != 'Xamarin.TVOS' ">
+    <Compile Remove="TVOS\**\*.*" />
+    <None Include="TVOS\**\*.*" />
   </ItemGroup>
 
   <!-- Embed the native library where possible -->
