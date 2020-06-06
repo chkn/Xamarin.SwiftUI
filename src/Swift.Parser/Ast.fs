@@ -5,7 +5,24 @@ type Literal =
     | BooleanLiteral of bool
     | NilLiteral
 
-type Attr = Attr of Name:string * Args:string list
+type PlatformName =
+    | IOS
+    | IOSApplicationExtension
+    | MacOS
+    | MacOSApplicationExtension
+    | WatchOS
+    | TvOS
+
+type PlatformVersion = System.Version
+
+type AvailabilityArg =
+    | AvailableOn of PlatformName * PlatformVersion
+    | UnavailableOn of PlatformName
+    | Star
+
+type Attr =
+    | AvailabilityAttr of AvailabilityArg list
+    | OtherAttr of Name:string * Args:string list
 
 type ThrowSpec = Throws | Rethrows
 

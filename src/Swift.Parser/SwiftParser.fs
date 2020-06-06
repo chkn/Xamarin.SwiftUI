@@ -160,7 +160,38 @@ let literal =
 ## Attributes
 
 Reference: https://docs.swift.org/swift-book/ReferenceManual/Attributes.html
+*)
 
+//platform-name → iOS | iOSApplicationExtension
+//platform-name → macOS | macOSApplicationExtension // swiftinterface also include "OSX"
+//platform-name → watchOS
+//platform-name → tvOS
+let platform_name =
+    (stringReturn "iOSApplicationExtension" IOSApplicationExtension) <|>
+    (stringReturn "iOS" IOS) <|>
+    (stringReturn "macOSApplicationExtension" MacOSApplicationExtension) <|>
+    (stringReturn "macOS" MacOS) <|>
+    (stringReturn "OSX" MacOS) <|>
+    (stringReturn "watchOS" WatchOS) <|>
+    (stringReturn "tvOS" TvOS)
+
+//platform-version → decimal-digits
+//platform-version → decimal-digits . decimal-digits
+//platform-version → decimal-digits . decimal-digits . decimal-digits
+let platform_version =
+    tuple3 pint32 ((pchar '.' >>. pint32) <|>% 0) ((pchar '.' >>. pint32) <|>% 0) |>> PlatformVersion
+
+//availability-argument → platform-name platform-version
+//availability-argument → *
+let availability_argument =
+    (charReturn '*' Star) <|>
+    (attempt (platform_name .>> ws .>> pchar ',') .>> ws .>> pstring "unavailable" |>> UnavailableOn) <|>
+    (platform_name .>> ws .>>. platform_version |>> AvailableOn)
+
+//availability-arguments → availability-argument | availability-argument , availability-arguments
+let availability_arguments = sepBy1CharWS availability_argument ','
+
+(**
 Note that for some parsers that produce lists and that are only referenced as
 optional in other places, we are simply defining the optional version to return
 an empty list. This is more efficient than defining a parser that requires at least
@@ -191,7 +222,8 @@ let attribute_argument_clause = parens balanced_tokens_opt
 
 //attribute → @ attribute-name attribute-argument-clause opt
 let attribute =
-    pchar '@' >>. ws >>. attribute_name .>> ws .>>. (attribute_argument_clause <|>% []) |>> Attr
+    (pstring "@available" >>. parens availability_arguments |>> AvailabilityAttr) <|>
+    (pchar '@' >>. ws >>. attribute_name .>> ws .>>. (attribute_argument_clause <|>% []) |>> OtherAttr)
 
 //attributes → attribute attributes opt
 let attributes_opt = sepEndBy attribute ws
@@ -589,3 +621,6 @@ let declaration =
     "declaration"
 
 //declarations → declaration declarations opt
+let declarations = sepBy1 declaration ws
+
+let file = ws >>. declarations .>> ws

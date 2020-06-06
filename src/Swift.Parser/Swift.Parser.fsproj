@@ -7,8 +7,7 @@
   <ItemGroup>
     <Compile Include="Ast.fs" />
     <Compile Include="SwiftParser.fs" />
-  </ItemGroup>
-  <ItemGroup>
+    <None Include="Test.fsx" />
     <PackageReference Include="FParsec" Version="1.1.1" />
   </ItemGroup>
 </Project>
