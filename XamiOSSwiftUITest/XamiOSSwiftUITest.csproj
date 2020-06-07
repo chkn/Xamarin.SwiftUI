@@ -140,6 +140,8 @@
       </ProjectReference>
     </ItemGroup>
     <Target Name="VSTest" />
+    <Import
+      Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.iOS.CSharp.targets"
+      Condition="Exists('$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.iOS.CSharp.targets')" />
     <Import Project="..\XamSwiftUITestShared\XamSwiftUITestShared.projitems" Label="Shared" Condition="Exists('..\XamSwiftUITestShared\XamSwiftUITestShared.projitems')" />
-    <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" Condition="Exists('$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets')" />
 </Project>
