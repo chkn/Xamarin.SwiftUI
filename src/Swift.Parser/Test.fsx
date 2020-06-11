@@ -10,4 +10,6 @@ open Swift.Parser
 
 let path = "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/SwiftUI.framework/Modules/SwiftUI.swiftmodule/x86_64-apple-macos.swiftinterface"
 
+//let str = "public struct DefaultNavigationViewStyle : SwiftUI.NavigationViewStyle {}"
+//runParserOnString file () "foo" str
 runParserOnFile file () path Encoding.UTF8

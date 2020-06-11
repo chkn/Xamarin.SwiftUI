@@ -8,7 +8,7 @@ open Swift.Ast
 (**
 # Swift Parser
 
-This is *not* a complete Swift parser. We are only concerned with parsing swiftinterface
+This is *not* a complete Swift parser. We are only concerned with parsing `swiftinterface`
 files. It is a superset of Swift source, and only requires us to parse Swift declarations
 without definitions.
 
@@ -72,7 +72,12 @@ let ws1 = skipMany1 unit_ws
 Now that we have those definitions, define some helper functions for common parsing
 scenarios, ignoring whitespace and comments:
 *)
-let parens (p : Parser<_>) = between (pchar '(') (pchar ')') (between ws ws p)
+let wrappedIn opening closing p = between (skipChar opening) (skipChar closing) (between ws ws p)
+
+let squares p = wrappedIn '[' ']' p
+let squiggles p = wrappedIn '{' '}' p
+let angles p = wrappedIn '<' '>' p
+let parens p = wrappedIn '(' ')' p
 
 /// Parses parenthesis containing a list of zero or more items
 let parens_list (plist : Parser<_>) =
@@ -81,10 +86,7 @@ let parens_list (plist : Parser<_>) =
         (plist .>> ws .>> pchar ')')
     )
 
-let squares (p : Parser<_>) = between (pchar '[') (pchar ']') (between ws ws p)
-let squiggles (p : Parser<_>) = between (pchar '{') (pchar '}') (between ws ws p)
-let angles (p : Parser<_>) =  between (pchar '<') (pchar '>') (between ws ws p)
-let sepBy1CharWS p chr = sepBy1 (p .>> ws) (pchar chr .>> ws)
+let sepBy1CharWS p chr = sepBy1 (p .>> ws) (skipChar chr .>> ws)
 
 (**
 ### Identifiers
@@ -222,8 +224,10 @@ let attribute_argument_clause = parens balanced_tokens_opt
 
 //attribute → @ attribute-name attribute-argument-clause opt
 let attribute =
-    (pstring "@available" >>. parens availability_arguments |>> AvailabilityAttr) <|>
-    (pchar '@' >>. ws >>. attribute_name .>> ws .>>. (attribute_argument_clause <|>% []) |>> OtherAttr)
+    skipChar '@' >>. ws >>. (
+        (skipString "available" >>. parens availability_arguments |>> AvailabilityAttr) <|>
+        (attribute_name .>> ws .>>. (attribute_argument_clause <|>% []) |>> OtherAttr)
+    )
 
 //attributes → attribute attributes opt
 let attributes_opt = sepEndBy attribute ws
@@ -248,7 +252,7 @@ let attr_type =
     tuple3 attributes_opt ((pstring "inout" .>> ws >>% true) <|>% false) ``type`` |>> AttributedType
 
 //type-annotation → : attributes opt inoutopt type
-let type_annotation = pchar ':' >>. ws >>. attr_type
+let type_annotation = skipChar ':' >>. ws >>. attr_type
 
 (**
 ### Function Types
@@ -339,7 +343,7 @@ let protocol_composition_type = sepBy1CharWS type_identifier '&'
 Reference: https://docs.swift.org/swift-book/ReferenceManual/Types.html#grammar_opaque-type
 *)
 //opaque-type → some type
-let opaque_type = pstring "some" >>. ws >>. ``type`` |>> OpaqueType
+let opaque_type = skipString "some" >>. ws >>. ``type`` |>> OpaqueType
 
 (**
 ### Metatypes
@@ -348,7 +352,16 @@ Reference: https://docs.swift.org/swift-book/ReferenceManual/Types.html#grammar_
 *)
 //metatype-type → type . Type | type . Protocol
 let metatype_type =
-    ``type`` .>> ws .>> pchar '.' .>> ws .>> (pstring "Type" <|> pstring "Protocol") |>> Metatype
+    ``type`` .>> ws .>> skipChar '.' .>> ws .>> (pstring "Type" <|> pstring "Protocol") |>> Metatype
+
+(**
+### Type Inheritance Clause
+*)
+//type-inheritance-list → type-identifier | type-identifier , type-inheritance-list
+let type_inheritance_list = sepBy1CharWS type_identifier ',' 
+
+//type-inheritance-clause → : type-inheritance-list
+let type_inheritance_clause = skipChar ':' >>. ws >>. type_inheritance_list
 
 (**
 ### Type Parser
@@ -410,7 +423,7 @@ start with `type-identifier`, and so have left-factored that into `requirement`.
 //conformance-requirement → type-identifier : type-identifier
 //conformance-requirement → type-identifier : protocol-composition-type
 let conformance_requirement_tail =
-    let p = pchar ':' >>. ws >>. protocol_composition_type
+    let p = skipChar ':' >>. ws >>. protocol_composition_type
     (fun ident -> p |>> fun pct -> ConformanceRequirement(ident, pct))
 
 //same-type-requirement → type-identifier == type
@@ -429,7 +442,7 @@ let requirement =
 let requirement_list = sepBy1CharWS requirement ','
 
 //generic-where-clause → where requirement-list
-let generic_where_clause = pstring "where" >>. ws >>. requirement_list
+let generic_where_clause = skipString "where" >>. ws >>. requirement_list
 
 (**
 In some cases, the published grammar appears to be slightly incorrect, at least
@@ -487,13 +500,16 @@ let expression = primary_expression
 ## Declarations
 
 Reference: https://docs.swift.org/swift-book/ReferenceManual/Declarations.html
+*)
+let declaration, declaration_ref = createParserForwardedToRef()
 
+(**
 ### Modifiers
 
 This is a helper function for parsing a single access level modifier:
 *)
 let access_level str case =
-    pstring str >>. ws >>. ((parens (pstring "set") >>% true) <|>% false) |>> case
+    skipString str >>. ws >>. ((parens (skipString "set") >>% true) <|>% false) |>> case
 
 //access-level-modifier → private | private ( set )
 //access-level-modifier → fileprivate | fileprivate ( set )
@@ -556,7 +572,7 @@ let import_path = sepBy1CharWS import_path_identifier '.'
 //FIXME
 //import-declaration → attributes opt import import-kind opt import-path
 let import_declaration =
-    attributes_opt .>> pstring "import" .>> ws .>>. import_path |>> ImportDecl
+    attempt (attributes_opt .>> skipString "import") .>> ws .>>. import_path |>> ImportDecl
 
 (**
 ### Function Declarations
@@ -570,7 +586,7 @@ let external_parameter_name = attempt (identifier .>> ws1 .>> notFollowedBy (pch
 let local_parameter_name = identifier
 
 //default-argument-clause → = expression
-let default_argument_clause = pchar '=' >>. ws >>. expression
+let default_argument_clause = skipChar '=' >>. ws >>. expression
 
 //parameter → external-parameter-name opt local-parameter-name type-annotation default-argument-clause opt
 let parameter =
@@ -583,13 +599,13 @@ let parameter_list = sepBy1CharWS parameter ',' <?> "parameter list"
 let parameter_clause = parens_list parameter_list
 
 //function-head → attributes opt declaration-modifiers opt func
-let function_head = attributes_opt .>> ws .>>. declaration_modifiers_opt .>> pstring "func"
+let function_head = attempt (attributes_opt .>>. declaration_modifiers_opt .>> skipString "func")
 
 //function-name → identifier | operator
 let function_name = identifier //FIXME
 
 //function-result → -> attributes opt type
-let function_result = pstring "->" >>. ws >>. attr_type
+let function_result = skipString "->" >>. ws >>. attr_type
 
 //function-signature → parameter-clause throwsopt function-result opt
 //function-signature → parameter-clause rethrows function-result opt
@@ -597,8 +613,56 @@ let function_signature = tuple3 (parameter_clause .>> ws) (opt (throw_spec .>> w
 
 //function-declaration → function-head function-name generic-parameter-clause opt function-signature generic-where-clause opt function-body opt
 let function_declaration =
-    let splat (a, b) c d (e, f, g) h = (a, b, c, d, e, f, g, h)
-    pipe5 (function_head .>> ws) (function_name .>> ws) (opt (generic_parameter_clause .>> ws)) (function_signature .>> ws) (generic_where_clause <|>% []) splat |>> FuncDecl 
+    pipe5 (function_head .>> ws) (function_name .>> ws) (opt (generic_parameter_clause .>> ws)) (function_signature .>> ws) (generic_where_clause <|>% [])
+    <| fun (a, b) c d (e, f, g) h -> FuncDecl(a, b, c, d, e, f, g, h)
+
+(**
+### Struct Declarations
+
+Reference: https://docs.swift.org/swift-book/ReferenceManual/Declarations.html#grammar_struct-declaration
+*)
+
+//struct-name → identifier
+let struct_name = identifier
+
+//struct-members → struct-member struct-members opt
+//struct-member → declaration | compiler-control-statement
+let struct_member = //FIXME
+    declaration
+
+//struct-body → { struct-members opt }
+let struct_body = squiggles (sepEndBy struct_member ws)
+
+//struct-declaration → attributes opt access-level-modifier opt struct struct-name generic-parameter-clause opt type-inheritance-clause opt generic-where-clause opt struct-body
+let struct_declaration =
+    pipe2
+    <| attempt (attributes_opt .>>. (opt (access_level_modifier .>> ws) .>> skipString "struct" .>> ws))
+    <| tuple5 (struct_name .>> ws) (opt (generic_parameter_clause .>> ws)) ((type_inheritance_clause <|>% []) .>> ws) ((generic_where_clause <|>% []) .>> ws) struct_body
+    <| fun (a, b) (c, d, e, f, g) -> StructDecl(a, b, c, d, e, f, g)
+
+(**
+### Initializer Declarations
+
+Reference: https://docs.swift.org/swift-book/ReferenceManual/Declarations.html#grammar_initializer-declaration
+*)
+let optionality =
+    (charReturn '?' Optionality.Optional) <|>
+    (charReturn '!' ImplicityUnwrappedOptional) <|>
+    preturn NotOptional
+
+//initializer-head → attributes opt declaration-modifiers opt init
+//initializer-head → attributes opt declaration-modifiers opt init ?
+//initializer-head → attributes opt declaration-modifiers opt init !
+let initializer_head =
+    attempt (tuple3 attributes_opt (declaration_modifiers_opt .>> skipString "init") optionality)
+
+//initializer-body → code-block
+
+//initializer-declaration → initializer-head generic-parameter-clause opt parameter-clause throwsopt generic-where-clause opt initializer-body
+//initializer-declaration → initializer-head generic-parameter-clause opt parameter-clause rethrows generic-where-clause opt initializer-body
+let initializer_declaration =
+    pipe5 (initializer_head .>> ws) (opt (generic_parameter_clause .>> ws)) (parameter_clause .>> ws) (opt throw_spec .>> ws) (generic_where_clause <|>% [])
+    <| fun (a, b, c) d e f g -> InitDecl(a, b, c, d, e, f, g)
 
 //declaration → import-declaration
 //declaration → constant-declaration
@@ -615,12 +679,41 @@ let function_declaration =
 //declaration → subscript-declaration
 //declaration → operator-declaration
 //declaration → precedence-group-declaration
-let declaration =
+do declaration_ref :=
+    // FIXME: need backtracking for all of these because they all start with optional attributes
     import_declaration <|>
-    function_declaration <?>
+    function_declaration <|>
+    struct_declaration <|>
+    initializer_declaration <?>
     "declaration"
 
 //declarations → declaration declarations opt
-let declarations = sepBy1 declaration ws
+let declarations = sepEndBy1 declaration ws
 
-let file = ws >>. declarations .>> ws
+(**
+## Statements
+
+Reference: https://docs.swift.org/swift-book/ReferenceManual/Statements.html
+
+Note once again that we are only trying to parse the subset of Swift found in `swiftinterface` files.
+Thus we only implement some of the grammar for statements.
+*)
+
+//statement → expression ;opt
+//statement → declaration ;opt
+//statement → loop-statement ;opt
+//statement → branch-statement ;opt
+//statement → labeled-statement ;opt
+//statement → control-transfer-statement ;opt
+//statement → defer-statement ;opt
+//statement → do-statement ;opt
+//statement → compiler-control-statement
+//statements → statement statements opt
+let statement =
+    declaration .>> optional (skipChar ';')
+    // FIXME: add the rest..?
+
+//top-level-declaration → statements opt
+let top_level_declaration = sepEndBy statement ws
+
+let file = ws >>. top_level_declaration .>> eof

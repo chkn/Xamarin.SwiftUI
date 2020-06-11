@@ -15,13 +15,13 @@ type PlatformName =
 
 type PlatformVersion = System.Version
 
-type AvailabilityArg =
+type Availability =
     | AvailableOn of PlatformName * PlatformVersion
     | UnavailableOn of PlatformName
     | Star
 
 type Attr =
-    | AvailabilityAttr of AvailabilityArg list
+    | AvailabilityAttr of Availability list
     | OtherAttr of Name:string * Args:string list
 
 type ThrowSpec = Throws | Rethrows
@@ -75,6 +75,11 @@ type SafeOrUnsafe =
     | Safe
     | Unsafe
 
+type Optionality =
+    | NotOptional
+    | Optional
+    | ImplicityUnwrappedOptional
+
 type LiteralExpr =
     | Literal of Literal
     // Special literals:
@@ -118,9 +123,11 @@ type SwiftDecl =
     | FuncDecl of Attributes:Attr list * Modifiers:DeclModifier list * Name:string * Generic:GenericParameterClause option * Parameters:Parameter list * ThrowSpec:ThrowSpec option * ReturnType:AttributedType option * WhereClause:GenericRequirement list
     //declaration → enum-declaration
     //declaration → struct-declaration
+    | StructDecl of Attributes:Attr list * Access:AccessLevelModifier option * Name:string * Generic:GenericParameterClause option * Protocols:TypeIdentifier list * WhereClause:GenericRequirement list * Body:SwiftDecl list
     //declaration → class-declaration
     //declaration → protocol-declaration
     //declaration → initializer-declaration
+    | InitDecl of Attributes:Attr list * Modifiers:DeclModifier list * Failability:Optionality * Generic:GenericParameterClause option * Parameters:Parameter list * ThrowSpec:ThrowSpec option * WhereClause:GenericRequirement list
     //declaration → deinitializer-declaration
     //declaration → extension-declaration
     //declaration → subscript-declaration
