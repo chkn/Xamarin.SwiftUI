@@ -326,7 +326,7 @@ let tuple_type_element =
 let tuple_type_element_list = sepBy1CharWS tuple_type_element ','
 
 //tuple-type → ( ) | ( tuple-type-element , tuple-type-element-list )
-let tuple_type = parens_list tuple_type_element_list |>> TupleType
+let tuple_type = parens_list (tuple2 (tuple_type_element .>> ws .>> skipChar ',' .>> ws) tuple_type_element_list |>> List.Cons) |>> TupleType
 
 (**
 ### Protocol Composition Types
@@ -335,7 +335,7 @@ Reference: https://docs.swift.org/swift-book/ReferenceManual/Types.html#grammar_
 *)
 //protocol-composition-type → type-identifier & protocol-composition-continuation
 //protocol-composition-continuation → type-identifier | protocol-composition-type
-let protocol_composition_type = sepBy1CharWS type_identifier '&'
+let protocol_composition_continuation = sepBy1CharWS type_identifier '&'
 
 (**
 ### Opaque Types
@@ -349,10 +349,13 @@ let opaque_type = skipString "some" >>. ws >>. ``type`` |>> OpaqueType
 ### Metatypes
 
 Reference: https://docs.swift.org/swift-book/ReferenceManual/Types.html#grammar_metatype-type
+
+Due to the left-recursive nature of `metatype-type`, we will handle that inline in the `type`
+parser. Otherwise, it would look something like this:
 *)
 //metatype-type → type . Type | type . Protocol
-let metatype_type =
-    ``type`` .>> ws .>> skipChar '.' .>> ws .>> (pstring "Type" <|> pstring "Protocol") |>> Metatype
+//let metatype_type =
+//    ``type`` .>> ws .>> skipChar '.' .>> ws .>> (pstring "Type" <|> pstring "Protocol") |>> Metatype
 
 (**
 ### Type Inheritance Clause
@@ -380,19 +383,29 @@ let type_inheritance_clause = skipChar ':' >>. ws >>. type_inheritance_list
 //type → Any
 //type → ( type )
 do type_ref :=
-    attempt function_type <|> // backtrack to tuple_type
-    array_type <|>
-    //FIXME: dictionary-type
-    (type_identifier |>> IdentifiedType) <|>
-    tuple_type <|>
-    // FIXME: optional-type
-    // FIXME: implicitly-unwrapped-optional-type
-    (protocol_composition_type |>> ProtocolCompositionType) <|>
-    opaque_type <|>
-    metatype_type <|>
-    (stringReturn "Self" SelfType) <|>
-    (stringReturn "Any"  AnyType) <|>
-    (parens ``type``)
+    ( // First, take all the non-left-recursive parsers
+        attempt function_type <|> // backtrack to tuple_type
+        array_type <|>
+        //FIXME: dictionary-type
+        attempt tuple_type <|> // backtrack to parens type
+        parens ``type`` <|>
+        opaque_type <|>
+        (stringReturn "Self" SelfType) <|>
+        (stringReturn "Any"  AnyType) <|>
+        // must come after the above (as those would otherwise be picked up as identifiers)
+        (type_identifier .>> ws >>= fun tyid ->
+            (tuple2 (charReturn '&' tyid .>> ws) protocol_composition_continuation |>> (List.Cons >> ProtocolCompositionType)) <|>
+            (preturn (IdentifiedType tyid)))
+    ) .>> ws >>= fun ty ->
+        // optional-type
+        charReturn '?' (OptionalType ty) <|>
+        // implicitly-unwrapped-optional-type
+        charReturn '!' (ImplicitlyUnwrappedOptionalType ty) <|>
+        // metatype-type
+        (skipChar '.' >>. ws >>. (
+            stringReturn "Type" (Metatype(ty, Type)) <|>
+            stringReturn "Protocol" (Metatype(ty, Protocol)))) <|>
+        preturn ty
 
 (**
 ### Generic Parameters
@@ -400,21 +413,21 @@ do type_ref :=
 Reference: https://docs.swift.org/swift-book/ReferenceManual/GenericParametersAndArguments.html
 
 Sometimes we can simplify the grammar a bit to avoid backtracking. In this case,
-`protocol-composition-type` starts with `type-identifier`, so we don't need 2
+`protocol_composition_continuation` starts with `type-identifier`, so we don't need 2
 separate cases here:
 *)
 //generic-parameter → type-name
 //generic-parameter → type-name : type-identifier
 //generic-parameter → type-name : protocol-composition-type
 let generic_parameter =
-    type_name .>> ws .>>. ((pchar ':' .>> ws >>. protocol_composition_type) <|>% []) |>> GenericParameter
+    type_name .>> ws .>>. ((pchar ':' .>> ws >>. protocol_composition_continuation) <|>% []) |>> GenericParameter
 
 //generic-parameter-list → generic-parameter | generic-parameter , generic-parameter-list
 let generic_parameter_list = sepBy1CharWS generic_parameter ','
 
 (**
 Here's another case where we've refactored the grammar a little to avoid backtracking.
-Once again, we take advantage of the fact that `protocol-composition-type` starts with
+Once again, we take advantage of the fact that `protocol_composition_continuation` starts with
 `type-identifier`.
 
 We have also noted that both `conformance-requirement` and `same-type-requirement`
@@ -423,7 +436,7 @@ start with `type-identifier`, and so have left-factored that into `requirement`.
 //conformance-requirement → type-identifier : type-identifier
 //conformance-requirement → type-identifier : protocol-composition-type
 let conformance_requirement_tail =
-    let p = skipChar ':' >>. ws >>. protocol_composition_type
+    let p = skipChar ':' >>. ws >>. protocol_composition_continuation
     (fun ident -> p |>> fun pct -> ConformanceRequirement(ident, pct))
 
 //same-type-requirement → type-identifier == type
@@ -575,6 +588,26 @@ let import_declaration =
     attempt (attributes_opt .>> skipString "import") .>> ws .>>. import_path |>> ImportDecl
 
 (**
+### Type Alias Declaration
+
+Reference: https://docs.swift.org/swift-book/ReferenceManual/Declarations.html#grammar_typealias-declaration
+*)
+//typealias-name → identifier
+let typealias_name = identifier
+
+//typealias-assignment → = type
+let typealias_assignment = skipChar '=' >>. ws >>. ``type``
+
+//typealias-declaration → attributes opt access-level-modifier opt typealias typealias-name generic-parameter-clause opt typealias-assignment
+let typealias_declaration =
+    pipe4
+    <| attempt (attributes_opt .>>. opt (access_level_modifier .>> ws) .>> skipString "typealias" .>> ws) 
+    <| (typealias_name .>> ws)
+    <| (opt (generic_parameter_clause .>> ws))
+    <| typealias_assignment
+    <| fun (a, b) c d e -> TypealiasDecl(a, b, c, d, e)
+
+(**
 ### Function Declarations
 
 Reference: https://docs.swift.org/swift-book/ReferenceManual/Declarations.html#grammar_function-declaration
@@ -682,6 +715,7 @@ let initializer_declaration =
 do declaration_ref :=
     // FIXME: need backtracking for all of these because they all start with optional attributes
     import_declaration <|>
+    typealias_declaration <|>
     function_declaration <|>
     struct_declaration <|>
     initializer_declaration <?>

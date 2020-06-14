@@ -26,6 +26,8 @@ type Attr =
 
 type ThrowSpec = Throws | Rethrows
 
+type MetatypeSpec = Type | Protocol
+
 // https://docs.swift.org/swift-book/ReferenceManual/Types.html#grammar_type-identifier
 type TypeIdentifier = TypeIdentifier of Name:string * GenericArgs:Type list * Nested:TypeIdentifier option
 
@@ -41,13 +43,12 @@ and Type =
     | ArrayType of Type
     //type → dictionary-type
     | IdentifiedType of TypeIdentifier
-    //type → tuple-type
     | TupleType of TupleTypeElement list
-    //type → optional-type
-    //type → implicitly-unwrapped-optional-type
+    | OptionalType of Type
+    | ImplicitlyUnwrappedOptionalType of Type
     | ProtocolCompositionType of TypeIdentifier list
     | OpaqueType of Type
-    | Metatype of Type
+    | Metatype of Type * Type:MetatypeSpec
     | SelfType
     | AnyType
 
@@ -118,15 +119,12 @@ type SwiftDecl =
     | ImportDecl of Attributes:Attr list * Path:string list // FIXME
     //declaration → constant-declaration
     //declaration → variable-declaration
-    //declaration → typealias-declaration
-    //declaration → function-declaration
+    | TypealiasDecl of Attributes:Attr list * Access:AccessLevelModifier option * Name:string * Generic:GenericParameterClause option * Type
     | FuncDecl of Attributes:Attr list * Modifiers:DeclModifier list * Name:string * Generic:GenericParameterClause option * Parameters:Parameter list * ThrowSpec:ThrowSpec option * ReturnType:AttributedType option * WhereClause:GenericRequirement list
     //declaration → enum-declaration
-    //declaration → struct-declaration
     | StructDecl of Attributes:Attr list * Access:AccessLevelModifier option * Name:string * Generic:GenericParameterClause option * Protocols:TypeIdentifier list * WhereClause:GenericRequirement list * Body:SwiftDecl list
     //declaration → class-declaration
     //declaration → protocol-declaration
-    //declaration → initializer-declaration
     | InitDecl of Attributes:Attr list * Modifiers:DeclModifier list * Failability:Optionality * Generic:GenericParameterClause option * Parameters:Parameter list * ThrowSpec:ThrowSpec option * WhereClause:GenericRequirement list
     //declaration → deinitializer-declaration
     //declaration → extension-declaration
