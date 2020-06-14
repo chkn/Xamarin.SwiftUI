@@ -47,7 +47,8 @@ and Type =
     | OptionalType of Type
     | ImplicitlyUnwrappedOptionalType of Type
     | ProtocolCompositionType of TypeIdentifier list
-    | OpaqueType of Type
+    | OpaqueType of Constraint:Type
+    | OpaqueTypeRef of MangledName:string
     | Metatype of Type * Type:MetatypeSpec
     | SelfType
     | AnyType

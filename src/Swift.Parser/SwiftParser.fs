@@ -58,9 +58,10 @@ let isWhitespaceChar = function
 This parser skips whitespace and comments:
 *)
 let unit_ws : Parser<_> =
-    skipSatisfyL isWhitespaceChar "whitespace" <|>
+    skipSatisfy isWhitespaceChar <|>
     (pstring "//" >>. skipRestOfLine true) <|>
     multilineComment
+    <?> "" // erase the error message (because it's basically just non-semantic noise)
 
 /// Skips zero or more whitespace characters and/or comments
 let ws = skipMany unit_ws
@@ -382,8 +383,9 @@ let type_inheritance_clause = skipChar ':' >>. ws >>. type_inheritance_list
 //type → self-type
 //type → Any
 //type → ( type )
-do type_ref :=
+do type_ref := (
     ( // First, take all the non-left-recursive parsers
+        (skipString "@_opaqueReturnTypeOf(\"" >>. charsTillString "\"" true 999 .>> skipRestOfLine true |>> OpaqueTypeRef) <|>
         attempt function_type <|> // backtrack to tuple_type
         array_type <|>
         //FIXME: dictionary-type
@@ -406,6 +408,7 @@ do type_ref :=
             stringReturn "Type" (Metatype(ty, Type)) <|>
             stringReturn "Protocol" (Metatype(ty, Protocol)))) <|>
         preturn ty
+    ) <?> "type"
 
 (**
 ### Generic Parameters
