@@ -219,7 +219,7 @@ namespace Swift.Interop
 		/// Returns the <see cref="SwiftType"/> of the given <see cref="Type"/>.
 		/// </summary>
 		/// <remarks>
-		/// By convention, types that are exposed to Swift must have a public static SwiftType property.
+		/// Types that are exposed to Swift are attributed with a <see cref="SwiftTypeAttribute"/>.
 		/// </remarks>
 		//
 		// Sync with SwiftValue.ToSwiftValue
@@ -256,14 +256,24 @@ namespace Swift.Interop
 						}
 					}
 
-					// If it's a nullable type, try to unwrap it
-					//  Only handle reified nullables here because we are caching this result
-					if (result == null && Nullability.IsReifiedNullable (type)) {
-						//  Nullable types -> Swift optional
-						var underlyingType = Nullability.GetUnderlyingType (type);
-						var underlyingSwiftType = SwiftType.Of (underlyingType, nullability.Strip ());
-						if (underlyingSwiftType != null)
-							result = SwiftCoreLib.GetOptionalType (underlyingSwiftType);
+					// Otherwise, see if there is some special handling for this type
+					if (result == null) {
+						// Special handling for tuples
+						// FIXME: Treat F# Unit as 0-element tuple?
+						if (typeof (ITuple).IsAssignableFrom (type)) {
+							var args = type.GetGenericArguments ();
+							result = SwiftCoreLib.GetTupleType (args, nullability);
+						}
+
+						// If it's a nullable type, try to unwrap it
+						//  Only handle reified nullables here because we are caching this result
+						else if (Nullability.IsReifiedNullable (type)) {
+							//  Nullable types -> Swift optional
+							var underlyingType = Nullability.GetUnderlyingType (type);
+							var underlyingSwiftType = SwiftType.Of (underlyingType, nullability.Strip ());
+							if (underlyingSwiftType != null)
+								result = SwiftCoreLib.GetOptionalType (underlyingSwiftType);
+						}
 					}
 					if (result != null)
 						registry.Add (type, result);

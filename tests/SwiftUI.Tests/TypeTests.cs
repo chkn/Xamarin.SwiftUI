@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 using Xunit;
 
@@ -15,6 +16,23 @@ namespace SwiftUI.Tests
 {
 	public class TypeTests : TestFixture
 	{
+		static Type GetTypeForTest (Type ty)
+		{
+			if (!ty.IsGenericTypeDefinition)
+				return ty;
+
+			var gargs = ty.GetGenericArguments ();
+			for (var i = 0; i < gargs.Length; i++) {
+				var constr = gargs [i].GetGenericParameterConstraints ().SingleOrDefault ();
+				if (constr == typeof (ITuple))
+					gargs [i] = typeof (ValueTuple<Text,Text>);
+				else
+					gargs [i] = typeof (Text);
+			}
+
+			return ty.MakeGenericType (gargs);
+		}
+
 		[Fact]
 		public void AllSwiftTypesCanBeCreated ()
 		{
@@ -22,7 +40,7 @@ namespace SwiftUI.Tests
 				.Assembly
 				.GetTypes ()
 				.Where (ty => !ty.IsAbstract && Attribute.IsDefined (ty, typeof (SwiftTypeAttribute), true))
-				.Select (ty => ty.IsGenericTypeDefinition? ty.MakeGenericType (Array.ConvertAll (ty.GetGenericArguments (), _ => typeof (Text))) : ty);
+				.Select (GetTypeForTest);
 			Assert.All (types, ty => Assert.NotNull (SwiftType.Of (ty)));
 		}
 

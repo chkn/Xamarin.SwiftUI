@@ -71,6 +71,13 @@ namespace Swift.Interop
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
+	public unsafe struct FullTypeMetadata
+	{
+		public ValueWitnessTable* ValueWitnessTable;
+		public TypeMetadata Metadata;
+	}
+
+	[StructLayout (LayoutKind.Sequential)]
 	public unsafe struct TypeMetadata
 	{
 		public MetadataKinds Kind;
@@ -89,10 +96,21 @@ namespace Swift.Interop
 #endif
 	}
 
+	//https://github.com/apple/swift/blob/db4ce1f01bbb1ecda5fe744905a7fe61b3ff5a25/include/swift/ABI/Metadata.h#L1475
 	[StructLayout (LayoutKind.Sequential)]
-	public unsafe struct FullTypeMetadata
+	public unsafe struct TupleTypeMetadata
 	{
-		public ValueWitnessTable* ValueWitnessTable;
-		public TypeMetadata Metadata;
+		public MetadataKinds Kind;
+		/// The number of elements.
+		public ulong NumElements;
+		public IntPtr Labels;
+
+		// ... followed by NumElements * Element...
+		[StructLayout (LayoutKind.Sequential)]
+		public struct Element
+		{
+			public TypeMetadata* Type;
+			public ulong Offset;
+		}
 	}
 }

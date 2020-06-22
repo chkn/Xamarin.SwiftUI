@@ -77,7 +77,7 @@ namespace Swift.Interop
 					}
 				}
 				var del = MetadataReq.MakeDelegate (args.Count - 1, ftnPtr);
-				return new SwiftType (lib, (IntPtr)del.DynamicInvoke (args.ToArray ()), genericArgs: typeArgs);
+				return new SwiftType (lib, (IntPtr)del.DynamicInvoke (args.ToArray ()), attributedType, typeArgs);
 			}
 		}
 	}

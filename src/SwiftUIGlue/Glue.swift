@@ -89,6 +89,15 @@ public func State_wrappedValue_getter<T>(dest : UnsafeMutablePointer<T>, state :
 }
 
 //
+// Indirectly returned struct: return pointer is passed in rax.
+//
+@_silgen_name("swiftui_TupleView_value")
+public func TupleView_value<T>(dest : UnsafeMutablePointer<TupleView<T>>, value : T)
+{
+	dest.initialize(to: TupleView(value))
+}
+
+//
 // Class methods: Context register is used for pointer to type metadata
 //
 #if os(iOS) || os(tvOS)

@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 using Swift.Interop;
 
@@ -44,6 +45,28 @@ namespace Swift
 		internal static SwiftType GetOptionalType (SwiftType wrapped)
 			=> new SwiftType (Lib, GetOptionalType (0, wrapped.Metadata), genericArgs: new[] { wrapped });
 
+		internal static SwiftType? GetTupleType (Type [] args, Nullability nullability = default)
+		{
+			var len = checked((ushort)args.Length);
+			switch (len) {
+			case 0:
+				return new SwiftType (Lib, "yt");
+			case 1:
+				// Swift just treats 1-ples as a single value
+				return SwiftType.Of (args [0], nullability [0]);
+			default:
+				var flags = new TupleTypeFlags (len);
+				var elts = stackalloc TypeMetadata* [len];
+				for (var i = 0; i < len; i++) {
+					var elTy = SwiftType.Of (args [i], nullability [i]);
+					if (elTy is null)
+						return null;
+					elts [i] = elTy.Metadata;
+				}
+				return new SwiftType (Lib, GetTupleType (0, flags, elts, null, null));
+			}
+		}
+
 		#endregion
 
 		#region Functions
@@ -62,13 +85,21 @@ namespace Swift
 		//  For values for the first arg, see https://github.com/apple/swift/blob/ffc0f6f783a53573eb79440f16584e0422378b16/include/swift/ABI/MetadataValues.h#L1594
 		//  (generally we pass 0 for complete metadata)
 
-		[DllImport (Path, EntryPoint = "swift_getOpaqueTypeMetadata")]
-		internal unsafe static extern IntPtr GetOpaqueTypeMetadata (long metadataReq, void** arguments, IntPtr descriptor, uint index);
+		[DllImport (Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "swift_getOpaqueTypeMetadata")]
+		internal static extern IntPtr GetOpaqueTypeMetadata (long metadataReq, void** arguments, IntPtr descriptor, uint index);
 
 		[DllImport (Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$sSqMa")]
 		static extern IntPtr GetOptionalType (long metadataReq, TypeMetadata* wrappedType);
+
+		//https://github.com/apple/swift/blob/c925ce502b65ddca05ee8639d0d6ad0ab83d60a0/include/swift/Runtime/Metadata.h#L481
+		[DllImport (Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "swift_getTupleTypeMetadata")]
+		static extern IntPtr GetTupleType (long metadataReq, TupleTypeFlags flags, TypeMetadata** elements, string? labels, ValueWitnessTable* proposedWitnesses);
 
 		#endregion
 	}

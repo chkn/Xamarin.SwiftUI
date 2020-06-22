@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 namespace Swift.Interop
 {
@@ -113,9 +114,29 @@ namespace Swift.Interop
 			return obj switch {
 				ISwiftValue swiftValue => swiftValue.GetSwiftHandle (),
 				string val => new SwiftHandle (new Swift.String (val), swiftType, destroyOnDispose: true),
+				ITuple tup => GetTupleHandle (tup, swiftType, nullability),
 				_ when type.IsPrimitive => new SwiftHandle (obj, swiftType),
 				_ => throw new NotImplementedException (type.ToString ())
 			};
+		}
+
+		unsafe static SwiftHandle GetTupleHandle (ITuple tuple, SwiftType tupleType, Nullability nullability)
+		{
+			var data = new byte [tupleType.NativeDataSize];
+			var tupleMetadata = (TupleTypeMetadata*)tupleType.Metadata;
+			Debug.Assert (tupleMetadata->NumElements == (ulong)tuple.Length);
+
+			var elts = (TupleTypeMetadata.Element*)(tupleMetadata + 1);
+			fixed (byte* dataPtr = &data [0]) {
+				for (var i = 0; i < tuple.Length; i++) {
+					using (var handle = tuple [i].GetSwiftHandle (nullability [i])) {
+						var sty = handle.SwiftType;
+						var dest = dataPtr + elts [i].Offset;
+						sty.Transfer (dest, handle.Pointer, TransferFuncType.InitWithCopy);
+					}
+				}
+			}
+			return new SwiftHandle (data, tupleType, destroyOnDispose: true);
 		}
 
 		public unsafe static TValue FromNative<TValue> (IntPtr ptr, Nullability nullability = default)
