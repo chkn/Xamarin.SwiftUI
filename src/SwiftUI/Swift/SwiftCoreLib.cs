@@ -11,7 +11,7 @@ namespace Swift
 		public const string Path = "/usr/lib/swift/libswiftCore.dylib";
 
 		// convenience
-		static NativeLib Lib => NativeLib.Get (Path);
+		internal static NativeLib Lib => NativeLib.Get (Path);
 
 		#region Types
 		// Special types like String, Double require the mangling from https://github.com/apple/swift/blob/master/docs/ABI/Mangling.rst#types
@@ -34,7 +34,7 @@ namespace Swift
 				// Double is actually a type alias for Float64, hence why we use Sd for mangling here
 				TypeCode.Double => new SwiftType (Lib, "Sd", typeof (Double)),
 				TypeCode.Single => new SwiftType (Lib, "Sf"),
-				TypeCode.Boolean => throw new NotImplementedException (),
+				TypeCode.Boolean => new SwiftType (Lib, "Sb"),
 				TypeCode.Char => throw new NotImplementedException (),
 				TypeCode.DateTime => throw new NotImplementedException (),
 				TypeCode.Decimal => throw new NotImplementedException (),
@@ -43,29 +43,7 @@ namespace Swift
 		}
 
 		internal static SwiftType GetOptionalType (SwiftType wrapped)
-			=> new SwiftType (Lib, GetOptionalType (0, wrapped.Metadata), genericArgs: new[] { wrapped });
-
-		internal static SwiftType? GetTupleType (Type [] args, Nullability nullability = default)
-		{
-			var len = checked((ushort)args.Length);
-			switch (len) {
-			case 0:
-				return new SwiftType (Lib, "yt");
-			case 1:
-				// Swift just treats 1-ples as a single value
-				return SwiftType.Of (args [0], nullability [0]);
-			default:
-				var flags = new TupleTypeFlags (len);
-				var elts = stackalloc TypeMetadata* [len];
-				for (var i = 0; i < len; i++) {
-					var elTy = SwiftType.Of (args [i], nullability [i]);
-					if (elTy is null)
-						return null;
-					elts [i] = elTy.Metadata;
-				}
-				return new SwiftType (Lib, GetTupleType (0, flags, elts, null, null));
-			}
-		}
+			=> new SwiftType (Lib, GetOptionalType (0, wrapped.Metadata), "Sq", genericArgs: new[] { wrapped });
 
 		#endregion
 
@@ -99,7 +77,7 @@ namespace Swift
 		[DllImport (Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "swift_getTupleTypeMetadata")]
-		static extern IntPtr GetTupleType (long metadataReq, TupleTypeFlags flags, TypeMetadata** elements, string? labels, ValueWitnessTable* proposedWitnesses);
+		internal static extern IntPtr GetTupleType (long metadataReq, TupleTypeFlags flags, TypeMetadata** elements, string? labels, ValueWitnessTable* proposedWitnesses);
 
 		#endregion
 	}

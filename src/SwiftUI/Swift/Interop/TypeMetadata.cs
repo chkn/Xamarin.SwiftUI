@@ -58,6 +58,15 @@ namespace Swift.Interop
 
 	public static class MetadataKind
 	{
+		public static bool IsNominal (this MetadataKinds kind) => kind switch
+		{
+			MetadataKinds.Struct   => true,
+			MetadataKinds.Enum     => true,
+			MetadataKinds.Optional => true,
+			_ when kind.IsClass () => true,
+			_ => false
+		};
+
 		public static bool IsClass (this MetadataKinds kind)
 			=> kind == MetadataKinds.Class || (long)kind > 2047;
 
@@ -81,6 +90,8 @@ namespace Swift.Interop
 	public unsafe struct TypeMetadata
 	{
 		public MetadataKinds Kind;
+
+		// Only valid if the type is nominal
 		public NominalTypeDescriptor* TypeDescriptor;
 
 #if DEBUG_TOSTRING
@@ -89,7 +100,7 @@ namespace Swift.Interop
 			var str = Kind.ToString ();
 			if (Kind == MetadataKinds.Struct)
 				str += ((StructDescriptor*)TypeDescriptor)->ToString ();
-			else
+			else if (Kind.IsNominal ())
 				str += TypeDescriptor->ToString ();
 			return str;
 		}
