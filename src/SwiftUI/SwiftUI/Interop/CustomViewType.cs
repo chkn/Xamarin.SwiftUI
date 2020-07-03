@@ -31,19 +31,12 @@ namespace SwiftUI.Interop
 	unsafe class CustomViewType : ManagedSwiftType
 	{
 		ViewProtocolConformanceDescriptor* viewConformanceDesc;
-		ProtocolWitnessTable* viewConformance;
 
 		public override int NativeFieldsOffset => sizeof (CustomViewData);
 
 		public override uint AdditionalMetadataPointers => CustomViewMetadata.AdditionalPointers;
 
-		public ProtocolWitnessTable* ViewConformance {
-			get {
-				if (viewConformance == null)
-					viewConformance = CreateViewConformance ();
-				return viewConformance;
-			}
-		}
+		public ProtocolWitnessTable* ViewConformance { get; }
 
 		public PropertyInfo BodyProperty { get; }
 
@@ -62,6 +55,11 @@ namespace SwiftUI.Interop
 				// Currently unused, so don't force allocation if it's a custom view
 				//thunkMetadata->ThunkViewTViewConformance = swiftBodyType.ViewConformance;
 				thunkMetadata->ThunkViewTViewConformance = null;
+
+				// Proactively create View conformance. While generics that are explicitly constrained to View
+				//  have the conformance passed in, other cases, such as TupleView, look up the conformance
+				//  dynamically, so it's important to register it eagerly.
+				ViewConformance = CreateViewConformance ();
 			} catch {
 				// Ensure we don't leak allocated unmanaged memory
 				Dispose (true);
