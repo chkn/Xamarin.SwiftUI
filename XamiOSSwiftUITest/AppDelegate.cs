@@ -4,7 +4,7 @@ using Foundation;
 using UIKit;
 
 using SwiftUI;
-using XamMacSwiftUITest;
+using SwiftUITestShared;
 
 namespace XamiOSSwiftUITest
 {

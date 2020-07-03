@@ -2,7 +2,7 @@
 
 using SwiftUI;
 
-namespace XamMacSwiftUITest
+namespace SwiftUITestShared
 {
 	public partial class ClickButton : View
 	{

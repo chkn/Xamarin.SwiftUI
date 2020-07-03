@@ -5,6 +5,7 @@ using Foundation;
 using CoreGraphics;
 
 using SwiftUI;
+using SwiftUITestShared;
 
 namespace XamMacSwiftUITest
 {
@@ -31,5 +32,5 @@ namespace XamMacSwiftUITest
 
 			window.MakeKeyAndOrderFront (this);
 		}
-    }
+	}
 }
