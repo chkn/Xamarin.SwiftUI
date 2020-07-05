@@ -10,10 +10,15 @@ namespace SwiftUI
 	using static TupleView;
 
 	[SwiftImport (SwiftUILib.Path)]
-	public sealed class TupleView<TTuple> : View
+	public sealed class TupleView<TTuple> : View, ISwiftValue
 		where TTuple : ITuple
 	{
 		readonly TTuple value;
+
+		SwiftType? swiftType;
+		Nullability valueNullability;
+
+		protected override SwiftType SwiftType => swiftType ??= base.SwiftType;
 
 		public TupleView (TTuple value)
 		{
@@ -22,8 +27,14 @@ namespace SwiftUI
 
 		protected override unsafe void InitNativeData (void* handle)
 		{
-			using (var val = value.GetSwiftHandle ())
+			using (var val = value.GetSwiftHandle (valueNullability))
 				Init (handle, val.Pointer, val.SwiftType.Metadata);
+		}
+
+		void ISwiftValue.SetSwiftType (SwiftType swiftType, Nullability nullability)
+		{
+			this.swiftType = swiftType;
+			this.valueNullability = nullability [0];
 		}
 	}
 

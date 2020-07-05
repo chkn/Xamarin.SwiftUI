@@ -4,6 +4,26 @@ using SwiftUI;
 
 namespace SwiftUITestShared
 {
+	public partial class StackedView : View
+	{
+		public TupleView<(ClickButton, Text)> Body =>
+			new TupleView<(ClickButton, Text)> ((
+				new ClickButton (),
+				new Text ("Bottom text")
+			));
+	}
+
+	public partial class ClickButton : View
+	{
+		State<(string, bool)> state = new State<(string, bool)> (("Please click this button:", true));
+		public TupleView<(Text, Button<Text>?)> Body =>
+			new TupleView<(Text, Button<Text>?)> ((
+				new Text (state.Value.Item1),
+				state.Value.Item2 ? new Button<Text> (() => state.Value = ("Thanks!", false), new Text ("Click me!")) : null
+				));
+	}
+
+	/*
 	public partial class ClickButton : View
 	{
 		State<int?> counter = new State<int?> (null);
@@ -25,4 +45,6 @@ namespace SwiftUITestShared
 			}
 		}
 	}
+	*/
+
 }

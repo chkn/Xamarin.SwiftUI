@@ -60,6 +60,9 @@ namespace Swift.Interop
 		public static Nullability Of (FieldInfo field)
 			=> Of (field.FieldType, GetAttributedNullability (field));
 
+		public static Nullability Of (PropertyInfo prop)
+			=> Of (prop.PropertyType, GetAttributedNullability (prop));
+
 		internal static Nullability Of (Type type, ReadOnlySpan<byte> attributedNullability = default)
 			=> Of (type, ref attributedNullability);
 
@@ -169,9 +172,8 @@ namespace Swift.Interop
 			return prop.GetValue (value);
 		}
 
-		public static TNullable Wrap<TNullable> (object? value)
+		public static object? Wrap (object? value, Type ty)
 		{
-			var ty = typeof (TNullable);
 			if (value == null && !ty.IsValueType)
 				return default!;
 			if (IsReifiedNullable (ty)) {
@@ -187,7 +189,7 @@ namespace Swift.Interop
 				if (!(transform is null))
 					value = transform.Invoke (null, new[] { value });
 			}
-			return (TNullable)value!;
+			return value;
 		}
 
 		/// <summary>

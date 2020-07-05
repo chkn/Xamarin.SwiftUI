@@ -232,10 +232,9 @@ namespace Swift.Interop
 		/// </remarks>
 		//
 		// Sync with SwiftValue.ToSwiftValue
-		public static SwiftType? Of (Type type, Nullability? givenNullability = default)
+		public static SwiftType? Of (Type type, Nullability nullability = default)
 		{
 			SwiftType? result;
-			var nullability = givenNullability ?? Nullability.Of (type);
 			lock (registry) {
 				if (!registry.TryGetValue (type, out result)) {
 					// First see if it is a core type

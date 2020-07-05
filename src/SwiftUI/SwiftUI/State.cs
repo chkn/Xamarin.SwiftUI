@@ -11,13 +11,14 @@ namespace SwiftUI
 	using static State;
 
 	[SwiftImport (SwiftUILib.Path)]
-	public sealed class State<TValue> : SwiftStruct
+	public sealed class State<TValue> : SwiftStruct, ISwiftValue
 	{
 		TValue initialValue;
 
-		SwiftType? valueType;
+		SwiftType? swiftType, valueType;
 		Nullability valueNullability;
 
+		protected override SwiftType SwiftType => swiftType ??= base.SwiftType;
 		SwiftType ValueType
 			=> valueType ??= SwiftType.Of (typeof (TValue), valueNullability) ?? throw new UnknownSwiftTypeException (typeof (TValue));
 
@@ -34,7 +35,7 @@ namespace SwiftUI
 					// FIXME: Results in 2 copies- can we do better?
 					using (var handle = GetSwiftHandle ())
 						GetWrappedValue ((void*)ptr, handle.Pointer, ValueType.Metadata);
-					return SwiftValue.FromNative<TValue> (ptr, valueNullability);
+					return (TValue)SwiftValue.FromNative (ptr, typeof (TValue), valueNullability)!;
 				} finally {
 					Marshal.FreeHGlobal (ptr);
 				}
@@ -58,10 +59,11 @@ namespace SwiftUI
 			this.initialValue = initialValue;
 		}
 
-		protected override void SetNullability (Nullability nullability)
+		void ISwiftValue.SetSwiftType (SwiftType swiftType, Nullability nullability)
 		{
 			Debug.Assert (valueType == null);
-			valueNullability = nullability [0];
+			this.swiftType = swiftType;
+			this.valueNullability = nullability [0];
 		}
 
 		protected override unsafe void InitNativeData (void* handle)

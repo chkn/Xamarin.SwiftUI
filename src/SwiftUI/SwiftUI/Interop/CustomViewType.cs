@@ -40,6 +40,10 @@ namespace SwiftUI.Interop
 
 		public PropertyInfo BodyProperty { get; }
 
+		public Nullability BodyNullability { get; }
+
+		public SwiftType BodySwiftType { get; }
+
 		internal CustomViewType (Type customViewType): base (customViewType, MetadataKinds.Struct)
 		{
 			try {
@@ -49,9 +53,12 @@ namespace SwiftUI.Interop
 				if (BodyProperty is null || !BodyProperty.CanRead || BodyProperty.CanWrite || !BodyProperty.PropertyType.IsSubclassOf (typeof (View)))
 					throw new ArgumentException ($"View implementations must either override ViewType, or declare a public, read-only `Body` property returning a concrete type of `{nameof (View)}`");
 
+				BodyNullability = Nullability.Of (BodyProperty);
+				BodySwiftType = SwiftType.Of (BodyProperty.PropertyType, BodyNullability)!;
+
 				var thunkMetadata = (CustomViewMetadata*)fullMetadata;
 				thunkMetadata->ThunkViewU = Metadata;
-				thunkMetadata->ThunkViewT = SwiftType.Of (BodyProperty.PropertyType)!.Metadata;
+				thunkMetadata->ThunkViewT = BodySwiftType.Metadata;
 				// Currently unused, so don't force allocation if it's a custom view
 				//thunkMetadata->ThunkViewTViewConformance = swiftBodyType.ViewConformance;
 				thunkMetadata->ThunkViewTViewConformance = null;
@@ -88,7 +95,7 @@ namespace SwiftUI.Interop
 			*viewConformanceDesc = default;
 			viewConformanceDesc->Populate (Metadata->TypeDescriptor);
 
-			var bodySwiftType = SwiftType.Of (BodyProperty.PropertyType)!;
+			var bodySwiftType = BodySwiftType;
 			var bodyConformance = bodySwiftType.GetProtocolConformance (SwiftUILib.ViewProtocol);
 			var witnessTable = SwiftCoreLib.GetProtocolWitnessTable (&viewConformanceDesc->ConformanceDescriptor, Metadata, null);
 
@@ -120,20 +127,24 @@ namespace SwiftUI.Interop
 			((CustomViewData*)data)->View.UnRef ();
 		}
 
-		// FIXME: View data appears to be passed in context register
+		// View data appears to be passed in context register
+		// FIXME: Migrate to UnmanagedCallersOnlyAttribute once we have that
 		static void Body (void* dest, void* dataPtr)
 		{
 			var data = (CustomViewData*)dataPtr;
 			var view = data->View;
+			var customViewType = view.CustomViewType!;
+			var nullability = customViewType.BodyNullability;
 
 			// HACK: Overwrite our data array with the given native data
 			view.OverwriteNativeData (data);
 
 			// Now, when we call Body, it will operate on the new data
-			var body = (View)view.CustomViewType!.BodyProperty.GetValue (view);
+			var body = (ISwiftValue)customViewType.BodyProperty.GetValue (view);
+			body.SetSwiftType (customViewType.BodySwiftType, nullability);
 
 			// Copy the returned view into dest
-			using (var handle = body.GetSwiftHandle ())
+			using (var handle = body.GetSwiftHandle (nullability))
 				handle.SwiftType.Transfer (dest, handle.Pointer, TransferFuncType.InitWithCopy);
 		}
 		static readonly PtrPtrFunc bodyFn = Body;

@@ -24,7 +24,7 @@ namespace XamiOSSwiftUITest
         {
             Window = new UIWindow (UIScreen.MainScreen.Bounds);
 
-            Window.RootViewController = new UIHostingViewController (new ClickButton ());
+            Window.RootViewController = new UIHostingViewController (new StackedView ());
 
             Window.MakeKeyAndVisible ();
             return true;

@@ -27,12 +27,14 @@ let ``Nullability.IsNull`` () =
     Assert.False (Nullability.IsNull (ValueSome null))
 
 #nowarn "9" // unverifiable code
-let assertRoundtrip v =
+let assertRoundtrip (v : 'a) =
     use hnd = v.GetSwiftHandle()
-    hnd.Pointer
-    |> NativePtr.ofVoidPtr<int>
-    |> NativePtr.toNativeInt
-    |> SwiftValue.FromNative
+    let ptr =
+        hnd.Pointer
+        |> NativePtr.ofVoidPtr<int>
+        |> NativePtr.toNativeInt
+    SwiftValue.FromNative(ptr, typeof<'a>)
+    |> unbox
     |> (=) v
     |> Assert.True
 

@@ -17,6 +17,28 @@ namespace Swift.Interop
 	public interface ISwiftValue
 	{
 		/// <summary>
+		/// Sets updated <see cref="SwiftType"/> and <see cref="Nullability"/> information for generic types
+		///  exposed to Swift.
+		/// </summary>
+		/// <remarks>
+		/// This only needs to be implemented for generic types, and should generally be implemented explicitly.
+		/// <para/>
+		/// Swift only supports nullability by wrapping values in <c>Optional</c>. So, if a managed value is
+		///  nullable, we must wrap its <see cref="SwiftType"/> accordingly.
+		/// When exposed as a field or return value, nullability information for reference types is
+		///  only available as an attribute on the member declaration itself. Thus, if this is a generic
+		///  type that exposes values of its type parameter(s) to Swift, in order to calculate an
+		///  accurate <see cref="SwiftType"/> for those values, this type would need access to the attributes
+		///  on the member in which it is declared. That information can be provided through this method.
+		/// </remarks>
+		void SetSwiftType (SwiftType swiftType, Nullability nullability)
+		{
+			var ty = GetType ();
+			if (ty.IsGenericType)
+				throw new NotImplementedException ($"Generic type '{ty}' must implement SetSwiftType");
+		}
+
+		/// <summary>
 		/// Gets a <see cref="SwiftHandle"/> to the native Swift data.
 		/// </summary>
 		/// <remarks>
@@ -85,16 +107,24 @@ namespace Swift.Interop
 		///	 and <paramref name="nullability"/> returns <c>false</c> from <see cref="Nullability.IsNullable"/>.</exception>
 		/// <exception cref="ArgumentException">Thrown when the type <typeparamref name="T"/> cannot
 		///  be directly bridged to Swift</exception>
-		public static unsafe SwiftHandle GetSwiftHandle<T> (this T obj, Nullability nullability = default)
+		//
+		// N.B. We need this overload so we don't lose type information for nullable value types.
+		public static SwiftHandle GetSwiftHandle<T> (this T obj, Nullability nullability = default)
+			=> GetSwiftHandle (obj, typeof (T), nullability);
+
+		public static unsafe SwiftHandle GetSwiftHandle (this object? obj, Type type, Nullability nullability = default)
 		{
-			var type = typeof (T);
 			var swiftType = SwiftType.Of (type, nullability);
 			if (swiftType == null && obj != null) {
 				type = obj.GetType ();
 				swiftType = SwiftType.Of (type, nullability);
 			}
-			if (swiftType == null)
-				throw new ArgumentException ($"Type '{type}' cannot be bridged to Swift");
+			if (swiftType == null) {
+				var msg = $"Type '{type}' cannot be bridged to Swift.";
+				if (type == typeof (object))
+					msg += " You may need to pass a more specific type to GetSwiftHandle.";
+				throw new ArgumentException (msg);
+			}
 
 			// Nullable types are bridged to Swift optionals
 			if (nullability.IsNullable || Nullability.IsReifiedNullable (type)) {
@@ -108,7 +138,7 @@ namespace Swift.Interop
 						return Optional.Wrap (unwrappedHandle.Pointer, swiftType, unwrappedHandle.SwiftType);
 				}
 			} else if (obj is null) {
-				throw new ArgumentNullException (nameof (obj));
+				throw new ArgumentNullException (nameof (obj), "Value cannot be null given the nullability info provided.");
 			}
 
 			return obj switch {
@@ -127,9 +157,10 @@ namespace Swift.Interop
 			Debug.Assert (tupleMetadata->NumElements == (ulong)tuple.Length);
 
 			var elts = (TupleTypeMetadata.Element*)(tupleMetadata + 1);
+			var types = tuple.GetType ().GetGenericArguments ();
 			fixed (byte* dataPtr = &data [0]) {
 				for (var i = 0; i < tuple.Length; i++) {
-					using (var handle = tuple [i].GetSwiftHandle (nullability [i])) {
+					using (var handle = tuple [i].GetSwiftHandle (types [i], nullability [i])) {
 						var sty = handle.SwiftType;
 						var dest = dataPtr + elts [i].Offset;
 						sty.Transfer (dest, handle.Pointer, TransferFuncType.InitWithCopy);
@@ -139,10 +170,23 @@ namespace Swift.Interop
 			return new SwiftHandle (data, tupleType, destroyOnDispose: true);
 		}
 
-		public unsafe static TValue FromNative<TValue> (IntPtr ptr, Nullability nullability = default)
+		// Assumes tupleType has a constructor that takes all the elements
+		unsafe static object GetTupleFromNative (byte* ptr, Type tupleType, Nullability nullability)
 		{
-			var ty = typeof (TValue);
+			Debug.Assert (!nullability.IsNullable);
+			var tupleMetadata = (TupleTypeMetadata*)SwiftType.Of (tupleType)!.Metadata;
+			var elts = (TupleTypeMetadata.Element*)(tupleMetadata + 1);
 
+			var types = tupleType.GetGenericArguments ();
+			var args = new object? [types.Length];
+			for (var i = 0; i < types.Length; i++)
+				args [i] = FromNative ((IntPtr)(ptr + elts [i].Offset), types [i], nullability [i]);
+
+			return Activator.CreateInstance (tupleType, args);
+		}
+
+		public static unsafe object? FromNative (IntPtr ptr, Type ty, Nullability nullability = default)
+		{
 			if (nullability.IsNullable || Nullability.IsReifiedNullable (ty)) {
 				// assume this is a Swift Optional
 				var underlyingType = Nullability.GetUnderlyingType (ty);
@@ -151,16 +195,11 @@ namespace Swift.Interop
 					throw new ArgumentException ($"Type '{underlyingType}' cannot be bridged to Swift");
 
 				if (wrappedType.GetEnumTagSinglePayload ((void*)ptr, 1) == 1 /*nil*/)
-					return Nullability.Wrap<TValue> (null);
+					return Nullability.Wrap (null, ty)!;
 				else
-					return Nullability.Wrap<TValue> (FromNative (ptr, underlyingType));
+					return Nullability.Wrap (FromNative (ptr, underlyingType, nullability.Strip ()), ty);
 			}
 
-			return (TValue)FromNative (ptr, ty);
-		}
-
-		static object FromNative (IntPtr ptr, Type ty)
-		{
 			switch (Type.GetTypeCode (ty)) {
 
 			case TypeCode.String:
@@ -168,6 +207,9 @@ namespace Swift.Interop
 				// FIXME: lifetime?? Should we dispose this? Depends on where the ptr is coming from
 				return str.ToString ();
 			}
+
+			if (typeof (ITuple).IsAssignableFrom (ty))
+				return GetTupleFromNative ((byte*)ptr, ty, nullability);
 
 			if (ty.IsValueType)
 				return Marshal.PtrToStructure (ptr, ty);
