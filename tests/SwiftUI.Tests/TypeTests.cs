@@ -73,6 +73,8 @@ namespace SwiftUI.Tests
 		[InlineData (typeof (Optional.Unpacked<>), typeof (sbyte))]
 		[InlineData (typeof (Optional.Unpacked<>), typeof (int))]
 		[InlineData (typeof (Optional.Unpacked<>), typeof (long))]
+		// NOTE: For Double? we seem to match the in-memory representation, but the
+		//  calling convention differs.
 		[InlineData (typeof (Optional.Unpacked<>), typeof (double))]
 		[InlineData (typeof (Optional.Unpacked<>), typeof (float))]
 		public void OptionalTypes (Type optionalType, Type wrappedType)
