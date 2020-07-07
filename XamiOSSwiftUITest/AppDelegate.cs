@@ -4,6 +4,7 @@ using Foundation;
 using UIKit;
 
 using SwiftUI;
+using SwiftUITestShared;
 
 namespace XamiOSSwiftUITest
 {
@@ -29,31 +30,4 @@ namespace XamiOSSwiftUITest
             return true;
         }
     }
-
-    public partial class ClickButton : View
-    {
-        State<int?> counter = new State<int?> (null);
-
-        // Using a Custom Asset Colour
-        const string ColourAssetName = "MyYellow";
-        Color myYellow = new Color (ColourAssetName);
-
-        public ModifiedBackground<Button<Text>, ModifiedBackground<Text, Color>> Body {
-            get {
-                Button<Text> button = null;
-                button = new Button<Text> (
-                    () => {
-                        var value = counter.Value ?? 0;
-                        counter.Value = value + 1;
-                    }, new Text (string.Format (counter.Value.HasValue ? "Clicked {0} times" : "Never been clicked", counter.Value))
-                );
-
-                var colour = counter.Value.HasValue ? counter.Value % 2 == 0 ? Color.Red : Color.Blue : myYellow;
-                var colourText = counter.Value.HasValue ? counter.Value % 2 == 0 ? nameof (Color.Red) : nameof (Color.Blue) : ColourAssetName;
-
-                return button.Background (new Text (colourText).Background (colour));
-            }
-        }
-    }
 }
-
