@@ -145,6 +145,7 @@ namespace Swift.Interop
 				ISwiftValue swiftValue => swiftValue.GetSwiftHandle (),
 				string val => new SwiftHandle (new Swift.String (val), swiftType, destroyOnDispose: true),
 				ITuple tup => GetTupleHandle (tup, swiftType, nullability),
+				bool val => new SwiftHandle (val? (byte)1 : (byte)0, swiftType), // FIXME: Don't box and pin a byte
 				_ when type.IsPrimitive => new SwiftHandle (obj, swiftType),
 				_ => throw new NotImplementedException (type.ToString ())
 			};
@@ -206,6 +207,9 @@ namespace Swift.Interop
 				var str = Marshal.PtrToStructure<Swift.String> (ptr);
 				// FIXME: lifetime?? Should we dispose this? Depends on where the ptr is coming from
 				return str.ToString ();
+
+			case TypeCode.Boolean:
+				return Marshal.ReadByte (ptr) == 1;
 			}
 
 			if (typeof (ITuple).IsAssignableFrom (ty))
