@@ -15,26 +15,15 @@ namespace SwiftUI
 	{
 		readonly TTuple value;
 
-		SwiftType? swiftType;
-		Nullability valueNullability;
-
-		protected override SwiftType SwiftType => swiftType ??= base.SwiftType;
-
 		public TupleView (TTuple value)
 		{
 			this.value = value;
 		}
 
-		protected override unsafe void InitNativeData (void* handle)
+		protected override unsafe void InitNativeData (void* handle, Nullability nullability)
 		{
-			using (var val = value.GetSwiftHandle (valueNullability))
+			using (var val = value.GetSwiftHandle (nullability [0]))
 				Init (handle, val.Pointer, val.SwiftType.Metadata);
-		}
-
-		void ISwiftValue.SetSwiftType (SwiftType swiftType, Nullability nullability)
-		{
-			this.swiftType = swiftType;
-			this.valueNullability = nullability [0];
 		}
 	}
 

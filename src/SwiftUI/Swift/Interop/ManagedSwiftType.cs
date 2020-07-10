@@ -136,8 +136,7 @@ namespace Swift.Interop
 		{
 			foreach (var fldInfo in NativeFields) {
 				var fld = (ISwiftFieldExposable)fldInfo.Field.GetValue (instance);
-				fld.SetSwiftType (fldInfo.SwiftType, fldInfo.Nullability);
-				fld.InitNativeData ((byte*)data + fldInfo.Offset);
+				fld.InitNativeData ((byte*)data + fldInfo.Offset, fldInfo.Nullability);
 			}
 		}
 

@@ -17,34 +17,14 @@ namespace Swift.Interop
 	public interface ISwiftValue
 	{
 		/// <summary>
-		/// Sets updated <see cref="SwiftType"/> and <see cref="Nullability"/> information for generic types
-		///  exposed to Swift.
-		/// </summary>
-		/// <remarks>
-		/// This only needs to be implemented for generic types, and should generally be implemented explicitly.
-		/// <para/>
-		/// Swift only supports nullability by wrapping values in <c>Optional</c>. So, if a managed value is
-		///  nullable, we must wrap its <see cref="SwiftType"/> accordingly.
-		/// When exposed as a field or return value, nullability information for reference types is
-		///  only available as an attribute on the member declaration itself. Thus, if this is a generic
-		///  type that exposes values of its type parameter(s) to Swift, in order to calculate an
-		///  accurate <see cref="SwiftType"/> for those values, this type would need access to the attributes
-		///  on the member in which it is declared. That information can be provided through this method.
-		/// </remarks>
-		void SetSwiftType (SwiftType swiftType, Nullability nullability)
-		{
-			var ty = GetType ();
-			if (ty.IsGenericType)
-				throw new NotImplementedException ($"Generic type '{ty}' must implement SetSwiftType");
-		}
-
-		/// <summary>
 		/// Gets a <see cref="SwiftHandle"/> to the native Swift data.
 		/// </summary>
 		/// <remarks>
 		/// The returned <see cref="SwiftHandle"/> must be disposed when no longer needed.
 		/// </remarks>
-		SwiftHandle GetSwiftHandle ();
+		//
+		// Not public to ensure calls go through SwiftValue.GetSwiftHandle
+		protected internal SwiftHandle GetSwiftHandle (Nullability nullability);
 
 		/// <summary>
 		/// Decrements any references to reference-counted data held by this
@@ -80,7 +60,8 @@ namespace Swift.Interop
 		///  directly (e.g. using a <c>fixed</c> statement), rather than calling
 		///  this method.
 		/// </remarks>
-		SwiftHandle ISwiftValue.GetSwiftHandle () => new SwiftHandle (this, SwiftType.Of (typeof (T))!);
+		SwiftHandle ISwiftValue.GetSwiftHandle (Nullability nullability)
+			=> new SwiftHandle (this, SwiftType.Of (typeof (T), nullability)!);
 
 		// Default implementation provided for POD only.
 		void ISwiftValue.Dispose ()
@@ -112,6 +93,7 @@ namespace Swift.Interop
 		public static SwiftHandle GetSwiftHandle<T> (this T obj, Nullability nullability = default)
 			=> GetSwiftHandle (obj, typeof (T), nullability);
 
+		/// <inheritdoc cref="GetSwiftHandle{T}(T, Nullability)" />
 		public static unsafe SwiftHandle GetSwiftHandle (this object? obj, Type type, Nullability nullability = default)
 		{
 			var swiftType = SwiftType.Of (type, nullability);
@@ -142,7 +124,7 @@ namespace Swift.Interop
 			}
 
 			return obj switch {
-				ISwiftValue swiftValue => swiftValue.GetSwiftHandle (),
+				ISwiftValue swiftValue => swiftValue.GetSwiftHandle (nullability),
 				string val => new SwiftHandle (new Swift.String (val), swiftType, destroyOnDispose: true),
 				ITuple tup => GetTupleHandle (tup, swiftType, nullability),
 				bool val => new SwiftHandle (val? (byte)1 : (byte)0, swiftType), // FIXME: Don't box and pin a byte

@@ -17,11 +17,12 @@ namespace Swift.Interop
 		/// <param name="attributedType">The <see cref="Type"/> that is attributed by this instance.</param>
 		/// <param name="typeArgs">The <see cref="SwiftType"/> for each generic argument or element type,
 		///  or <c>null</c> if this type has no generic arguments or element types.</param>
-		/// <remarks>
+		/// <returns>the <see cref="SwiftType"/> for the given attributed managed type, or <c>null</c>.</returns>
+		/// <remarks>	
 		/// This method should only be called by <see cref="SwiftType.Of(Type)"/>.
 		///  Do not call this this method directly.
 		/// </remarks>
-		protected internal abstract SwiftType GetSwiftType (Type attributedType, SwiftType []? typeArgs);
+		protected internal abstract SwiftType? GetSwiftType (Type attributedType, SwiftType []? typeArgs);
 	}
 
 	/// <summary>

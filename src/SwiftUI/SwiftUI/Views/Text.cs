@@ -16,7 +16,7 @@ namespace SwiftUI
 			this.verbatim = verbatim;
 		}
 
-		protected override void InitNativeData (void* handle)
+		protected override void InitNativeData (void* handle, Nullability nullability)
 		{
 			using (var str = new Swift.String (verbatim))
 				Init (handle, str);

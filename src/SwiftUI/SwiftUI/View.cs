@@ -23,8 +23,8 @@ namespace SwiftUI
 	[AttributeUsage (AttributeTargets.Class, Inherited = true)]
 	sealed class CustomViewAttribute : SwiftTypeAttribute
 	{
-		protected internal override SwiftType GetSwiftType (Type attributedType, SwiftType []? genericArgs)
-			=> new CustomViewType (attributedType);
+		protected internal override SwiftType? GetSwiftType (Type attributedType, SwiftType []? genericArgs)
+			=> attributedType == typeof (View)? null : new CustomViewType (attributedType);
 	}
 
 	/// <summary>
@@ -46,9 +46,6 @@ namespace SwiftUI
 		// by convention:
 		//public abstract TBody Body { get; }
 
-		// non-null if this is a custom (managed) View implementation
-		internal CustomViewType? CustomViewType => SwiftType as CustomViewType;
-
 		GCHandle gch;
 		long refCount = 0; // number of refs passed to native code
 
@@ -62,6 +59,7 @@ namespace SwiftUI
 		protected View (TaggedPointer data)
 		{
 			this.data = data;
+			this.swiftType = SwiftType.Of (GetType ());
 		}
 
 		internal void AddRef ()
@@ -82,9 +80,9 @@ namespace SwiftUI
 				SetGCHandle (data.Pointer, GCHandleType.WeakTrackResurrection);
 		}
 
-		protected override void InitNativeData (void* handle)
+		protected override void InitNativeData (void* handle, Nullability nullability)
 		{
-			var cvt = CustomViewType;
+			var cvt = SwiftType.Of (GetType (), nullability) as CustomViewType;
 			Debug.Assert (cvt != null, "View bindings must override InitNativeData and not call base");
 
 			// First alloc a weak GCHandle, since we don't know if native code will

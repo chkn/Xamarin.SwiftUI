@@ -20,10 +20,10 @@ namespace SwiftUI
 			this.label = label ?? throw new ArgumentNullException (nameof (label));
 		}
 
-		protected override unsafe void InitNativeData (void* handle)
+		protected override unsafe void InitNativeData (void* handle, Nullability nullability)
 		{
 			var ctx = GCHandle.ToIntPtr (GCHandle.Alloc (action));
-			using (var lbl = label.GetSwiftHandle ()) {
+			using (var lbl = label.GetSwiftHandle (nullability [0])) {
 				var lty = lbl.SwiftType;
 				Init (handle, OnActionDel, OnDisposeDel, ctx, lbl.Pointer, lty.Metadata, lty.GetProtocolConformance (SwiftUILib.ViewProtocol));
 			}
