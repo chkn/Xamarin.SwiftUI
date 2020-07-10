@@ -6,24 +6,26 @@ namespace SwiftUITestShared
 {
 	public partial class StackedView : View
 	{
-		public TupleView<(ClickButton, Text)> Body =>
-			new TupleView<(ClickButton, Text)> ((
-				new ClickButton (),
-				new Text ("Bottom text")
-			));
+		public VStack<TupleView<(ClickButton, Text)>> Body =>
+			new VStack<TupleView<(ClickButton, Text)>> (HorizontalAlignment.Trailing,
+				new TupleView<(ClickButton, Text)> ((
+					new ClickButton (),
+					new Text ("Right text")
+				)));
 	}
 
 	public partial class ClickButton : View
 	{
 		State<(string, bool)> state = new State<(string, bool)> (("Please click this button:", true));
-		public TupleView<(Text, Button<Text>?)> Body =>
-			new TupleView<(Text, Button<Text>?)> ((
-				new Text (state.Value.Item1),
-				state.Value.Item2 ? new Button<Text> (() => state.Value = ("Thanks!", false), new Text ("Click me!")) : null
-				));
+		public VStack<TupleView<(Text, Button<Text>?)>> Body =>
+			new VStack<TupleView<(Text, Button<Text>?)>> (HorizontalAlignment.Leading,
+				new TupleView<(Text, Button<Text>?)> ((
+					new Text (state.Value.Item1),
+					state.Value.Item2 ? new Button<Text> (() => state.Value = ("Thanks!", false), new Text ("Click me!")) : null
+				)));
 	}
 
-	/*
+	/*	
 	public partial class ClickButton : View
 	{
 		State<int?> counter = new State<int?> (null);
@@ -48,3 +50,4 @@ namespace SwiftUITestShared
 	*/
 
 }
+ 

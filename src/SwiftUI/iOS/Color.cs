@@ -13,12 +13,13 @@ namespace SwiftUI
 		#region Constructors
 		public Color (UIColor color)
 		{
-			Data = CreateFromUIColor(color.Handle.ToPointer());
+			opaqueData = CreateFromUIColor (color.Handle);
 		}
 
 		public Color (string name, NSBundle? bundle = null)
 		{
-			Data = CreateFromStringBundle (new Swift.String (name), bundle == null ? IntPtr.Zero.ToPointer() : bundle.Handle.ToPointer());
+			using (var swiftName = new Swift.String (name))
+				opaqueData = CreateFromStringBundle (swiftName, bundle?.Handle ?? IntPtr.Zero);
 		}
 		#endregion
 
@@ -27,7 +28,7 @@ namespace SwiftUI
 		[DllImport (SwiftUILib.Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$s7SwiftUI5ColorVyACSo7UIColorCcfC")]
-		static extern IntPtr CreateFromUIColor (void* colorPointer);
+		static extern IntPtr CreateFromUIColor (IntPtr colorPointer);
 
 		// Initialisations
 		[DllImport(SwiftUILib.Path,
@@ -35,7 +36,7 @@ namespace SwiftUI
 			EntryPoint = "$s7SwiftUI5ColorV_6bundleACSS_So8NSBundleCSgtcfC")]
 		static extern IntPtr CreateFromStringBundle (
 			Swift.String str,
-			void* bundlePointer);
+			IntPtr bundlePointer);
 		#endregion
 	}
 }
