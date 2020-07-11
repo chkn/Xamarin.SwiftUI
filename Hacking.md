@@ -11,15 +11,17 @@ Swift classes are reference counted. Swift structs may contain pointers to insta
 
 ## Calling into Swift
 
-When possible, calls to Swift functions should be made directly through P/Invoke.
+Calls to Swift functions are made through P/Invoke. The Swift calling convention is based on the C calling convention with some modifications. This means that you may be able to P/Invoke directly to a Swift API if it falls into the subset that overlaps with the C calling convention. However, if the API you wish to call does not fall into that subset, you must write a Swift glue function that _is_ callable through P/Invoke, which in turn calls the desired Swift API.
 
-### Direct P/Invoke
+### Guidelines for P/Invoke
 
-The Swift calling convention is based on the C calling convention with some modifications. This means that you may be able to P/Invoke directly to a Swift API if it falls into the subset that overlaps with the C calling convention.
+When P/Invoking, either directly to a Swift API, or to a Swift glue function, there are some things to keep in mind.
 
 #### Differences in Calling Convention
 
-- `Double?` (and `CGFloat?` on 64-bit systems) is essentially a 65-bit type. In memory, it is represented as essentially `double` followed by `byte`, however it seems the calling convention might move this all in a single register, at least on x86_64, which cannot be marshaled by P/Invoke.
+##### Optional Double
+
+`Double?` (and `CGFloat?` on 64-bit systems) is essentially a 65-bit type. In memory, it is represented as essentially `double` followed by `byte`, however it seems the calling convention might move this all in a single register, at least on x86_64, which cannot be marshaled by P/Invoke. You can pass this as two arguments: a `Double` value, and a `Bool` that indicates if the first argument is valid.
 
 #### Hidden Arguments
 

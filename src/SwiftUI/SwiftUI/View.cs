@@ -82,7 +82,7 @@ namespace SwiftUI
 
 		protected override void InitNativeData (void* handle, Nullability nullability)
 		{
-			var cvt = SwiftType.Of (GetType (), nullability) as CustomViewType;
+			var cvt = swiftType as CustomViewType;
 			Debug.Assert (cvt != null, "View bindings must override InitNativeData and not call base");
 
 			// First alloc a weak GCHandle, since we don't know if native code will
