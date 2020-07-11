@@ -31,21 +31,18 @@ namespace SwiftUI.Interop
 	unsafe class CustomViewType : ManagedSwiftType
 	{
 		ViewProtocolConformanceDescriptor* viewConformanceDesc;
-		ProtocolWitnessTable* viewConformance;
 
 		public override int NativeFieldsOffset => sizeof (CustomViewData);
 
 		public override uint AdditionalMetadataPointers => CustomViewMetadata.AdditionalPointers;
 
-		public ProtocolWitnessTable* ViewConformance {
-			get {
-				if (viewConformance == null)
-					viewConformance = CreateViewConformance ();
-				return viewConformance;
-			}
-		}
+		public ProtocolWitnessTable* ViewConformance { get; }
 
 		public PropertyInfo BodyProperty { get; }
+
+		public Nullability BodyNullability { get; }
+
+		public SwiftType BodySwiftType { get; }
 
 		internal CustomViewType (Type customViewType): base (customViewType, MetadataKinds.Struct)
 		{
@@ -54,14 +51,22 @@ namespace SwiftUI.Interop
 					customViewType.GetProperty ("Body__", BindingFlags.NonPublic | BindingFlags.Instance) ??
 					customViewType.GetProperty ("Body", BindingFlags.Public | BindingFlags.Instance);
 				if (BodyProperty is null || !BodyProperty.CanRead || BodyProperty.CanWrite || !BodyProperty.PropertyType.IsSubclassOf (typeof (View)))
-					throw new ArgumentException ($"View implementations must either override ViewType, or declare a public, read-only `Body` property returning a concrete type of `{nameof (View)}`");
+					throw new ArgumentException ($"View implementations must either have a {nameof (SwiftImportAttribute)}, or declare a public, read-only `Body` property returning a concrete type of `{nameof (View)}`");
+
+				BodyNullability = Nullability.Of (BodyProperty);
+				BodySwiftType = SwiftType.Of (BodyProperty.PropertyType, BodyNullability)!;
 
 				var thunkMetadata = (CustomViewMetadata*)fullMetadata;
 				thunkMetadata->ThunkViewU = Metadata;
-				thunkMetadata->ThunkViewT = SwiftType.Of (BodyProperty.PropertyType)!.Metadata;
+				thunkMetadata->ThunkViewT = BodySwiftType.Metadata;
 				// Currently unused, so don't force allocation if it's a custom view
 				//thunkMetadata->ThunkViewTViewConformance = swiftBodyType.ViewConformance;
 				thunkMetadata->ThunkViewTViewConformance = null;
+
+				// Proactively create View conformance. While generics that are explicitly constrained to View
+				//  have the conformance passed in, other cases, such as TupleView, look up the conformance
+				//  dynamically, so it's important to register it eagerly.
+				ViewConformance = CreateViewConformance ();
 			} catch {
 				// Ensure we don't leak allocated unmanaged memory
 				Dispose (true);
@@ -90,7 +95,7 @@ namespace SwiftUI.Interop
 			*viewConformanceDesc = default;
 			viewConformanceDesc->Populate (Metadata->TypeDescriptor);
 
-			var bodySwiftType = SwiftType.Of (BodyProperty.PropertyType)!;
+			var bodySwiftType = BodySwiftType;
 			var bodyConformance = bodySwiftType.GetProtocolConformance (SwiftUILib.ViewProtocol);
 			var witnessTable = SwiftCoreLib.GetProtocolWitnessTable (&viewConformanceDesc->ConformanceDescriptor, Metadata, null);
 
@@ -122,20 +127,22 @@ namespace SwiftUI.Interop
 			((CustomViewData*)data)->View.UnRef ();
 		}
 
-		// FIXME: View data appears to be passed in context register
+		// View data appears to be passed in context register
+		// FIXME: Migrate to UnmanagedCallersOnlyAttribute once we have that
 		static void Body (void* dest, void* dataPtr)
 		{
 			var data = (CustomViewData*)dataPtr;
 			var view = data->View;
+			var customViewType = (CustomViewType)view.swiftType!;
 
 			// HACK: Overwrite our data array with the given native data
 			view.OverwriteNativeData (data);
 
 			// Now, when we call Body, it will operate on the new data
-			var body = (View)view.CustomViewType!.BodyProperty.GetValue (view);
+			var body = (ISwiftValue)customViewType.BodyProperty.GetValue (view);
 
 			// Copy the returned view into dest
-			using (var handle = body.GetSwiftHandle ())
+			using (var handle = body.GetSwiftHandle (customViewType.BodyNullability))
 				handle.SwiftType.Transfer (dest, handle.Pointer, TransferFuncType.InitWithCopy);
 		}
 		static readonly PtrPtrFunc bodyFn = Body;

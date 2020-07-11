@@ -6,8 +6,6 @@ using Swift.Interop;
 
 namespace SwiftUI
 {
-	using static Color;
-
 	[SwiftImport (SwiftUILib.Path)]
 	public enum RGBColorSpace
 	{
@@ -19,7 +17,8 @@ namespace SwiftUI
 	[SwiftImport (SwiftUILib.Path)]
 	public unsafe partial class Color : View
 	{
-		internal IntPtr Data { get; private set; }
+		// not a pointer; the actual Color data
+		readonly IntPtr opaqueData;
 
 		#region Static Colours
 		public static Color Black => new Color (GetColorBlack ());
@@ -49,22 +48,21 @@ namespace SwiftUI
 		public static Color Yellow => new Color (GetColorYellow ());
 		#endregion
 
-		protected override void InitNativeData (void* handle)
+		protected override void InitNativeData (void* handle, Nullability nullability)
 		{
-			// Using TransferFuncType.InitWithTake here in case we leak.
-			using (var dataHandle = Data.GetSwiftHandle ())
-				SwiftType.Transfer (handle, dataHandle.Pointer, TransferFuncType.InitWithTake);
+			IntPtr* dest = (IntPtr*)handle;
+			*dest = opaqueData;
 		}
 
 		#region Constructors
 		internal Color (IntPtr data)
 		{
-			Data = data;
+			opaqueData = data;
 		}
 
 		public Color (double hue, double saturation, double brightness, double opacity)
 		{
-			Data = CreateFromHSBO (hue, saturation, brightness, opacity);
+			opaqueData = CreateFromHSBO (hue, saturation, brightness, opacity);
 		}
 
 		public Color (RGBColorSpace colorSpace, double red, double green, double blue, double opacity)
@@ -73,7 +71,7 @@ namespace SwiftUI
 			var result = Marshal.AllocHGlobal (opaqueRBGColorspaceMetadata.NativeDataSize);
 			try {
 				GetSwiftUIColorSpace (colorSpace, result.ToPointer ());
-				Data = CreateFromRGBColorSpaceRedGreenBlueOpacity (result.ToPointer (), red, green, blue, opacity);
+				opaqueData = CreateFromRGBColorSpaceRedGreenBlueOpacity (result.ToPointer (), red, green, blue, opacity);
 			} catch {
 				Marshal.FreeHGlobal (result);
 				throw;
@@ -86,7 +84,7 @@ namespace SwiftUI
 			var result = Marshal.AllocHGlobal (opaqueRBGColorspaceMetadata.NativeDataSize);
 			try {
 				GetSwiftUIColorSpace (colorSpace, result.ToPointer ());
-				Data = CreateFromRGBColorSpaceWhiteOpacity (result.ToPointer (), white, opacity); ;
+				opaqueData = CreateFromRGBColorSpaceWhiteOpacity (result.ToPointer (), white, opacity); ;
 			} catch {
 				Marshal.FreeHGlobal (result);
 				throw;

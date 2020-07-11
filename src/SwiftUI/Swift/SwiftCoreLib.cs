@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 using Swift.Interop;
 
@@ -10,7 +11,7 @@ namespace Swift
 		public const string Path = "/usr/lib/swift/libswiftCore.dylib";
 
 		// convenience
-		static NativeLib Lib => NativeLib.Get (Path);
+		internal static NativeLib Lib => NativeLib.Get (Path);
 
 		#region Types
 		// Special types like String, Double require the mangling from https://github.com/apple/swift/blob/master/docs/ABI/Mangling.rst#types
@@ -33,7 +34,7 @@ namespace Swift
 				// Double is actually a type alias for Float64, hence why we use Sd for mangling here
 				TypeCode.Double => new SwiftType (Lib, "Sd", typeof (Double)),
 				TypeCode.Single => new SwiftType (Lib, "Sf"),
-				TypeCode.Boolean => throw new NotImplementedException (),
+				TypeCode.Boolean => new SwiftType (Lib, "Sb"),
 				TypeCode.Char => throw new NotImplementedException (),
 				TypeCode.DateTime => throw new NotImplementedException (),
 				TypeCode.Decimal => throw new NotImplementedException (),
@@ -42,7 +43,7 @@ namespace Swift
 		}
 
 		internal static SwiftType GetOptionalType (SwiftType wrapped)
-			=> new SwiftType (Lib, GetOptionalType (0, wrapped.Metadata), genericArgs: new[] { wrapped });
+			=> new SwiftType (Lib, GetOptionalType (0, wrapped.Metadata), "Sq", genericArgs: new[] { wrapped });
 
 		#endregion
 
@@ -62,13 +63,21 @@ namespace Swift
 		//  For values for the first arg, see https://github.com/apple/swift/blob/ffc0f6f783a53573eb79440f16584e0422378b16/include/swift/ABI/MetadataValues.h#L1594
 		//  (generally we pass 0 for complete metadata)
 
-		[DllImport (Path, EntryPoint = "swift_getOpaqueTypeMetadata")]
-		internal unsafe static extern IntPtr GetOpaqueTypeMetadata (long metadataReq, void** arguments, IntPtr descriptor, uint index);
+		[DllImport (Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "swift_getOpaqueTypeMetadata")]
+		internal static extern IntPtr GetOpaqueTypeMetadata (long metadataReq, void** arguments, IntPtr descriptor, uint index);
 
 		[DllImport (Path,
 			CallingConvention = CallingConvention.Cdecl,
 			EntryPoint = "$sSqMa")]
 		static extern IntPtr GetOptionalType (long metadataReq, TypeMetadata* wrappedType);
+
+		//https://github.com/apple/swift/blob/c925ce502b65ddca05ee8639d0d6ad0ab83d60a0/include/swift/Runtime/Metadata.h#L481
+		[DllImport (Path,
+			CallingConvention = CallingConvention.Cdecl,
+			EntryPoint = "swift_getTupleTypeMetadata")]
+		internal static extern IntPtr GetTupleType (long metadataReq, TupleTypeFlags flags, TypeMetadata** elements, string? labels, ValueWitnessTable* proposedWitnesses);
 
 		#endregion
 	}

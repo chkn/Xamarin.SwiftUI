@@ -58,6 +58,15 @@ namespace Swift.Interop
 
 	public static class MetadataKind
 	{
+		public static bool IsNominal (this MetadataKinds kind) => kind switch
+		{
+			MetadataKinds.Struct   => true,
+			MetadataKinds.Enum     => true,
+			MetadataKinds.Optional => true,
+			_ when kind.IsClass () => true,
+			_ => false
+		};
+
 		public static bool IsClass (this MetadataKinds kind)
 			=> kind == MetadataKinds.Class || (long)kind > 2047;
 
@@ -71,9 +80,18 @@ namespace Swift.Interop
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
+	public unsafe struct FullTypeMetadata
+	{
+		public ValueWitnessTable* ValueWitnessTable;
+		public TypeMetadata Metadata;
+	}
+
+	[StructLayout (LayoutKind.Sequential)]
 	public unsafe struct TypeMetadata
 	{
 		public MetadataKinds Kind;
+
+		// Only valid if the type is nominal
 		public NominalTypeDescriptor* TypeDescriptor;
 
 #if DEBUG_TOSTRING
@@ -82,17 +100,28 @@ namespace Swift.Interop
 			var str = Kind.ToString ();
 			if (Kind == MetadataKinds.Struct)
 				str += ((StructDescriptor*)TypeDescriptor)->ToString ();
-			else
+			else if (Kind.IsNominal ())
 				str += TypeDescriptor->ToString ();
 			return str;
 		}
 #endif
 	}
 
+	//https://github.com/apple/swift/blob/db4ce1f01bbb1ecda5fe744905a7fe61b3ff5a25/include/swift/ABI/Metadata.h#L1475
 	[StructLayout (LayoutKind.Sequential)]
-	public unsafe struct FullTypeMetadata
+	public unsafe struct TupleTypeMetadata
 	{
-		public ValueWitnessTable* ValueWitnessTable;
-		public TypeMetadata Metadata;
+		public MetadataKinds Kind;
+		/// The number of elements.
+		public ulong NumElements;
+		public IntPtr Labels;
+
+		// ... followed by NumElements * Element...
+		[StructLayout (LayoutKind.Sequential)]
+		public struct Element
+		{
+			public TypeMetadata* Type;
+			public ulong Offset;
+		}
 	}
 }

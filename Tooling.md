@@ -6,6 +6,3 @@ C# nullable reference types should be enabled, as nullable values are automatica
 
 F# Option and ValueOption are also automatically bridged as Swift Optional. For automatic bridging of F# ValueOption, you must be using a version of `FSharp.Core` newer than 4.5.2.
 
-## Body Property
-
-We should have an analyzer to ensure the View.Body property is correctly implemented.

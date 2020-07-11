@@ -11,14 +11,27 @@ Swift classes are reference counted. Swift structs may contain pointers to insta
 
 ## Calling into Swift
 
-The Swift calling convention is based on the C calling convention with some modifications. This means that you may be able to P/Invoke directly to the Swift API if it falls into the subset that overlaps with the C calling convention.
+Calls to Swift functions are made through P/Invoke. The Swift calling convention is based on the C calling convention with some modifications. This means that you may be able to P/Invoke directly to a Swift API if it falls into the subset that overlaps with the C calling convention. However, if the API you wish to call does not fall into that subset, you must write a Swift glue function that _is_ callable through P/Invoke, which in turn calls the desired Swift API.
 
-### Direct P/Invoke
+### Guidelines for P/Invoke
 
-When P/Invoking a Swift function, you must keep in mind that Swift may pass some hidden arguments.
+When P/Invoking, either directly to a Swift API, or to a Swift glue function, there are some things to keep in mind.
 
-- In addition to the declared arguments in the Swift signature, Swift appends a `this` argument for instance members, followed by type metadata for each generic parameter, first for generic arguments on the declaring type, then for those on the method itself. If the generic parameter is constrained by a protocol, there is another argument for the conformance pointer following the type metadata.
-- When passing more than 1 generic parameter, the order is *important*. The order must be Generic1Pointer, Generic2Pointer, Generic1Metadata, Generic2Metadata, Generic1Protocol, Generic2Protocol
+#### Differences in Calling Convention
+
+##### Optional Double
+
+`Double?` (and `CGFloat?` on 64-bit systems) is essentially a 65-bit type. In memory, it is represented as essentially `double` followed by `byte`, however it seems the calling convention might move this all in a single register, at least on x86_64, which cannot be marshaled by P/Invoke. You can pass this as two arguments: a `Double` value, and a `Bool` that indicates if the first argument is valid.
+
+#### Hidden Arguments
+
+When P/Invoking a Swift function, you must keep in mind that Swift may pass some hidden arguments. In addition to the declared arguments in the Swift signature, Swift appends:
+
+- `this` argument for instance members
+- Type metadata for each generic parameter in declaration order, first for generic arguments on the declaring type, then for those on the method itself.
+- If the generic parameter is constrained by a protocol, there is another argument for each conformance pointer following the type metadata.
+
+When passing more than 1 generic parameter, the order is *important*. The order must be ...declared arguments, `Generic1TypeMetadata*`, `Generic2TypeMetadata*`, `Generic1ProtocolConformance*`, `Generic2ProtocolConformance*`
 
 ### Glue Function
 

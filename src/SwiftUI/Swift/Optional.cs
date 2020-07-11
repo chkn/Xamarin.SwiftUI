@@ -66,6 +66,9 @@ namespace Swift
 
 			Packed (T value) => this.value = value;
 
+			public static implicit operator Packed<T> (T? value)
+				=> value.HasValue? Some (value.Value) : None;
+
 			#if DEBUG
 			static Packed ()
 			{
@@ -115,13 +118,16 @@ namespace Swift
 				this.extraBits = 0;
 			}
 
+			public static implicit operator Unpacked<T> (T? value)
+				=> value.HasValue? Some (value.Value) : None;
+
 			#if DEBUG
 			static Unpacked ()
 			{
 				unsafe {
 					Debug.Assert (!UnderlyingSwiftType.ValueWitnessTable->HasExtraInhabitants,
 						$"Type {nameof (T)} has extra inhabitants; use {nameof (Packed<T>)} instead");
-					Debug.Assert ((int)SwiftType.Of (typeof (T), new Nullability (true))!.ValueWitnessTable->Size == Marshal.SizeOf<T> () + 1); // FIXME
+					Debug.Assert ((int)SwiftType.Of (typeof (T), new Nullability (true))!.ValueWitnessTable->Size == Marshal.SizeOf<T> () + 1);
 				}
 			}
 			#endif

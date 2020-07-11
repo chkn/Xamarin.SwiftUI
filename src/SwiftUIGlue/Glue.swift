@@ -89,6 +89,25 @@ public func State_wrappedValue_getter<T>(dest : UnsafeMutablePointer<T>, state :
 }
 
 //
+// Indirectly returned struct: return pointer is passed in rax.
+//
+@_silgen_name("swiftui_TupleView_value")
+public func TupleView_value<T>(dest : UnsafeMutablePointer<TupleView<T>>, value : T)
+{
+	dest.initialize(to: TupleView(value))
+}
+
+//
+// Indirectly returned struct: return pointer is passed in rax.
+// Calling convention differs for CGFloat?
+//
+@_silgen_name("swiftui_VStack_align_spacing_content")
+public func VStack_align_spacing_content<T: View>(dest : UnsafeMutablePointer<VStack<T>>, align : HorizontalAlignment, spacingHasValue : Bool, spacing : CGFloat, content : T)
+{
+	dest.initialize(to: VStack(alignment: align, spacing: spacingHasValue ? spacing :  nil) { content })
+}
+
+//
 // Class methods: Context register is used for pointer to type metadata
 //
 #if os(iOS) || os(tvOS)
@@ -139,6 +158,9 @@ public func SetBodyFn(value : @escaping BodyFn)
     bodyFn = value
 }
 
+//
+// Indirectly returned struct: return pointer is passed in rax.
+//
 @_silgen_name("swiftui_View_opacity")
 public func SetViewOpacity<T: View>(dest : UnsafeMutableRawPointer, view : T, value : Double)
 {
@@ -146,6 +168,9 @@ public func SetViewOpacity<T: View>(dest : UnsafeMutableRawPointer, view : T, va
     dest.initializeMemory(as: type(of: result), repeating: result, count: 1)
 }
 
+//
+// Indirectly returned struct: return pointer is passed in rax.
+//
 @_silgen_name("swiftui_View_background")
 public func SetViewBackground<TView: View, TBackground: View>(dest : UnsafeMutableRawPointer, view : TView, value : TBackground)
 {

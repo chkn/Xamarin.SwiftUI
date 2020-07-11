@@ -89,11 +89,11 @@ namespace Swift.Interop
 
 		internal IReadOnlyList<SwiftType>? GenericArguments => genericArgs;
 
-		internal int MangledTypeTrailingPointers =>
+		internal virtual int MangledTypeTrailingPointers =>
 			(mangledName is null ? 1 : 0) + (genericArgs?.Sum (ga => ga.MangledTypeTrailingPointers) ?? 0);
 
 		// size without null termination or trailing pointers
-		int MangledTypeSizeInner =>
+		internal virtual int MangledTypeSizeInner =>
 			(mangledName?.Length ?? sizeof (SymbolicReference)) +
 			(genericArgs?.Sum (ga => ga.MangledTypeSizeInner) + 2 ?? 0); // +2 for 'y' and 'G'
 
@@ -106,9 +106,11 @@ namespace Swift.Interop
 			IntPtr.Size * MangledTypeTrailingPointers + // FIXME: Make sure trailing ptrs are aligned?
 			1; // null terminated
 
-		byte* WriteMangledType (byte* dest, void** tpBase, List<IntPtr> trailingPtrs)
+		internal virtual byte* WriteMangledType (byte* dest, void** tpBase, List<IntPtr> trailingPtrs)
 		{
 			if (mangledName is null) {
+				// This codepath assumes it's a nominal type
+				Debug.Assert (Metadata->Kind.IsNominal ());
 				var symRef = (SymbolicReference*)dest;
 				symRef->Kind = SymbolicReferenceKind.IndirectContext;
 				symRef->Pointer.Target = tpBase + trailingPtrs.Count;
@@ -145,6 +147,7 @@ namespace Swift.Interop
 			*dest = 0; // null terminated
 			dest++;
 			Debug.Assert (dest == tpBase);
+			Debug.Assert (trailingPtrs.Count == MangledTypeTrailingPointers);
 
 			// Write trailing pointers
 			var ptr = (IntPtr)dest;
@@ -163,10 +166,16 @@ namespace Swift.Interop
 
 		// Using IntPtr typeMetadata arg here instead of FullTypeMetadata* so it's easier
 		//  to just pass the result of lib.RequireSymbol
-		public SwiftType (NativeLib? lib, IntPtr typeMetadata, Type? managedType = null, SwiftType []? genericArgs = null)
+		public SwiftType (NativeLib? lib,
+			IntPtr typeMetadata,
+			string? mangledName = null,
+			Type? managedType = null,
+			SwiftType []? genericArgs = null)
 		{
 			this.lib = lib;
 			this.fullMetadata = (FullTypeMetadata*)(typeMetadata - IntPtr.Size);
+			if (!(mangledName is null))
+				this.mangledName = NormalizeMangledName (mangledName);
 			this.genericArgs = genericArgs;
 
 			// Assert assumed invariants..
@@ -180,8 +189,9 @@ namespace Swift.Interop
 			if (managedType is null)
 				return;
 			checked {
-				Debug.Assert (Metadata->TypeDescriptor->Name == GetSwiftTypeName (managedType), $"unexpected name: {Metadata->TypeDescriptor->Name}");
 				Debug.Assert (Metadata->Kind == MetadataKind.OfType (managedType), $"unexpected kind: {Metadata->Kind}");
+				if (Metadata->Kind.IsNominal ())
+					Debug.Assert (Metadata->TypeDescriptor->Name == GetSwiftTypeName (managedType), $"unexpected name: {Metadata->TypeDescriptor->Name}");
 				Debug.Assert (!managedType.IsValueType || (int)ValueWitnessTable->Size == Marshal.SizeOf (managedType), $"unexpected size: {ValueWitnessTable->Size}");
 				// We should think hard before making a non-POD Swift struct a public C# struct
 				//  (Swift.String is internal and we are careful to manage its lifetime)
@@ -194,9 +204,8 @@ namespace Swift.Interop
 		/// </summary>
 		/// <param name="mangledName">The mangled name of the Swift type.</param>
 		public SwiftType (NativeLib lib, string mangledName, Type? managedType = null)
-			: this (lib, lib.RequireSymbol ("$s" + NormalizeMangledName (mangledName) + "N"), managedType)
+			: this (lib, lib.RequireSymbol ("$s" + NormalizeMangledName (mangledName) + "N"), mangledName, managedType)
 		{
-			this.mangledName = NormalizeMangledName (mangledName);
 		}
 
 		/// <summary>
@@ -219,14 +228,13 @@ namespace Swift.Interop
 		/// Returns the <see cref="SwiftType"/> of the given <see cref="Type"/>.
 		/// </summary>
 		/// <remarks>
-		/// By convention, types that are exposed to Swift must have a public static SwiftType property.
+		/// Types that are exposed to Swift are attributed with a <see cref="SwiftTypeAttribute"/>.
 		/// </remarks>
 		//
 		// Sync with SwiftValue.ToSwiftValue
-		public static SwiftType? Of (Type type, Nullability? givenNullability = default)
+		public static SwiftType? Of (Type type, Nullability nullability = default)
 		{
 			SwiftType? result;
-			var nullability = givenNullability ?? Nullability.Of (type);
 			lock (registry) {
 				if (!registry.TryGetValue (type, out result)) {
 					// First see if it is a core type
@@ -256,14 +264,24 @@ namespace Swift.Interop
 						}
 					}
 
-					// If it's a nullable type, try to unwrap it
-					//  Only handle reified nullables here because we are caching this result
-					if (result == null && Nullability.IsReifiedNullable (type)) {
-						//  Nullable types -> Swift optional
-						var underlyingType = Nullability.GetUnderlyingType (type);
-						var underlyingSwiftType = SwiftType.Of (underlyingType, nullability.Strip ());
-						if (underlyingSwiftType != null)
-							result = SwiftCoreLib.GetOptionalType (underlyingSwiftType);
+					// Otherwise, see if there is some special handling for this type
+					if (result == null) {
+						// Special handling for tuples
+						// FIXME: Treat F# Unit as 0-element tuple?
+						if (typeof (ITuple).IsAssignableFrom (type)) {
+							var args = type.GetGenericArguments ();
+							result = SwiftTupleType.Of (args, nullability);
+						}
+
+						// If it's a nullable type, try to unwrap it
+						//  Only handle reified nullables here because we are caching this result
+						else if (Nullability.IsReifiedNullable (type)) {
+							//  Nullable types -> Swift optional
+							var underlyingType = Nullability.GetUnderlyingType (type);
+							var underlyingSwiftType = SwiftType.Of (underlyingType, nullability.Strip ());
+							if (underlyingSwiftType != null)
+								result = SwiftCoreLib.GetOptionalType (underlyingSwiftType);
+						}
 					}
 					if (result != null)
 						registry.Add (type, result);
