@@ -39,6 +39,10 @@ indent_size = 4
 indent_style = tab
 indent_size = 4
 
+[*.{fs,fsx}]
+indent_style = space
+indent_size = 4
+
 # Sort using and Import directives with System.* appearing first
 dotnet_sort_system_directives_first = true
 
