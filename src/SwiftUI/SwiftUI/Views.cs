@@ -8,7 +8,7 @@ namespace SwiftUI
 	/// <remarks>
 	/// This class can be used with <c>using static</c>.
 	/// </remarks>
-	public static class Views
+	public static partial class Views
 	{
 		const string SourceGeneratorMessage = "Source generator required";
 

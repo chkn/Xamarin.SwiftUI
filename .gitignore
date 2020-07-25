@@ -413,3 +413,4 @@ ASALocalRun/
 build/
 src/SwiftUIGlue/*.xcodeproj
 xcuserdata/
+Package.resolved
