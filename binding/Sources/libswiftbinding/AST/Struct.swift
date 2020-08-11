@@ -33,7 +33,7 @@ struct Struct: DerivableType {
 	/// The structure name.
 	var name: String
 
-	var inheritance: [String]
+	var inheritance: [Type]
 
 	var genericParameters: [GenericParameter]
 
@@ -44,11 +44,11 @@ struct Struct: DerivableType {
 			return .none
 		}
 
-		if inheritance.contains("SwiftUI.View") {
+		if inheritance.contains(where: { $0.qualifiedName == "SwiftUI.View" }) {
 			return .swiftStructSubclass(baseClass: "SwiftUI.View")
 		}
 
-		if inheritance.contains("SwiftUI.Shape") {
+		if inheritance.contains(where: { $0.qualifiedName == "SwiftUI.Shape"}) {
 			return .swiftStructSubclass(baseClass: "SwiftUI.Shape")
 		}
 
@@ -65,7 +65,16 @@ struct Struct: DerivableType {
 		attributes = node.attributes?.compactMap { $0.as(AttributeSyntax.self) }.compactMap { Attribute(rawValue: $0.name) } ?? []
 		modifiers = node.modifiers?.compactMap { Modifier(rawValue: $0.name.text.trimmed) } ?? []
 		name = node.identifier.text.trimmed
-		inheritance = node.inheritanceClause?.inheritedTypes ?? []
+		inheritance = node.inheritanceClause?.inheritedTypes.map(OtherType.unresolved) ?? []
 		genericParameters = node.genericParameterClause?.genericParameterList.map { GenericParameter($0, node.genericWhereClause) } ?? []
+	}
+
+	mutating func resolveTypes(resolve: (Type) -> Type) {
+		inheritance = inheritance.map(resolve)
+		for i in 0..<genericParameters.count {
+			var gp = genericParameters[i]
+			gp.resolveTypes(resolve: resolve)
+			genericParameters[i] = gp
+		}
 	}
 }

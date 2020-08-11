@@ -33,7 +33,7 @@ struct Protocol: DerivableType {
 	/// The protocol name.
 	var name: String
 
-	var inheritance: [String]
+	var inheritance: [Type]
 
 	var typeCode: Character? { nil }
 
@@ -45,6 +45,10 @@ struct Protocol: DerivableType {
 		attributes = node.attributes?.compactMap { $0.as(AttributeSyntax.self) }.compactMap { Attribute(rawValue: $0.attributeName.text.trimmed) } ?? []
 		modifiers = node.modifiers?.compactMap { Modifier(rawValue: $0.name.text.trimmed) } ?? []
 		name = node.identifier.text.trimmed
-		inheritance = node.inheritanceClause?.inheritedTypes ?? []
+		inheritance = node.inheritanceClause?.inheritedTypes.map(OtherType.unresolved) ?? []
+	}
+
+	mutating func resolveTypes(resolve: (Type) -> Type) {
+		inheritance = inheritance.map(resolve)
 	}
 }

@@ -11,7 +11,7 @@ extension String {
 	var trimmed: String { self.trimmingCharacters(in: .whitespacesAndNewlines) }
 
 	var qualified: String {
-		self.hasPrefix("SwiftUI.") ? self : "SwiftUI.\(self)"
+		self.contains(".") ? self : "SwiftUI.\(self)"
 	}
 }
 

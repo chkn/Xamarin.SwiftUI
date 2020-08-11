@@ -20,9 +20,15 @@ enum Modifier: String {
 	case open
 }
 
-protocol Decl {
+protocol Decl : CustomStringConvertible {
 	var attributes: [Attribute] { get }
 	var modifiers: [Modifier] { get }
 	var name: String { get }
+	var qualifiedName: String { get }
+}
+
+extension Decl {
+	var qualifiedName: String { name.qualified }
+	var description: String { qualifiedName }
 }
 

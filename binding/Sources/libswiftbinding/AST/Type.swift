@@ -8,7 +8,11 @@ enum TypeBindingMode : Equatable {
 	case blittableStruct
 }
 
-struct GenericParameter {
+protocol HasTypesToResolve {
+	mutating func resolveTypes(resolve: (Type) -> Type)
+}
+
+struct GenericParameter : HasTypesToResolve {
 	/// The generic parameter attributes.
 	var attributes: [Attribute]
 
@@ -16,7 +20,7 @@ struct GenericParameter {
 	var name: String
 
 	/// The generic parameter type, if any.
-	var type: String?
+	var type: Type?
 
 	/// Creates an instance initialized with the given syntax node.
 	public init(_ node: GenericParameterSyntax, _ whereClause: GenericWhereClauseSyntax?)
@@ -24,18 +28,26 @@ struct GenericParameter {
 		attributes = node.attributes?.compactMap { $0.as(AttributeSyntax.self) }.compactMap { Attribute(rawValue: $0.name) } ?? []
 
 		name = node.name.text.trimmed
-		type = node.inheritedType?.name
+		if let tyName = node.inheritedType?.name {
+			type = OtherType.unresolved(name: tyName)
+		}
 
 		if let wc = whereClause {
 			for req in wc.requirementList {
 				if let node = ConformanceRequirementSyntax(req.body), node.leftTypeIdentifier.name == name {
-					type = node.rightTypeIdentifier.name
+					type = OtherType.unresolved(name: node.rightTypeIdentifier.name)
 				}
 			}
 		}
 
 		// Prefix name with "T" to match .NET convention
 		name = "T" + name
+	}
+
+	mutating func resolveTypes(resolve: (Type) -> Type) {
+		if let ty = type {
+			type = resolve(ty)
+		}
 	}
 }
 
@@ -44,8 +56,8 @@ protocol Type: Decl {
 	var bindingMode: TypeBindingMode { get }
 }
 
-protocol DerivableType: Type {
-	var inheritance: [String] { get set }
+protocol DerivableType: Type, HasTypesToResolve {
+	var inheritance: [Type] { get set }
 }
 
 extension Type {

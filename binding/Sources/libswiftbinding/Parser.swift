@@ -11,13 +11,28 @@ import SwiftSyntax
 class Parser: SyntaxVisitor {
 	var swiftUI : Xcode
 
-	var typesByName: [String:Type] = [:]
+	// Pre-map some types onto managed types
+	//  nil means erase the type or do not bind
+	var typesByName: [String:Type?] = [
+		// all managed types are hashable
+		"Swift.Hashable": nil,
+
+		// FIXME: Figure out how we want to expose this
+		"SwiftUI.SubscriptionView": nil,
+
+		"Swift.RandomAccessCollection": OtherType.managed(name: "System.Collections.Generic.IList)
+	]
 
 	var extensions: [ExtensionDeclSyntax] = []
 
 	public init (_ swiftUI : Xcode)
 	{
 		self.swiftUI = swiftUI
+	}
+
+	func resolve(_ ty : Type) -> Type?
+	{
+		typesByName[ty.qualifiedName] ?? nil
 	}
 
 	func run(_ sdk : SDK) throws
@@ -32,23 +47,37 @@ class Parser: SyntaxVisitor {
 			guard let ty = typesByName[typeName] else { continue }
 
 			if var dty = ty as? DerivableType {
-				dty.inheritance.append(contentsOf: node.inheritanceClause?.inheritedTypes ?? [])
+				dty.inheritance.append(contentsOf: node.inheritanceClause?.inheritedTypes.map(OtherType.unresolved) ?? [])
 				typesByName.updateValue(dty, forKey: typeName)
 			}
+		}
+
+		// resolve all types'
+		let names = typesByName.keys
+		for name in names {
+			if var ty = typesByName[name] as? HasTypesToResolve {
+				ty.resolveTypes(resolve: resolve)
+				typesByName.updateValue(ty as! Type, forKey: name)
+			}
+		}
+	}
+
+	func add(_ ty: Type)
+	{
+		if typesByName[ty.qualifiedName] == nil {
+			typesByName.updateValue(ty, forKey: ty.qualifiedName)
 		}
 	}
 
 	override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind
 	{
-		let ty = Struct(node)
-		typesByName.updateValue(ty, forKey: ty.name.qualified)
+		add(Struct(node))
 		return .skipChildren
 	}
 
 	override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind
 	{
-		let ty = Protocol(node)
-		typesByName.updateValue(ty, forKey: ty.name.qualified)
+		add(Protocol(node))
 		return .skipChildren
 	}
 
