@@ -10,7 +10,7 @@ let package = Package(
   ],
   products: [
     .executable(name: "swiftbind", targets: ["swiftbind"]),
-    .library(name: "libswiftbinding", targets: ["libswiftbinding"]),
+    .library(name: "SwiftBinding", targets: ["SwiftBinding"]),
   ],
   dependencies: [
     // requires Xcode 11.4
@@ -22,10 +22,10 @@ let package = Package(
     // Targets can depend on other targets in this package, and on products in packages which this package depends on.
     .target(
       name: "swiftbind",
-      dependencies: ["libswiftbinding", "Stencil"]),
+      dependencies: ["SwiftBinding", "Stencil"]),
 
     .target(
-	  name: "libswiftbinding",
+	  name: "SwiftBinding",
 	  dependencies: ["SwiftSyntax"])
 	]
 )

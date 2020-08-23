@@ -12,55 +12,70 @@ import PathKit
 import Stencil
 import SwiftSyntax
 
+import SwiftBinding
+
 // Compute some paths..
 
-// tools/Generator within our source tree
-let generatorPath = URL(fileURLWithPath: #file).deletingLastPathComponent().appendingPathComponent("../..")
+// binding dir within our source tree
+let bindingPath = URL(fileURLWithPath: #file).deletingLastPathComponent().appendingPathComponent("../..")
 
 // Generated source outputs
-let generatedCS = generatorPath.appendingPathComponent("../../src/SwiftUI/Generated")
-let generatedGlue = generatorPath.appendingPathComponent("../../src/SwiftUIGlue")
+let generatedCS = bindingPath.appendingPathComponent("../src/SwiftUI/Generated")
+let generatedGlue = bindingPath.appendingPathComponent("../src/SwiftUIGlue")
 
 // Templates within our source tree
-var env = Environment(loader: FileSystemLoader(paths: [Path(generatorPath.appendingPathComponent("Templates").path)]))
+var env = Environment(loader: FileSystemLoader(paths: [Path(bindingPath.appendingPathComponent("Templates").path)]))
 
 // SwiftUI binaries and swiftinterface files within Xcode
-var swiftUI : Xcode
+var xcode: Xcode
+var frameworkPath = "/System/Library/Frameworks/SwiftUI.framework"
 switch CommandLine.arguments.count {
-
 case 1:
-	swiftUI = Xcode.default
+	xcode = Xcode.default
 case 2:
-	swiftUI = Xcode(developerPath: URL(fileURLWithPath: CommandLine.arguments[1]))
+	xcode = Xcode.default
+	frameworkPath = CommandLine.arguments[1]
+case 4 where CommandLine.arguments[1] == "--developerPath":
+	frameworkPath = CommandLine.arguments[3]
+	fallthrough
+case 3 where CommandLine.arguments[1] == "--developerPath":
+	xcode = Xcode(developerPath: URL(fileURLWithPath: CommandLine.arguments[2]))
 default:
-	print("Usage: \(ProcessInfo.processInfo.processName) [Developer path]")
+	print("Usage: \(ProcessInfo.processInfo.processName) [options] [Framework path]")
+	print()
+	print("Options:")
+	print("  --developerPath [Developer path]  - Sets the Developer path to use (defaults to xcode-select -p)")
+	print()
 	exit(1)
 }
 
 // FIXME: Iter SDKs
 let sdk = SDK.allCases.first!
 
-var parser = Parser(swiftUI)
-try parser.run(sdk)
+var binder = Binder(xcode, sdk: sdk)
+try binder.run(URL(fileURLWithPath: frameworkPath))
 
-for ty in parser.typesByName {
+for ty in binder.types {
 	var templateName: String
 	var context: [String:Any] = [
-		"className": ty.value.name
+		"className": ty.name
 	]
 
-	switch ty.value.bindingMode {
+	switch binder.bindingMode(forType: ty) {
 
     case .swiftStructSubclass(let baseClass):
-		let strct = ty.value as! Struct
-		context.updateValue(baseClass, forKey: "baseClass")
-		context.updateValue(strct.genericParameters.map({ $0.name }), forKey: "genericParamNames")
-		context.updateValue(strct.genericParameters.filter({ $0.type != nil }), forKey: "genericParamWhere")
-		templateName = "SwiftStruct.cs"
+		if let strct = ty as? Struct { // could also be protocol here
+			context.updateValue(baseClass, forKey: "baseClass")
+			context.updateValue(strct.genericParameters.map({ $0.name }), forKey: "genericParamNames")
+			context.updateValue(strct.genericParameters.filter({ $0.type != nil }), forKey: "genericParamWhere")
+			templateName = "SwiftStruct.cs"
+		} else {
+			continue
+		}
     default:
 		continue
 	}
 
 	let rendered = try env.renderTemplate(name: templateName, context: context)
-	try rendered.write(to: generatedCS.appendingPathComponent(ty.value.name + ".g.cs"), atomically: false, encoding: .utf8)
+	try rendered.write(to: generatedCS.appendingPathComponent(ty.name + ".g.cs"), atomically: false, encoding: .utf8)
 }

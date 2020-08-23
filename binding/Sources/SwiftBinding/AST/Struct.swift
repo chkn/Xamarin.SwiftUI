@@ -23,57 +23,27 @@
 import SwiftSyntax
 
 /// A structure declaration.
-struct Struct: DerivableType {
-	/// The declaration attributes.
-	var attributes: [Attribute]
+public class Struct: Type, Derivable, HasTypesToResolve {
 
-	/// The declaration modifiers.
-	var modifiers: [Modifier]
+	public var inheritance: [Type]
 
-	/// The structure name.
-	var name: String
+	public var genericParameters: [GenericParameter]
 
-	var inheritance: [Type]
+	public override var typeCode: Character? { "V" }
 
-	var genericParameters: [GenericParameter]
-
-	var typeCode: Character? { "V" }
-
-	var bindingMode: TypeBindingMode {
-		if name.hasPrefix("_") || !modifiers.contains(.public) {
-			return .none
-		}
-
-		if inheritance.contains(where: { $0.qualifiedName == "SwiftUI.View" }) {
-			return .swiftStructSubclass(baseClass: "SwiftUI.View")
-		}
-
-		if inheritance.contains(where: { $0.qualifiedName == "SwiftUI.Shape"}) {
-			return .swiftStructSubclass(baseClass: "SwiftUI.Shape")
-		}
-
-		// frozen POD structs -> blittableStruct
-		if let vwt = valueWitnessTable, isFrozen && !vwt.pointee.isNonPOD {
-			return .blittableStruct
-		}
-
-		return .none
-	}
-
-	public init(_ node: StructDeclSyntax)
+	public init(in context: Decl?, node: StructDeclSyntax)
 	{
-		attributes = node.attributes?.compactMap { $0.as(AttributeSyntax.self) }.compactMap { Attribute(rawValue: $0.name) } ?? []
-		modifiers = node.modifiers?.compactMap { Modifier(rawValue: $0.name.text.trimmed) } ?? []
-		name = node.identifier.text.trimmed
-		inheritance = node.inheritanceClause?.inheritedTypes.map(OtherType.unresolved) ?? []
+		inheritance = node.inheritanceClause?.inheritedTypes.map(UnresolvedType.init) ?? []
 		genericParameters = node.genericParameterClause?.genericParameterList.map { GenericParameter($0, node.genericWhereClause) } ?? []
+		super.init(in: context, node.attributes, node.modifiers, node.identifier.text.trim())
 	}
 
-	mutating func resolveTypes(resolve: (Type) -> Type) {
-		inheritance = inheritance.map(resolve)
+	public func resolveTypes(_ resolve: (Type) -> Type?)
+	{
+		inheritance = inheritance.compactMap(resolve)
 		for i in 0..<genericParameters.count {
 			var gp = genericParameters[i]
-			gp.resolveTypes(resolve: resolve)
+			gp.resolveTypes(resolve)
 			genericParameters[i] = gp
 		}
 	}

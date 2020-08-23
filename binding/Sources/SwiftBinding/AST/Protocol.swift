@@ -23,32 +23,14 @@
 import SwiftSyntax
 
 /// A protocol declaration.
-struct Protocol: DerivableType {
-	/// The declaration attributes.
-	var attributes: [Attribute]
+public class Protocol: Type, Derivable {
 
-	/// The declaration modifiers.
-	var modifiers: [Modifier]
-
-	/// The protocol name.
-	var name: String
-
-	var inheritance: [Type]
-
-	var typeCode: Character? { nil }
-
-	var bindingMode: TypeBindingMode { .none }
+	public var inheritance: [Type]
 
 	/// Creates an instance initialized with the given syntax node.
-	public init(_ node: ProtocolDeclSyntax)
+	public init(in context: Decl?, node: ProtocolDeclSyntax)
 	{
-		attributes = node.attributes?.compactMap { $0.as(AttributeSyntax.self) }.compactMap { Attribute(rawValue: $0.attributeName.text.trimmed) } ?? []
-		modifiers = node.modifiers?.compactMap { Modifier(rawValue: $0.name.text.trimmed) } ?? []
-		name = node.identifier.text.trimmed
-		inheritance = node.inheritanceClause?.inheritedTypes.map(OtherType.unresolved) ?? []
-	}
-
-	mutating func resolveTypes(resolve: (Type) -> Type) {
-		inheritance = inheritance.map(resolve)
+		inheritance = node.inheritanceClause?.inheritedTypes.map(UnresolvedType.init) ?? []
+		super.init(in: context, node.attributes, node.modifiers, node.identifier.text.trim())
 	}
 }
