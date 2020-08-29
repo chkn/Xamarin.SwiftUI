@@ -23,22 +23,19 @@
 import SwiftSyntax
 
 /// A structure declaration.
-public class Struct: Type, Derivable, HasTypesToResolve {
-
-	public var inheritance: [Type]
-
-	public var genericParameters: [GenericParameter]
+public class StructDecl: GenericTypeDecl, Derivable, Extendable, HasTypesToResolve {
+	public var inheritance: [TypeDecl] = []
+	public var extensions: [ExtensionDecl] = []
 
 	public override var typeCode: Character? { "V" }
 
-	public init(in context: Decl?, node: StructDeclSyntax)
+	public init(in context: Decl?, _ node: StructDeclSyntax)
 	{
-		inheritance = node.inheritanceClause?.inheritedTypes.map(UnresolvedType.init) ?? []
-		genericParameters = node.genericParameterClause?.genericParameterList.map { GenericParameter($0, node.genericWhereClause) } ?? []
-		super.init(in: context, node.attributes, node.modifiers, node.identifier.text.trim())
+		inheritance = node.inheritanceClause?.inheritedTypes(in: context) ?? []
+		super.init(in: context, node.attributes, node.modifiers, node.identifier.text.trim(), node.genericParameterClause, node.genericWhereClause)
 	}
 
-	public func resolveTypes(_ resolve: (Type) -> Type?)
+	public func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?)
 	{
 		inheritance = inheritance.compactMap(resolve)
 		for i in 0..<genericParameters.count {

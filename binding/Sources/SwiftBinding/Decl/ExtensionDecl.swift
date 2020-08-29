@@ -23,9 +23,9 @@
 import SwiftSyntax
 
 /// An extension declaration.
-public class Extension: Decl, Derivable {
+public class ExtensionDecl: Decl, Derivable {
 
-    public let extendedType: Type
+    var extendedTypeQualifiedName: String
 
     /**
      A list of protocol names inherited by the extended type.
@@ -41,7 +41,7 @@ public class Extension: Decl, Derivable {
      extension S: P, Q {}
     ```
     */
-	public var inheritance: [Type]
+	public var inheritance: [TypeDecl]
 
     /**
      The generic parameter requirements for the declaration.
@@ -60,11 +60,12 @@ public class Extension: Decl, Derivable {
 	public let genericRequirements: [GenericRequirement]
 
     /// Creates an instance initialized with the given syntax node.
-    public init(in context: Decl?, node: ExtensionDeclSyntax)
+    public init(in context: Decl?, _ node: ExtensionDeclSyntax)
     {
-		extendedType = UnresolvedType(node.extendedType.description.trim())
-		inheritance = node.inheritanceClause?.inheritedTypes.map(UnresolvedType.init) ?? []
+		let name = node.extendedType.description.trim()
+		extendedTypeQualifiedName = name.qualified(in: context)
+		inheritance = node.inheritanceClause?.inheritedTypes(in: context) ?? []
 		genericRequirements = GenericRequirement.genericRequirements(from: node.genericWhereClause?.requirementList)
-		super.init(in: context, node.attributes, node.modifiers, extendedType.name)
+		super.init(in: context, node.attributes, node.modifiers, name)
     }
 }

@@ -10,12 +10,18 @@ import SwiftSyntax
 extension String {
 	func trim() -> String { self.trimmingCharacters(in: .whitespacesAndNewlines) }
 
-	func qualified(with prefix: String?) -> String {
+	func qualified(with prefix: String?) -> String
+	{
 		if let pfx = prefix {
-			return self.hasPrefix(pfx) ? self : "\(pfx).\(self)"
+			return self.contains(".") ? self : "\(pfx).\(self)"
 		} else {
 			return self
 		}
+	}
+
+	func qualified(in context: Decl?) -> String
+	{
+		self.qualified(with: context?.qualifiedName)
 	}
 }
 
@@ -28,6 +34,11 @@ extension AttributeSyntax {
 }
 
 extension TypeInheritanceClauseSyntax {
-	var inheritedTypes: [String] { inheritedTypeCollection.map { $0.typeName.name } }
+	var inheritedTypeNames: [String] { inheritedTypeCollection.map { $0.typeName.name } }
+
+	func inheritedTypes(in context: Decl?) -> [TypeDecl]
+	{
+		self.inheritedTypeNames.map({ UnresolvedTypeDecl(in: context, name: $0) })
+	}
 }
 

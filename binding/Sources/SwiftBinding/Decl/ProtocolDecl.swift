@@ -23,14 +23,14 @@
 import SwiftSyntax
 
 /// A protocol declaration.
-public class Protocol: Type, Derivable {
-
-	public var inheritance: [Type]
+public class ProtocolDecl: TypeDecl, Derivable, Extendable {
+	public var inheritance: [TypeDecl]
+	public var extensions: [ExtensionDecl] = []
 
 	/// Creates an instance initialized with the given syntax node.
-	public init(in context: Decl?, node: ProtocolDeclSyntax)
+	public init(in context: Decl?, _ node: ProtocolDeclSyntax)
 	{
-		inheritance = node.inheritanceClause?.inheritedTypes.map(UnresolvedType.init) ?? []
+		inheritance = node.inheritanceClause?.inheritedTypes(in: context) ?? []
 		super.init(in: context, node.attributes, node.modifiers, node.identifier.text.trim())
 	}
 }

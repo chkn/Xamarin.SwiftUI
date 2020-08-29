@@ -55,27 +55,16 @@ let sdk = SDK.allCases.first!
 var binder = Binder(xcode, sdk: sdk)
 try binder.run(URL(fileURLWithPath: frameworkPath))
 
-for ty in binder.types {
+for ty in binder.bindings {
 	var templateName: String
-	var context: [String:Any] = [
-		"className": ty.name
-	]
+	switch ty {
 
-	switch binder.bindingMode(forType: ty) {
-
-    case .swiftStructSubclass(let baseClass):
-		if let strct = ty as? Struct { // could also be protocol here
-			context.updateValue(baseClass, forKey: "baseClass")
-			context.updateValue(strct.genericParameters.map({ $0.name }), forKey: "genericParamNames")
-			context.updateValue(strct.genericParameters.filter({ $0.type != nil }), forKey: "genericParamWhere")
-			templateName = "SwiftStruct.cs"
-		} else {
-			continue
-		}
+    case is SwiftStructBinding:
+		templateName = "SwiftStruct.cs"
     default:
 		continue
 	}
 
-	let rendered = try env.renderTemplate(name: templateName, context: context)
+	let rendered = try env.renderTemplate(name: templateName, context: [ "type": ty ])
 	try rendered.write(to: generatedCS.appendingPathComponent(ty.name + ".g.cs"), atomically: false, encoding: .utf8)
 }

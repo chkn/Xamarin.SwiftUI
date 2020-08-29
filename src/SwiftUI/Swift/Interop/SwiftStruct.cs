@@ -27,7 +27,7 @@ namespace Swift.Interop
 	/// </summary>
 	/// <remarks>
 	/// It is possible to bind a Swift struct as a managed value type, but this
-	///  is only safe in the case of POD types. Otherwise, we need to ensure that
+	///  is only safe in the case of frozen POD types. Otherwise, we need to ensure that
 	///  ownership is handled correctly, which we can only do reliably with a
 	///  class that is finalizable, such as this one.
 	/// <para/>
