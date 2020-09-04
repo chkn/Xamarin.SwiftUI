@@ -25,6 +25,8 @@ open class Binder: SyntaxVisitor {
 	public var types: [TypeDecl] { typesByName.values.compactMap({ $0 }) }
 	public private(set) var bindings: [Binding] = []
 
+	public private(set) var messages: [Message] = []
+
 	public init (_ xcode : Xcode, sdk: SDK)
 	{
 		self.xcode = xcode
@@ -50,6 +52,14 @@ open class Binder: SyntaxVisitor {
 		}
 	}
 
+	open func add(message msg: Message)
+	{
+		let str = msg.description
+		if !messages.contains(where: { $0.description == str }) {
+			messages.append(msg)
+		}
+	}
+
 	open func resolve(type ty: TypeDecl) -> TypeDecl?
 	{
 		resolve(ty.qualifiedName)
@@ -57,7 +67,11 @@ open class Binder: SyntaxVisitor {
 
 	open func resolve(_ qualifiedName: String) -> TypeDecl?
 	{
-		typesByName[qualifiedName] ?? nil
+		if let ty = typesByName[qualifiedName] {
+			return ty
+		}
+		add(message: Message.typeUnresolved(qualifiedName))
+		return nil
 	}
 
 	open func run(_ framework: URL) throws

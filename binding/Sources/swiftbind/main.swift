@@ -68,3 +68,7 @@ for ty in binder.bindings {
 	let rendered = try env.renderTemplate(name: templateName, context: [ "type": ty ])
 	try rendered.write(to: generatedCS.appendingPathComponent(ty.name + ".g.cs"), atomically: false, encoding: .utf8)
 }
+
+for msg in binder.messages {
+	print(msg)
+}
