@@ -49,11 +49,12 @@ default:
 	exit(1)
 }
 
-// FIXME: Iter SDKs
+// FIXME: Iter SDKs and/or take as argument
 let sdk = SDK.allCases.first!
+let framework = xcode.framework(at: URL(fileURLWithPath: frameworkPath), for: sdk)
 
-var binder = Binder(xcode, sdk: sdk)
-try binder.run(URL(fileURLWithPath: frameworkPath))
+var binder = Binder()
+binder.run(framework)
 
 for ty in binder.bindings {
 	var templateName: String

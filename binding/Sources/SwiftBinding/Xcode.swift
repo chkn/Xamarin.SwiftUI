@@ -1,9 +1,3 @@
-//
-//  SDK.swift
-//  Generator
-//
-//  Created by Alex Corrado on 7/18/20.
-//
 
 import Foundation
 
@@ -45,35 +39,24 @@ public enum SDK: CaseIterable {
 public struct Xcode {
 	public var developerPath: URL
 
-	public func runtimeRoot(_ sdk: SDK) -> URL
+	public func runtimeRoot(for sdk: SDK) -> URL
 	{
 		developerPath.appendingPathComponent(sdk.runtimeRoot)
 	}
 
-	public func sdkRoot(_ sdk: SDK) -> URL
+	public func sdkRoot(for sdk: SDK) -> URL
 	{
 		developerPath.appendingPathComponent(sdk.sdkRoot)
-	}
-
-	public static func name(of framework: URL) -> String
-	{
-		framework.deletingPathExtension().lastPathComponent
-	}
-
-	public func binaryPath(of framework: URL, forSdk: SDK) -> URL
-	{
-		runtimeRoot(forSdk).appendingPathComponent(framework.path).appendingPathComponent(Xcode.name(of: framework))
-	}
-
-	public func swiftinterfacePath(of framework: URL, forSdk: SDK) throws -> URL?
-	{
-		let path = sdkRoot(forSdk).appendingPathComponent(framework.path).appendingPathComponent("Modules/\(Xcode.name(of: framework)).swiftmodule")
-		return try FileManager.default.contentsOfDirectory(at: path, includingPropertiesForKeys: nil).first(where: { $0.pathExtension == "swiftinterface" })
 	}
 
 	public init(developerPath: URL)
 	{
 		self.developerPath = developerPath
+	}
+
+	public func framework(at path: URL, for sdk: SDK) -> Framework
+	{
+		Framework(path, sdkRoot(for: sdk), runtimeRoot(for: sdk))
 	}
 
 	public static var `default` : Xcode

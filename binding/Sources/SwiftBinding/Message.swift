@@ -1,18 +1,16 @@
+import SwiftSyntax
 
-public enum Severity: String, Equatable {
-	case info
-	case warning
-	case error
+func swiftinterfaceNotFound(in framework: Framework) -> Diagnostic.Message
+{
+	Diagnostic.Message(.error, "No swiftinterface found for '\(framework.name)' at '\(framework.swiftinterface?.path ?? "nil")'")
 }
 
-public struct Message: Identifiable, CustomStringConvertible {
-	public var severity: Severity
-	public var id: String
-	public var text: String
-	public var description: String { "\(severity) \(id): \(text)" }
+func swiftinterfaceParseError(message: String) -> Diagnostic.Message
+{
+	Diagnostic.Message(.error, "Error parsing swiftinterface: \(message)")
+}
 
-	public static func typeUnresolved(_ name: String) -> Message
-	{
-		Message(severity: .warning, id: "SBIND001", text: "Unresolved type '\(name)'")
-	}
+func typeUnresolved(_ name: String) -> Diagnostic.Message
+{
+	Diagnostic.Message(.warning, "Unresolved type '\(name)'")
 }

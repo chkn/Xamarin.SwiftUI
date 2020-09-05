@@ -9,11 +9,10 @@ import Foundation
 import SwiftSyntax
 
 open class Binder: SyntaxVisitor {
-	var xcode: Xcode
-	var sdk: SDK
-
 	var currentContext: Decl? = nil
 	var extensions: [ExtensionDecl] = []
+
+	let diag: DiagnosticEngine = DiagnosticEngine()
 
 	// Pre-map some types onto managed types
 	//  nil means erase the type or do not bind
@@ -23,15 +22,8 @@ open class Binder: SyntaxVisitor {
 	]
 
 	public var types: [TypeDecl] { typesByName.values.compactMap({ $0 }) }
+	public var diagnostics: [Diagnostic] { diag.diagnostics }
 	public private(set) var bindings: [Binding] = []
-
-	public private(set) var messages: [Message] = []
-
-	public init (_ xcode : Xcode, sdk: SDK)
-	{
-		self.xcode = xcode
-		self.sdk = sdk
-	}
 
 	open func valueWitnessTable(for type: TypeDecl) -> UnsafePointer<ValueWitnessTable>?
 	{
@@ -52,14 +44,6 @@ open class Binder: SyntaxVisitor {
 		}
 	}
 
-	open func add(message msg: Message)
-	{
-		let str = msg.description
-		if !messages.contains(where: { $0.description == str }) {
-			messages.append(msg)
-		}
-	}
-
 	open func resolve(type ty: TypeDecl) -> TypeDecl?
 	{
 		resolve(ty.qualifiedName)
@@ -70,16 +54,18 @@ open class Binder: SyntaxVisitor {
 		if let ty = typesByName[qualifiedName] {
 			return ty
 		}
-		add(message: Message.typeUnresolved(qualifiedName))
+		diag.diagnose(typeUnresolved(qualifiedName))
 		return nil
 	}
 
-	open func run(_ framework: URL) throws
+	open func run(_ framework: Framework) -> Bool
 	{
-		let file = try xcode.swiftinterfacePath(of: framework, forSdk: sdk)
-		let tree = try SyntaxParser.parse(file!)
-
-		currentContext = ModuleDecl(in: nil, name: Xcode.name(of: framework))
+		guard let file = framework.swiftinterface else {
+			diag.diagnose(swiftinterfaceNotFound(in: framework))
+			return false
+		}
+		let tree = try! SyntaxParser.parse(file, diagnosticEngine: diag)
+		currentContext = ModuleDecl(in: nil, name: framework.name)
 		walk(tree)
 
 		// resolve all types
@@ -100,6 +86,7 @@ open class Binder: SyntaxVisitor {
 		currentContext = nil
 		extensions = []
 		bindings = types.compactMap(binding)
+		return true
 	}
 
 	func tryBind(struct type: StructDecl, as baseClass: String) -> SwiftStructBinding?
