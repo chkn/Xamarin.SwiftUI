@@ -8,7 +8,7 @@
 		<Nullable>enable</Nullable>
 		<NullableContextOptions>enable</NullableContextOptions>
 
-		<!-- Even the .NET 5 SDK doesn't currently ship with a Roslyn that supports source generators yet -->
-		<RoslynNugetVersion>3.6.0-4.final</RoslynNugetVersion>
+		<!-- We need this until Xamarin ships with a C# 9 compiler -->
+		<RoslynNugetVersion>3.7.0</RoslynNugetVersion>
 	</PropertyGroup>
 </Project>
