@@ -3,10 +3,10 @@ using System;
 namespace SwiftUI
 {
 	/// <summary>
-	/// Syntactic sugar for creating views in C#.
+	/// Syntactic sugar for creating views.
 	/// </summary>
 	/// <remarks>
-	/// This class can be used with <c>using static</c>.
+	/// This class can be used with <c>using static</c> in C# or <c>open type</c> in F#.
 	/// </remarks>
 	public static class Views
 	{

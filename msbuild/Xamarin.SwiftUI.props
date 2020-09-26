@@ -1,7 +1,7 @@
 <Project>
 	<PropertyGroup>
-		<!-- Enable source generators -->
-		<LangVersion>preview</LangVersion>
+		<!-- Enable source generators, init-only properties -->
+		<LangVersion>9.0</LangVersion>
 
 		<!-- Nullability is strongly recommended -->
 		<!-- FIXME: Currently need both: "Nullable" for Windows, "NullableContextOptions" for Mac -->

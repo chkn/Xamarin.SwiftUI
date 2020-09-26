@@ -1,6 +1,7 @@
 ﻿namespace XamMacSwiftUITest.FSharp
 
 open SwiftUI
+open type SwiftUI.Views
 
 type ClickButton () =
     inherit View ()
@@ -11,7 +12,12 @@ type ClickButton () =
             match counter.Value with
             | None -> "Never been clicked"
             | Some i -> sprintf "Clicked %d times" i
-        let button = Button ((fun () -> counter.Value <- Some ((defaultArg counter.Value 0) + 1)), Text (text))
+        let button = Button(fun () -> counter.Value <- Some ((defaultArg counter.Value 0) + 1)) {
+            Text(text)
+            Text("another line!")
+            Text("yet another line!")
+            //Text("and another one")
+        }
 
         let colour = 
             match counter.Value with

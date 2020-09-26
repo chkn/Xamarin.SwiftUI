@@ -11,19 +11,19 @@ namespace SwiftUI
 	[SwiftImport (SwiftUILib.Path)]
 	public sealed class Button<TLabel> : View where TLabel : View
 	{
-		readonly Action action;
-		readonly TLabel label;
+		public Action Action { get; }
+		public TLabel Label { get; init; }
 
 		public Button (Action action, TLabel label)
 		{
-			this.action = action ?? throw new ArgumentNullException (nameof (action));
-			this.label = label ?? throw new ArgumentNullException (nameof (label));
+			Action = action ?? throw new ArgumentNullException (nameof (action));
+			Label = label; // cannot have null check here due to FSharpExtensions
 		}
 
 		protected override unsafe void InitNativeData (void* handle, Nullability nullability)
 		{
-			var ctx = GCHandle.ToIntPtr (GCHandle.Alloc (action));
-			using (var lbl = label.GetSwiftHandle (nullability [0])) {
+			var ctx = GCHandle.ToIntPtr (GCHandle.Alloc (Action));
+			using (var lbl = Label.GetSwiftHandle (nullability [0])) {
 				var lty = lbl.SwiftType;
 				Init (handle, OnActionDel, OnDisposeDel, ctx, lbl.Pointer, lty.Metadata, lty.GetProtocolConformance (SwiftUILib.ViewProtocol));
 			}

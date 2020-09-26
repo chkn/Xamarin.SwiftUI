@@ -1,16 +1,15 @@
-<Project Sdk="MSBuild.Sdk.Extras/2.0.54">
+<Project>
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" />
+  <Import Project="../../msbuild/Xamarin.SwiftUI.props" />
+  <PropertyGroup>
+    <_RealLangVersion>$(LangVersion)</_RealLangVersion>
+  </PropertyGroup>
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <TargetFrameworks Condition="'$(MSBuildRuntimeType)' != 'Core'">$(TargetFrameworks);xamarin.mac20;xamarin.ios10</TargetFrameworks>
-    <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-
-    <!-- FIXME: Currently need both: "Nullable" for Windows, "NullableContextOptions" for Mac -->
-    <Nullable>enable</Nullable>
-    <NullableContextOptions>enable</NullableContextOptions>
-    
     <OutputPath>..\..\managed\$(Configuration)</OutputPath>
   </PropertyGroup>
 
@@ -33,10 +32,22 @@
     <None Include="iOS\**\*.*" />
   </ItemGroup>
 
-  <!-- Embed the native library where possible -->
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != 'netstandard' ">
+    <!-- KLUDGE: Hack in a C# 9 compiler for Xamarin -->
+    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="$(RoslynNugetVersion)" />
+  </ItemGroup>
   <PropertyGroup Condition=" '$(TargetFrameworkIdentifier)' != 'netstandard' ">
+    <!-- Embed the native library where possible -->
     <IsBindingProject>true</IsBindingProject>
   </PropertyGroup>
+
+  <!-- Hack around https://github.com/xamarin/xamarin-macios/commit/9f28bce6b87ca6ea4cc51a0dff3e2db0064bf6ca -->
+  <Target Name="ForceResetLangVersion">
+    <PropertyGroup>
+      <LangVersion>$(_RealLangVersion)</LangVersion>
+    </PropertyGroup>
+  </Target>
+
   <ItemGroup>
     <!-- KLUDGE: We auto-generate a blank file for this -->
     <ObjcBindingApiDefinition Include="$(IntermediateOutputPath)\ApiDefinition.cs" />
@@ -54,4 +65,12 @@
       File="@(ObjcBindingApiDefinition)"
       Condition="!Exists('@(ObjcBindingApiDefinition)')" />
   </Target>
+
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" />
+  <PropertyGroup>
+    <CompileDependsOn>
+      ForceResetLangVersion;
+      $(CompileDependsOn)
+    </CompileDependsOn>
+  </PropertyGroup>
 </Project>

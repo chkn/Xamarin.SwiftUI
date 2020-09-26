@@ -67,7 +67,6 @@
   <ItemGroup>
     <None Include="Info.plist" />
     <None Include="Entitlements.plist" />
-    <Compile Include="Views.fs" />
     <Compile Include="AppDelegate.fs" />
     <Compile Include="Main.fs" />
     <None Include="packages.config" />
@@ -76,6 +75,10 @@
     <ProjectReference Include="..\src\SwiftUI\SwiftUI.csproj">
       <Project>{31E05277-F5C7-47C7-988B-EFA3A8057F07}</Project>
       <Name>SwiftUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\XamSwiftUIFSharp\XamSwiftUIFSharp.fsproj">
+      <Project>{370C3E1F-7A65-4A51-8106-010295BC2F9F}</Project>
+      <Name>XamSwiftUIFSharp</Name>
     </ProjectReference>
   </ItemGroup>
   <Target Name="VSTest" />
