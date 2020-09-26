@@ -1,6 +1,6 @@
 <Project>
 	<PropertyGroup>
-		<!-- Enable source generators, init-only properties -->
+		<!-- Enable source generators -->
 		<LangVersion>9.0</LangVersion>
 
 		<!-- Nullability is strongly recommended -->

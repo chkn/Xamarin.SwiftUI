@@ -12,12 +12,14 @@ namespace SwiftUI
 	public sealed class Button<TLabel> : View where TLabel : View
 	{
 		public Action Action { get; }
-		public TLabel Label { get; init; }
+		public TLabel Label { get; [Obsolete(Msg.SetterInternal, false)] set; }
 
 		public Button (Action action, TLabel label)
 		{
 			Action = action ?? throw new ArgumentNullException (nameof (action));
+			#pragma warning disable 618
 			Label = label; // cannot have null check here due to FSharpExtensions
+			#pragma warning restore 618
 		}
 
 		protected override unsafe void InitNativeData (void* handle, Nullability nullability)

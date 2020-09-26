@@ -39,6 +39,8 @@ type View with
 
 // The following to be added for each view that has a ViewBuilder:
 
+#nowarn "44" // setters marked with ObsoleteAttribute
+
 type Button<'TLabel when 'TLabel :> View> with
     member inline this.Run((view, N.A)) = this.Label <- view; this
     member inline this.Run(tuple) = this.Label <- untuple tuple; this

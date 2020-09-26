@@ -1,9 +1,5 @@
-<Project>
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" />
+<Project Sdk="MSBuild.Sdk.Extras/2.1.2">
   <Import Project="../../msbuild/Xamarin.SwiftUI.props" />
-  <PropertyGroup>
-    <_RealLangVersion>$(LangVersion)</_RealLangVersion>
-  </PropertyGroup>
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
@@ -32,21 +28,10 @@
     <None Include="iOS\**\*.*" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != 'netstandard' ">
-    <!-- KLUDGE: Hack in a C# 9 compiler for Xamarin -->
-    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="$(RoslynNugetVersion)" />
-  </ItemGroup>
   <PropertyGroup Condition=" '$(TargetFrameworkIdentifier)' != 'netstandard' ">
     <!-- Embed the native library where possible -->
     <IsBindingProject>true</IsBindingProject>
   </PropertyGroup>
-
-  <!-- Hack around https://github.com/xamarin/xamarin-macios/commit/9f28bce6b87ca6ea4cc51a0dff3e2db0064bf6ca -->
-  <Target Name="ForceResetLangVersion">
-    <PropertyGroup>
-      <LangVersion>$(_RealLangVersion)</LangVersion>
-    </PropertyGroup>
-  </Target>
 
   <ItemGroup>
     <!-- KLUDGE: We auto-generate a blank file for this -->
@@ -65,12 +50,4 @@
       File="@(ObjcBindingApiDefinition)"
       Condition="!Exists('@(ObjcBindingApiDefinition)')" />
   </Target>
-
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" />
-  <PropertyGroup>
-    <CompileDependsOn>
-      ForceResetLangVersion;
-      $(CompileDependsOn)
-    </CompileDependsOn>
-  </PropertyGroup>
 </Project>
