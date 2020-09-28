@@ -44,6 +44,3 @@ type View with
 type Button<'TLabel when 'TLabel :> View> with
     member inline this.Run((view, N.A)) = this.Label <- view; this
     member inline this.Run(tuple) = this.Label <- untuple tuple; this
-
-type SwiftUI.Views with
-    static member inline Button(action) = Button(action, Unchecked.defaultof<_>)

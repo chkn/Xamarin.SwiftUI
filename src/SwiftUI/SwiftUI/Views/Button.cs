@@ -14,11 +14,19 @@ namespace SwiftUI
 		public Action Action { get; }
 		public TLabel Label { get; [Obsolete(Msg.SetterInternal, false)] set; }
 
+		// designated for use with view builder syntax only
+		#pragma warning disable 8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+		public Button (Action action)
+		#pragma warning restore 8618
+		{
+			Action = action ?? throw new ArgumentNullException (nameof (action));
+		}
+
 		public Button (Action action, TLabel label)
 		{
 			Action = action ?? throw new ArgumentNullException (nameof (action));
-			#pragma warning disable 618
-			Label = label; // cannot have null check here due to FSharpExtensions
+			#pragma warning disable 618 // obsolete
+			Label = label ?? throw new ArgumentNullException (nameof (label));
 			#pragma warning restore 618
 		}
 
