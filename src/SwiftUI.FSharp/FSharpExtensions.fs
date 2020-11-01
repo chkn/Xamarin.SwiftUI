@@ -3,8 +3,8 @@
 ///  syntax added in F# 4.7.
 ///
 /// Note that all methods and functions in this module are `inline`. When used properly,
-///  no references to this assembly are emitted by the F# compiler and the consuming assembly
-///  will not depend on this assembly at runtime.
+///  no references to this assembly are emitted by the F# compiler (for Release builds),
+///  and the consuming assembly will not depend on this assembly at runtime.
 [<AutoOpen>]
 module SwiftUI.FSharpExtensions
 
@@ -20,6 +20,13 @@ type N = A
 type TupleConvert = ToStructTuple with
     static member inline ($) (ToStructTuple, (a, b)) = struct (a, b)
     static member inline ($) (ToStructTuple, (a, b, c)) = struct (a, b, c)
+    static member inline ($) (ToStructTuple, (a, b, c, d)) = struct (a, b, c, d)
+    static member inline ($) (ToStructTuple, (a, b, c, d, e)) = struct (a, b, c, d, e)
+    static member inline ($) (ToStructTuple, (a, b, c, d, e, f)) = struct (a, b, c, d, e, f)
+    static member inline ($) (ToStructTuple, (a, b, c, d, e, f, g)) = struct (a, b, c, d, e, f, g)
+    static member inline ($) (ToStructTuple, (a, b, c, d, e, f, g, h)) = struct (a, b, c, d, e, f, g, h)
+    static member inline ($) (ToStructTuple, (a, b, c, d, e, f, g, h, i)) = struct (a, b, c, d, e, f, g, h, i)
+    static member inline ($) (ToStructTuple, (a, b, c, d, e, f, g, h, i, j)) = struct (a, b, c, d, e, f, g, h, i, j)
 
 // These functions wrap the intermediate values used in the Computation Expressions. The wrapped value is
 //  either a single view, or multiple views wrapped in a TupleView. The wrapper is a tuple type 'a * 'b,
@@ -36,6 +43,14 @@ type View with
     member inline __.Yield(x) = view x
     member inline __.Combine((a : 'a, N.A), (b : 'b, N.A)) = tuple<struct ('a * 'b), _> (a, b)
     member inline __.Combine((a : 'a, N.A), (_, (b : 'b, c : 'c))) = tuple<struct ('a * 'b * 'c), _> (a, b, c)
+    member inline __.Combine((a : 'a, N.A), (_, (b : 'b, c : 'c, d : 'd))) = tuple<struct ('a * 'b * 'c * 'd), _> (a, b, c, d)
+    member inline __.Combine((a : 'a, N.A), (_, (b : 'b, c : 'c, d : 'd, e : 'e))) = tuple<struct ('a * 'b * 'c * 'd * 'e), _> (a, b, c, d, e)
+    member inline __.Combine((a : 'a, N.A), (_, (b : 'b, c : 'c, d : 'd, e : 'e, f : 'f))) = tuple<struct ('a * 'b * 'c * 'd * 'e * 'f), _> (a, b, c, d, e, f)
+    member inline __.Combine((a : 'a, N.A), (_, (b : 'b, c : 'c, d : 'd, e : 'e, f : 'f, g : 'g))) = tuple<struct ('a * 'b * 'c * 'd * 'e * 'f * 'g), _> (a, b, c, d, e, f, g)
+    member inline __.Combine((a : 'a, N.A), (_, (b : 'b, c : 'c, d : 'd, e : 'e, f : 'f, g : 'g, h : 'h))) = tuple<struct ('a * 'b * 'c * 'd * 'e * 'f * 'g * 'h), _> (a, b, c, d, e, f, g, h)
+    member inline __.Combine((a : 'a, N.A), (_, (b : 'b, c : 'c, d : 'd, e : 'e, f : 'f, g : 'g, h : 'h, i : 'i))) = tuple<struct ('a * 'b * 'c * 'd * 'e * 'f * 'g * 'h * 'i), _> (a, b, c, d, e, f, g, h, i)
+    member inline __.Combine((a : 'a, N.A), (_, (b : 'b, c : 'c, d : 'd, e : 'e, f : 'f, g : 'g, h : 'h, i : 'i, j : 'j))) = tuple<struct ('a * 'b * 'c * 'd * 'e * 'f * 'g * 'h * 'i * 'j), _> (a, b, c, d, e, f, g, h, i, j)
+
 
 // The following to be added for each view that has a ViewBuilder:
 

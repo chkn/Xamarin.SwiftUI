@@ -267,10 +267,11 @@ namespace Swift.Interop
 					// Otherwise, see if there is some special handling for this type
 					if (result == null) {
 						// Special handling for tuples
-						// FIXME: Treat F# Unit as 0-element tuple?
+						// FIXME: Treat F# Unit and non-generic ValueTuple as 0-element tuple?
 						if (typeof (ITuple).IsAssignableFrom (type)) {
-							var args = type.GetGenericArguments ();
-							result = SwiftTupleType.Of (args, nullability);
+							var args = Tuples.GetElementTypes (type);
+							var flattened = Tuples.FlattenNullability (type, nullability);
+							result = SwiftTupleType.Of (args, flattened);
 						}
 
 						// If it's a nullable type, try to unwrap it

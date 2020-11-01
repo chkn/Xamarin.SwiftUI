@@ -11,7 +11,7 @@ namespace SwiftUI
 
 	[SwiftImport (SwiftUILib.Path)]
 	public sealed class TupleView<TTuple> : View, ISwiftValue
-	// FIXME: Add this constraint back if this is ever resolved:
+	// FIXME: Add this constraint back and remove static ctor if this is ever resolved:
 	//  https://github.com/dotnet/fsharp/issues/5654#issuecomment-696504156
 	//	where TTuple : ITuple
 	{
@@ -20,6 +20,12 @@ namespace SwiftUI
 		public TupleView (TTuple value)
 		{
 			Value = value;
+		}
+
+		static TupleView ()
+		{
+			if (!typeof (ITuple).IsAssignableFrom (typeof (TTuple)))
+				throw new ArgumentException ("Must be tuple type", nameof (TTuple));
 		}
 
 		protected override unsafe void InitNativeData (void* handle, Nullability nullability)

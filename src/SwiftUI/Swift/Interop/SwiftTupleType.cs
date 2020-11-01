@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Swift.Interop
 {
@@ -9,6 +9,8 @@ namespace Swift.Interop
 	public unsafe class SwiftTupleType : SwiftType
 	{
 		readonly SwiftType [] elementTypes;
+
+		public new TupleTypeMetadata* Metadata => (TupleTypeMetadata*)base.Metadata;
 
 		internal override int MangledTypeTrailingPointers
 			=> elementTypes.Sum (et => et.MangledTypeTrailingPointers);
@@ -22,20 +24,20 @@ namespace Swift.Interop
 			this.elementTypes = elementTypes ?? throw new ArgumentNullException (nameof (elementTypes));
 		}
 
-		public static SwiftType? Of (Type [] args, Nullability nullability = default)
+		public static SwiftType? Of (Type [] elementTypes, Nullability nullability = default)
 		{
-			var len = checked((ushort)args.Length);
+			var len = checked((ushort)elementTypes.Length);
 			switch (len) {
 			case 0:
 				return new SwiftType (Lib, "yt");
 			case 1:
 				// Swift just treats 1-ples as a single value
-				return Of (args [0], nullability [0]);
+				return Of (elementTypes [0], nullability [0]);
 			default:
 				var elems = new SwiftType [len];
 				var elts = stackalloc TypeMetadata* [len];
 				for (var i = 0; i < len; i++) {
-					var el = Of (args [i], nullability [i]);
+					var el = Of (elementTypes [i], nullability [i]);
 					if (el is null)
 						return null;
 					elems [i] = el;
