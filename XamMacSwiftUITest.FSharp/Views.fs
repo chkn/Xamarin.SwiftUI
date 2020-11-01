@@ -2,6 +2,8 @@
 
 open SwiftUI
 
+open type SwiftUI.Views
+
 type ClickButton () =
     inherit View ()
 
@@ -12,10 +14,16 @@ type ClickButton () =
             | None -> "Never been clicked"
             | Some i -> sprintf "Clicked %d times" i
         let button = Button(fun () -> counter.Value <- Some ((defaultArg counter.Value 0) + 1)) {
-            yield Text(text)
-            yield Text("another line!")
-            yield Text("yet another line!")
-            //Text("and another one")
+            Text(text)
+            Text("2")
+            Text("3")
+            Text("4")
+            Text("5")
+            Text("6")
+            Text("7")
+            Text("8")
+            Text("9")
+            Text("10")
         }
 
         let colour = 
