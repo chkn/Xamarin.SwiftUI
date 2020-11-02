@@ -133,16 +133,25 @@ namespace Swift.Interop
 			};
 		}
 
-		unsafe static SwiftHandle GetTupleHandle (ITuple tuple, SwiftType tupleType, Nullability nullability)
+		unsafe static SwiftHandle GetTupleHandle (ITuple tuple, SwiftType swiftType, Nullability nullability)
 		{
-			var data = new byte [tupleType.NativeDataSize];
-			var tupleMetadata = (TupleTypeMetadata*)tupleType.Metadata;
-			Debug.Assert (tupleMetadata->NumElements == (ulong)tuple.Length);
+			var tupleType = tuple.GetType ();
+			var types = Tuples.GetElementTypes (tupleType);
+			Debug.Assert (types.Length == tuple.Length);
 
-			var elts = (TupleTypeMetadata.Element*)(tupleMetadata + 1);
-			var types = tuple.GetType ().GetGenericArguments ();
+			// Swift 1-ples are just the bare value
+			if (types.Length == 1)
+				return GetSwiftHandle (tuple [0], types [0], nullability [0]);
+
+			// Otherwise, it must be an actual Swift tuple type
+			var swiftTupleType = (SwiftTupleType)swiftType;
+			nullability = Tuples.FlattenNullability (tupleType, nullability);
+			Debug.Assert (swiftTupleType.Metadata->NumElements == (ulong)types.Length);
+
+			var data = new byte [swiftTupleType.NativeDataSize];
+			var elts = (TupleTypeMetadata.Element*)(swiftTupleType.Metadata + 1);
 			fixed (byte* dataPtr = &data [0]) {
-				for (var i = 0; i < tuple.Length; i++) {
+				for (var i = 0; i < types.Length; i++) {
 					using (var handle = tuple [i].GetSwiftHandle (types [i], nullability [i])) {
 						var sty = handle.SwiftType;
 						var dest = dataPtr + elts [i].Offset;
@@ -150,22 +159,26 @@ namespace Swift.Interop
 					}
 				}
 			}
-			return new SwiftHandle (data, tupleType, destroyOnDispose: true);
+			return new SwiftHandle (data, swiftTupleType, destroyOnDispose: true);
 		}
 
-		// Assumes tupleType has a constructor that takes all the elements
 		unsafe static object GetTupleFromNative (byte* ptr, Type tupleType, Nullability nullability)
 		{
 			Debug.Assert (!nullability.IsNullable);
-			var tupleMetadata = (TupleTypeMetadata*)SwiftType.Of (tupleType)!.Metadata;
-			var elts = (TupleTypeMetadata.Element*)(tupleMetadata + 1);
+			var types = Tuples.GetElementTypes (tupleType);
+			var args = new object [types.Length];
 
-			var types = tupleType.GetGenericArguments ();
-			var args = new object? [types.Length];
-			for (var i = 0; i < types.Length; i++)
-				args [i] = FromNative ((IntPtr)(ptr + elts [i].Offset), types [i], nullability [i]);
+			// Swift 1-ples are just the bare value
+			if (types.Length == 1) {
+				args [0] = FromNative ((IntPtr)ptr, types [0], nullability [0])!;
+			} else {
+				var tupleMetadata = ((SwiftTupleType)SwiftType.Of (tupleType)!).Metadata;
+				var elts = (TupleTypeMetadata.Element*)(tupleMetadata + 1);
+				for (var i = 0; i < types.Length; i++)
+					args [i] = FromNative ((IntPtr)(ptr + elts [i].Offset), types [i], nullability [i])!;
+			}
 
-			return Activator.CreateInstance (tupleType, args);
+			return Tuples.CreateTuple (tupleType, args);
 		}
 
 		public static unsafe object? FromNative (IntPtr ptr, Type ty, Nullability nullability = default)

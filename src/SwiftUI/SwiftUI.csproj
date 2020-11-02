@@ -1,16 +1,15 @@
-<Project Sdk="MSBuild.Sdk.Extras/2.0.54">
+<Project Sdk="MSBuild.Sdk.Extras/2.1.2">
+<Import Project="../../msbuild/Xamarin.SwiftUI.props" />
+  <PropertyGroup>
+    <!-- We don't actually need to build this with C# 9 yet -->
+    <LangVersion>default</LangVersion>
+  </PropertyGroup>
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <TargetFrameworks Condition="'$(MSBuildRuntimeType)' != 'Core'">$(TargetFrameworks);xamarin.mac20;xamarin.ios10</TargetFrameworks>
-    <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-
-    <!-- FIXME: Currently need both: "Nullable" for Windows, "NullableContextOptions" for Mac -->
-    <Nullable>enable</Nullable>
-    <NullableContextOptions>enable</NullableContextOptions>
-    
     <OutputPath>..\..\managed\$(Configuration)</OutputPath>
   </PropertyGroup>
 
@@ -33,10 +32,11 @@
     <None Include="iOS\**\*.*" />
   </ItemGroup>
 
-  <!-- Embed the native library where possible -->
   <PropertyGroup Condition=" '$(TargetFrameworkIdentifier)' != 'netstandard' ">
+    <!-- Embed the native library where possible -->
     <IsBindingProject>true</IsBindingProject>
   </PropertyGroup>
+
   <ItemGroup>
     <!-- KLUDGE: We auto-generate a blank file for this -->
     <ObjcBindingApiDefinition Include="$(IntermediateOutputPath)\ApiDefinition.cs" />

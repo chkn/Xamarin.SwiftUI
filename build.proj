@@ -38,9 +38,14 @@
 		<SwiftUIGlueSdks Condition="$(TargetFrameworks.Contains('xamarin.ios10'))" Include="iphoneos;iphonesimulator" TargetFramework="xamarin.ios10" />
 
 		<SwiftUIGlueSdks Update="@(SwiftUIGlueSdks)">
+			<ExtraArgs></ExtraArgs>
 			<IntermediateFrameworkDir>$(SwiftUIGlueDir)build\$(Configuration)-%(Identity)\SwiftUIGlue.framework\</IntermediateFrameworkDir>
 			<OutputFrameworkDir>$(NativeOutputPath)%(TargetFramework)\SwiftUIGlue.framework\</OutputFrameworkDir>
 		</SwiftUIGlueSdks>
+
+		<!-- HACK for Xcode 12 -->
+		<!-- FIXME: Revisit for Apple Silicon. Move to XCFramework if/when Xamarin supports it -->
+		<SwiftUIGlueSdks Update="iphonesimulator" ExtraArgs="EXCLUDED_ARCHS=arm64" />
 	</ItemGroup>
 
 	<Target Name="SwiftUIGlueXcode">
@@ -50,7 +55,7 @@
 			WorkingDirectory="$(SwiftUIGlueDir)" />
 
 		<Exec
-			Command="xcodebuild -project $(SwiftUIGlueXcodeproj) -configuration $(Configuration) -sdk %(SwiftUIGlueSdks.Identity)"
+			Command="xcodebuild -project $(SwiftUIGlueXcodeproj) -configuration $(Configuration) -sdk %(SwiftUIGlueSdks.Identity) %(SwiftUIGlueSdks.ExtraArgs)"
 			WorkingDirectory="$(SwiftUIGlueDir)" />
 
 		<Copy

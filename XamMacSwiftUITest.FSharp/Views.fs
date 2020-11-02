@@ -2,6 +2,8 @@
 
 open SwiftUI
 
+open type SwiftUI.Views
+
 type ClickButton () =
     inherit View ()
 
@@ -11,7 +13,18 @@ type ClickButton () =
             match counter.Value with
             | None -> "Never been clicked"
             | Some i -> sprintf "Clicked %d times" i
-        let button = Button ((fun () -> counter.Value <- Some ((defaultArg counter.Value 0) + 1)), Text (text))
+        let button = Button(fun () -> counter.Value <- Some ((defaultArg counter.Value 0) + 1)) {
+            Text(text)
+            Text("2")
+            Text("3")
+            Text("4")
+            Text("5")
+            Text("6")
+            Text("7")
+            Text("8")
+            Text("9")
+            Text("10")
+        }
 
         let colour = 
             match counter.Value with

@@ -57,6 +57,21 @@ namespace Swift.Interop
 		public readonly Nullability Strip ()
 			=> new Nullability (false, elements);
 
+		public readonly Nullability AppendingElements (Nullability nullability)
+		{
+			var otherLen = nullability.elements?.Length ?? 0;
+			if (otherLen == 0)
+				return this;
+
+			var len = elements?.Length ?? 0;
+			var newElements = new Nullability [len + otherLen];
+			if (elements != null)
+				Array.Copy (elements, newElements, len);
+			Array.Copy (nullability.elements, 0, newElements, len, otherLen);
+
+			return new Nullability (IsNullable, newElements);
+		}
+
 		public static Nullability Of (FieldInfo field)
 			=> Of (field.FieldType, GetAttributedNullability (field));
 
