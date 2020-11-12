@@ -17,8 +17,13 @@ open class Binder: SyntaxVisitor {
 	// Pre-map some types onto managed types
 	//  nil means erase the type or do not bind
 	var typesByName: [String:TypeDecl?] = [
-		// FIXME: Support this when we have an answer to Combine bindings
-		"SwiftUI.SubscriptionView": nil
+		// Add manually-bound and Xamarin-bound types as unresolved
+		"QuartzCore.CALayer": UnresolvedTypeDecl(in: nil, name: "CoreAnimation.CALayer"),
+		"SwiftUI.View": UnresolvedTypeDecl(in: nil, name: "SwiftUI.View"),
+
+		// FIXME: Support these when we have an answer to Combine bindings
+		"SwiftUI.SubscriptionView": nil,
+		"Combine.ObservableObject": nil
 	]
 
 	public var types: [TypeDecl] { typesByName.values.compactMap({ $0 }) }
@@ -58,13 +63,16 @@ open class Binder: SyntaxVisitor {
 		return nil
 	}
 
-	open func run(_ framework: Framework) -> Bool
+	open func run(_ framework: Framework)
 	{
 		guard let file = framework.swiftinterface else {
 			diag.diagnose(swiftinterfaceNotFound(in: framework))
-			return false
+			return
 		}
-		let tree = try! SyntaxParser.parse(file, diagnosticEngine: diag)
+
+		// FIXME: Parsing swiftinterface currently results in a lot of syntax errors,
+		//  so don't pass diagnosticEngine for now.
+		let tree = try! SyntaxParser.parse(file /*, diagnosticEngine: diag */)
 		currentContext = ModuleDecl(in: nil, name: framework.name)
 		walk(tree)
 
@@ -86,7 +94,6 @@ open class Binder: SyntaxVisitor {
 		currentContext = nil
 		extensions = []
 		bindings = types.compactMap(binding)
-		return true
 	}
 
 	func tryBind(struct type: StructDecl, as baseClass: String) -> SwiftStructBinding?

@@ -32,7 +32,7 @@ var frameworkPath = "/System/Library/Frameworks/SwiftUI.framework"
 switch CommandLine.arguments.count {
 case 1:
 	xcode = Xcode.default
-case 2:
+case 2 where CommandLine.arguments[1] != "--help":
 	xcode = Xcode.default
 	frameworkPath = CommandLine.arguments[1]
 case 4 where CommandLine.arguments[1] == "--developerPath":
@@ -70,6 +70,6 @@ for ty in binder.bindings {
 	try rendered.write(to: generatedCS.appendingPathComponent(ty.name + ".g.cs"), atomically: false, encoding: .utf8)
 }
 
-for msg in binder.messages {
+for msg in binder.diagnostics {
 	print(msg)
 }
