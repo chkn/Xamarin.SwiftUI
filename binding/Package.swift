@@ -14,7 +14,7 @@ let package = Package(
   ],
   dependencies: [
     // requires Xcode 11.4
-    .package(url: "https://github.com/apple/swift-syntax.git", .exact("0.50200.0")),
+    .package(url: "https://github.com/apple/swift-syntax.git", .exact("0.50300.0")),
     .package(url: "https://github.com/stencilproject/Stencil", .branch("master")),
   ],
   targets: [
