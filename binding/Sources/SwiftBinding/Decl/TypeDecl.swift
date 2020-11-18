@@ -34,10 +34,27 @@ public extension Extendable {
 }
 
 
-
 open class TypeDecl: Decl {
 	public var typeCode: Character? { nil }
 	public var isFrozen: Bool { attributes.contains(.frozen) }
+
+	public lazy var valueWitnessTable: ValueWitnessTable? =
+	{
+		guard let tc = typeCode, let bin = module.binary else { return nil }
+
+		// FIXME: This search is pretty fuzzy and probably error prone
+		var offs = bin.findSymbol({ $0.hasSuffix("\(name.count)\(name)\(tc)N") })
+		if offs == 0 {
+			return nil
+		}
+
+		offs -= UInt64(MemoryLayout<UnsafeRawPointer>.size)
+
+		bin.reader.seek(to: offs)
+		let vwt: ValueWitnessTable = bin.reader.read()
+
+		return vwt
+	}()
 }
 
 open class GenericTypeDecl: TypeDecl {

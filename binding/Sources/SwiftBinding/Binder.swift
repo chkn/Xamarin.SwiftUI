@@ -30,18 +30,6 @@ open class Binder: SyntaxVisitor {
 	public var diagnostics: [Diagnostic] { diag.diagnostics }
 	public private(set) var bindings: [Binding] = []
 
-	open func valueWitnessTable(for type: TypeDecl) -> UnsafePointer<ValueWitnessTable>?
-	{
-		/*
-			guard let sym = metadataSymbolName else { return nil }
-		return dlsym(swiftUILib, sym)?
-			.advanced(by: -MemoryLayout<UnsafeRawPointer>.size)
-			.assumingMemoryBound(to: UnsafePointer<ValueWitnessTable>.self)
-			.pointee
-		*/
-		return nil
-	}
-
 	open func add(type ty: TypeDecl)
 	{
 		if typesByName[ty.qualifiedName] == nil {
@@ -73,7 +61,7 @@ open class Binder: SyntaxVisitor {
 		// FIXME: Parsing swiftinterface currently results in a lot of syntax errors,
 		//  so don't pass diagnosticEngine for now.
 		let tree = try! SyntaxParser.parse(file /*, diagnosticEngine: diag */)
-		currentContext = ModuleDecl(in: nil, name: framework.name)
+		currentContext = ModuleDecl(in: framework)
 		walk(tree)
 
 		// resolve all types
@@ -125,9 +113,10 @@ open class Binder: SyntaxVisitor {
 		}
 
 		// frozen POD structs -> blittableStruct
-//		if let vwt = valueWitnessTable(for: type), type.isFrozen && !vwt.pointee.isNonPOD {
-//			return .blittableStruct
-//		}
+		if let vwt = type.valueWitnessTable, type.isFrozen && !vwt.isNonPOD {
+			//return .blittableStruct
+			print("woo!")
+		}
 
 		return nil
 	}

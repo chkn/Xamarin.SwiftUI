@@ -10,6 +10,8 @@ open class Decl: CustomStringConvertible {
 	public var qualifiedName: String { name.qualified(with: context?.qualifiedName) }
 	public var description: String { qualifiedName }
 
+	open var module: ModuleDecl { context!.module }
+
 	public init(in context: Decl?, attributes: [DeclAttribute], modifiers: [DeclModifier], name: String)
 	{
 		self.context = context
