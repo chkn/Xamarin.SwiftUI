@@ -6,11 +6,12 @@ open class Decl: CustomStringConvertible {
 	public let modifiers: [DeclModifier]
 	public let name: String
 
+	open var metadataSymbolName: String? { nil }
+	open var module: ModuleDecl { context!.module }
+
 	public var isPublic: Bool { modifiers.contains(.public) }
 	public var qualifiedName: String { name.qualified(with: context?.qualifiedName) }
 	public var description: String { qualifiedName }
-
-	open var module: ModuleDecl { context!.module }
 
 	public init(in context: Decl?, attributes: [DeclAttribute], modifiers: [DeclModifier], name: String)
 	{

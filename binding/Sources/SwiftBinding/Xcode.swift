@@ -2,33 +2,35 @@
 import Foundation
 
 public enum SDK: CaseIterable {
+	case macOS
 	case iOS
 	case tvOS
-	case macOS
 	case watchOS
 
-	/// Runtime root for this SDK relative to the Xcode Developer path.
-	public var runtimeRoot: String {
+	/// Runtime root for this SDK
+	public func runtimeRoot(_ developerPath: URL) -> URL
+	{
 		switch self {
-		case .iOS:
-			return "Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime/Contents/Resources/RuntimeRoot"
-		case .tvOS:
-			abort()
 		case .macOS:
+			return URL(fileURLWithPath: "/")
+		case .iOS:
+			return developerPath.appendingPathComponent("Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime/Contents/Resources/RuntimeRoot")
+		case .tvOS:
 			abort()
 		case .watchOS:
 			abort()
 		}
 	}
 
-	/// SDK root for this SDK relative to the Xcode Developer path.
-	public var sdkRoot: String {
+	/// SDK root for this SDK
+	public func sdkRoot(_ developerPath: URL) -> URL
+	{
 		switch self {
-		case .iOS:
-			return "Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk"
-		case .tvOS:
-			abort()
 		case .macOS:
+			return developerPath.appendingPathComponent("Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk")
+		case .iOS:
+			return developerPath.appendingPathComponent("Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk")
+		case .tvOS:
 			abort()
 		case .watchOS:
 			abort()
@@ -39,16 +41,6 @@ public enum SDK: CaseIterable {
 public struct Xcode {
 	public var developerPath: URL
 
-	public func runtimeRoot(for sdk: SDK) -> URL
-	{
-		developerPath.appendingPathComponent(sdk.runtimeRoot)
-	}
-
-	public func sdkRoot(for sdk: SDK) -> URL
-	{
-		developerPath.appendingPathComponent(sdk.sdkRoot)
-	}
-
 	public init(developerPath: URL)
 	{
 		self.developerPath = developerPath
@@ -56,7 +48,7 @@ public struct Xcode {
 
 	public func framework(at path: URL, for sdk: SDK) -> Framework
 	{
-		Framework(path, sdkRoot(for: sdk), runtimeRoot(for: sdk))
+		Framework(path, sdk.sdkRoot(developerPath), sdk.runtimeRoot(developerPath))
 	}
 
 	public static var `default` : Xcode

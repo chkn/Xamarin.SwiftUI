@@ -51,7 +51,7 @@ open class Binder: SyntaxVisitor {
 		return nil
 	}
 
-	open func run(_ framework: Framework)
+	open func run(_ framework: Framework, loadedLib: UnsafeMutableRawPointer? = nil)
 	{
 		guard let file = framework.swiftinterface else {
 			diag.diagnose(swiftinterfaceNotFound(in: framework))
@@ -61,7 +61,7 @@ open class Binder: SyntaxVisitor {
 		// FIXME: Parsing swiftinterface currently results in a lot of syntax errors,
 		//  so don't pass diagnosticEngine for now.
 		let tree = try! SyntaxParser.parse(file /*, diagnosticEngine: diag */)
-		currentContext = ModuleDecl(in: framework)
+		currentContext = ModuleDecl(in: framework, loadedLib: loadedLib)
 		walk(tree)
 
 		// resolve all types
@@ -110,12 +110,16 @@ open class Binder: SyntaxVisitor {
 			if let swiftStruct = tryBind(struct: sty, as: "SwiftUI.Shape") ?? tryBind(struct: sty, as: "SwiftUI.View") {
 				return swiftStruct
 			}
-		}
 
-		// frozen POD structs -> blittableStruct
-		if let vwt = type.valueWitnessTable, type.isFrozen && !vwt.isNonPOD {
-			//return .blittableStruct
-			print("woo!")
+			if let _ = tryBind(struct: sty, as: "SwiftUI.ViewModifier") {
+				// FIXME: We need to support ViewModifiers
+				return nil
+			}
+
+			// frozen POD structs -> blittableStruct
+			if type.isFrozen && !type.isNonPOD {
+				return BlittableStructBinding(sty)
+			}
 		}
 
 		return nil

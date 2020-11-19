@@ -37,23 +37,20 @@ public extension Extendable {
 open class TypeDecl: Decl {
 	public var typeCode: Character? { nil }
 	public var isFrozen: Bool { attributes.contains(.frozen) }
+	public var isNonPOD: Bool { valueWitnessTable?.pointee.isNonPOD ?? true }
 
-	public lazy var valueWitnessTable: ValueWitnessTable? =
+	override public var metadataSymbolName: String? {
+		guard let ctx = context?.metadataSymbolName, let tc = typeCode else { return nil }
+		return "\(ctx)\(name.count)\(name)\(tc)N"
+	}
+
+	lazy var valueWitnessTable: UnsafePointer<ValueWitnessTable>? =
 	{
-		guard let tc = typeCode, let bin = module.binary else { return nil }
-
-		// FIXME: This search is pretty fuzzy and probably error prone
-		var offs = bin.findSymbol({ $0.hasSuffix("\(name.count)\(name)\(tc)N") })
-		if offs == 0 {
-			return nil
-		}
-
-		offs -= UInt64(MemoryLayout<UnsafeRawPointer>.size)
-
-		bin.reader.seek(to: offs)
-		let vwt: ValueWitnessTable = bin.reader.read()
-
-		return vwt
+		guard let sym = metadataSymbolName else { return nil }
+		return dlsym(module.lib, sym)?
+			.advanced(by: -MemoryLayout<UnsafeRawPointer>.size)
+			.assumingMemoryBound(to: UnsafePointer<ValueWitnessTable>.self)
+			.pointee
 	}()
 }
 

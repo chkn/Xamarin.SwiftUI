@@ -50,19 +50,22 @@ default:
 }
 
 // FIXME: Iter SDKs and/or take as argument
-let sdk = SDK.allCases.first!
+let sdk = SDK.macOS
 let framework = xcode.framework(at: URL(fileURLWithPath: frameworkPath), for: sdk)
 
 var binder = Binder()
-binder.run(framework)
+binder.run(framework, loadedLib: dlopen(framework.binary.path, 0))
 
 for ty in binder.bindings {
 	var templateName: String
 	switch ty {
 
-    case is SwiftStructBinding:
+	case is SwiftStructBinding:
 		templateName = "SwiftStruct.cs"
-    default:
+
+	case is BlittableStructBinding:
+		templateName = "BlittableStruct.cs"
+	default:
 		continue
 	}
 
