@@ -17,6 +17,13 @@ open class Binder: SyntaxVisitor {
 	// Pre-map some types onto managed types
 	//  nil means erase the type or do not bind
 	var typesByName: [String:TypeDecl?] = [
+		// General .NET types..
+		"Swift.Comparable": UnresolvedTypeDecl(in: nil, name: "IComparable"),
+		// I think we don't care about these because all .net types can satisfy them..
+		"Swift.Equatable": nil,
+		"Swift.Hashable": nil,
+		"Swift.CustomStringConvertible": nil,
+
 		// Add manually-bound and Xamarin-bound types as unresolved
 		"QuartzCore.CALayer": UnresolvedTypeDecl(in: nil, name: "CoreAnimation.CALayer"),
 		"SwiftUI.View": UnresolvedTypeDecl(in: nil, name: "SwiftUI.View"),
