@@ -80,10 +80,48 @@ namespace SwiftUI.Tests
 			AssertField (nameof (c6), new Nullability (true, new [] { new Nullability (true) }));
 		}
 
+		Tuple<int?> d1;
+		Tuple<int, int?> d2;
+		Tuple<int, int, int?> d3;
+		Tuple<int, int, int, int, int, int, int?> d4;
+		Tuple<int, int, int, int, int, int, int?, Tuple<int?>> d5;
+		Tuple<int, int, int, int, int, int, int?, Tuple<int, int?>> d6;
+		ValueTuple<int?> d7;
+		ValueTuple<int, int?> d8;
+		ValueTuple<int, int, int?> d9;
+		ValueTuple<int, int, int, int, int, int, int?> d10;
+		ValueTuple<int?, int, int, int, int, int, int?, ValueTuple<int?>> d11;
+		ValueTuple<int?, int, int, int, int, int, int?, ValueTuple<int, int?>> d12;
+
+		[Theory]
+		[InlineData (nameof (d1))]
+		[InlineData (nameof (d2))]
+		[InlineData (nameof (d3))]
+		[InlineData (nameof (d4))]
+		[InlineData (nameof (d5))]
+		[InlineData (nameof (d6))]
+		[InlineData (nameof (d7))]
+		[InlineData (nameof (d8))]
+		[InlineData (nameof (d9))]
+		[InlineData (nameof (d10))]
+		[InlineData (nameof (d11))]
+		[InlineData (nameof (d12))]
+		public void NullabilityOfTupleFields (string fieldName)
+			=> AssertFieldType (fieldName);
+
+		static FieldInfo GetField (string fieldName)
+			=> typeof (NullabilityTests).GetField (fieldName, BindingFlags.Instance | BindingFlags.NonPublic)!;
+
 		static void AssertField (string fieldName, Nullability expected)
 		{
-			var fld = typeof (NullabilityTests).GetField (fieldName, BindingFlags.Instance | BindingFlags.NonPublic)!;
+			var fld = GetField (fieldName);
 			Assert.True (Nullability.Of (fld) == expected, fieldName);
+		}
+
+		static void AssertFieldType (string fieldName)
+		{
+			var fld = GetField (fieldName);
+			Assert.NotNull (SwiftType.Of (fld.FieldType, Nullability.Of (fld)));
 		}
 	}
 }

@@ -2,9 +2,23 @@
 
 A managed binding to SwiftUI.
 
-## Master Builds
+## Getting Started with Master Builds
 
 [![Build Status](https://alcorra.visualstudio.com/Xamarin.SwiftUI/_apis/build/status/Xamarin.SwiftUI?branchName=master)](https://alcorra.visualstudio.com/Xamarin.SwiftUI/_build/latest?definitionId=1&branchName=master)
+
+### Requirements
+
+This binding is designed to provide a decent API from either C# 9 or F# 5.
+
+- C# 9
+
+  The NuGet package currently pulls in and enables the correct C# compiler and language version (see below). No manual configuration should be needed, but watch out for any settings in your csproj that might conflict.
+
+- F# 5
+
+  If you are using VS Mac, you must currently install [this Mono build](https://github.com/mono/mono/pull/20511#issuecomment-717160671) to get the F# 5 compiler for Xamarin.
+
+### Install the NuGet Package
 
 Until the project is ready for use in real apps, there are no official packages. For now, you can get a sneak peek by installing the latest package from the master feed:
 

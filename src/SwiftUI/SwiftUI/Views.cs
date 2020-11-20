@@ -3,15 +3,13 @@ using System;
 namespace SwiftUI
 {
 	/// <summary>
-	/// Syntactic sugar for creating views in C#.
+	/// Syntactic sugar for creating views.
 	/// </summary>
 	/// <remarks>
-	/// This class can be used with <c>using static</c>.
+	/// This class can be used with <c>using static</c> in C# or <c>open type</c> in F#.
 	/// </remarks>
 	public static partial class Views
 	{
-		const string SourceGeneratorMessage = "Source generator required";
-
 		#region Button
 		public static Button<Text> Button (string label, Action action)
 			=> new Button<Text> (action, new Text (label));
@@ -20,7 +18,7 @@ namespace SwiftUI
 			=> new Button<TLabel> (action, label);
 
 		public static View Button (Action action, [ViewBuilder] Action label)
-			=> throw new NotImplementedException (SourceGeneratorMessage);
+			=> throw new NotImplementedException (Msg.SourceGeneratorReqd);
 		#endregion
 
 		public static Text Text (string verbatim) => new Text (verbatim);

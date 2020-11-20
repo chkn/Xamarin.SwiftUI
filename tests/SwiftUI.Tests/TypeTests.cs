@@ -66,6 +66,24 @@ namespace SwiftUI.Tests
 			}
 		}
 
+		[Theory]
+		[InlineData (typeof (Tuple<int, int>), 2)]
+		[InlineData (typeof (Tuple<int, int, int>), 3)]
+		[InlineData (typeof (Tuple<int, int, int, int, int, int, int>), 7)]
+		[InlineData (typeof (Tuple<int, int, int, int, int, int, int, Tuple<int>>), 8)]
+		[InlineData (typeof (Tuple<int, int, int, int, int, int, int, Tuple<int, int>>), 9)]
+		[InlineData (typeof (ValueTuple<int, int>), 2)]
+		[InlineData (typeof (ValueTuple<int, int, int>), 3)]
+		[InlineData (typeof (ValueTuple<int, int, int, int, int, int, int>), 7)]
+		[InlineData (typeof (ValueTuple<int, int, int, int, int, int, int, ValueTuple<int>>), 8)]
+		[InlineData (typeof (ValueTuple<int, int, int, int, int, int, int, ValueTuple<int, int>>), 9)]
+		public unsafe void TupleTypesMapToSwift (Type tupleType, ulong expectedNumberOfElements)
+		{
+			var swiftType = SwiftType.Of (tupleType) as SwiftTupleType;
+			Assert.NotNull (swiftType);
+			Assert.Equal (expectedNumberOfElements, swiftType.Metadata->NumElements);
+		}
+
 		[SkippableTheory]
 		[InlineData (typeof (Optional.Packed<>), typeof (Swift.String))]
 		[InlineData (typeof (Optional.Packed<>), typeof (IntPtr))]

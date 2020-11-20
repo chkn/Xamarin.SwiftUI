@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Reflection;
+using System.Collections.Generic;
+
 using Xunit;
+using Swift.Interop;
 
 namespace SwiftUI.Tests
 {
-    public class ColorTests : TestFixture
+    public class ValueTests : TestFixture
     {
         [Fact]
         public void AllStaticColorCallsWork ()
@@ -61,5 +64,29 @@ namespace SwiftUI.Tests
 
             Assert.Null (exception);
         }
+
+        [Theory]
+        [MemberData (nameof (Tuples))]
+        public unsafe void TupleValuesRoundtrip (object tuple)
+        {
+            var handle = tuple.GetSwiftHandle ();
+            var tuple2 = SwiftValue.FromNative ((IntPtr)handle.Pointer, tuple.GetType ());
+            Assert.Equal (tuple, tuple2);
+        }
+
+        public static IEnumerable<object []> Tuples
+            => new[] {
+                new object[] { Tuple.Create (1) },
+                new object[] { Tuple.Create (1, 2) },
+                new object[] { Tuple.Create (1, 2, 3, 4, 5, 6, 7) },
+                new object[] { Tuple.Create (1, 2, 3, 4, 5, 6, 7, 8) },
+                new object[] { Tuple.Create (1, 2, 3, 4, 5, 6, 7, Tuple.Create (8)) },
+                new object[] { new Tuple<int,int,int,int,int,int,int,Tuple<int,int>> (1, 2, 3, 4, 5, 6, 7, Tuple.Create (8, 9)) },
+                new object[] { ValueTuple.Create (1) },
+                new object[] { (1, 2) },
+                new object[] { (1, 2, 3, 4, 5, 6, 7) },
+                new object[] { (1, 2, 3, 4, 5, 6, 7, 8) },
+                new object[] { (1, 2, 3, 4, 5, 6, 7, 8, 9) }
+            };
     }
 }

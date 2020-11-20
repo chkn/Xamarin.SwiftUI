@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Swift;
@@ -9,17 +10,17 @@ namespace SwiftUI
 	[SwiftImport (SwiftUILib.Path)]
 	public unsafe sealed class Text : View
 	{
-		readonly string verbatim;
+		public string Verbatim { get; }
 
 		public Text (string verbatim)
 		{
-			this.verbatim = verbatim;
+			Verbatim = verbatim;
 		}
 
 		protected override void InitNativeData (void* handle, Nullability nullability)
 		{
-			using (var str = new Swift.String (verbatim))
-				Init (handle, str);
+			using var str = new Swift.String (Verbatim);
+			Init (handle, str);
 		}
 
 		[DllImport (SwiftGlueLib.Path,
