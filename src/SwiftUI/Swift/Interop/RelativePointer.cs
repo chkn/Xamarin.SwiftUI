@@ -41,7 +41,7 @@ namespace Swift.Interop
 	{
 		int offsetPlusIndirect;
 
-		public static RelativePointer Zero => default;
+		public static RelativeIndirectablePointer Zero => default;
 
 		public void* Target {
 			get {

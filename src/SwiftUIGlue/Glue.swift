@@ -11,6 +11,7 @@ import SwiftUI
 //  varies in a couple ways. Thus, until mono supports this convention natively,
 //  we need some glue functions...
 
+// Unless otherwise noted, the following applies to both x86_64/ARM64.
 
 //
 // Extra registers are used for returning value types that are 3 or 4 pointers in size.
@@ -24,7 +25,7 @@ public func Text_verbatim(dest : UnsafeMutablePointer<Text>, verbatim : String)
 //
 // Holds a function pointer and context pointer and allows for managed clean up when Swift
 //  no longer needs them.
-// Aside from clean up, this is also needed because closure contexts are passed in r13.
+// Aside from clean up, this is also needed because closure contexts are passed in r13/x20.
 //
 @frozen
 public struct Delegate {
@@ -51,8 +52,8 @@ fileprivate class DelegateBox {
 }
 
 //
-// Indirectly returned struct: return pointer is passed in rax.
-// Closure contexts passed in r13
+// Indirectly returned struct: return pointer is passed in rax/x8.
+// Closure contexts passed in r13/x20
 //
 @_silgen_name("swiftui_Button_action_label")
 public func Button_action_label<T: View>(dest : UnsafeMutablePointer<Button<T>>, action : Delegate, label : T)
@@ -62,7 +63,7 @@ public func Button_action_label<T: View>(dest : UnsafeMutablePointer<Button<T>>,
 }
 
 //
-// Indirectly returned struct: return pointer is passed in rax.
+// Indirectly returned struct: return pointer is passed in rax/x8.
 //
 @_silgen_name("swiftui_State_initialValue")
 public func State_initialValue<T>(dest : UnsafeMutablePointer<State<T>>, initialValue : T)
@@ -71,7 +72,7 @@ public func State_initialValue<T>(dest : UnsafeMutablePointer<State<T>>, initial
 }
 
 //
-// Non-static sized struct: pointer passed in r13
+// Non-static sized struct: pointer passed in r13/x20
 //
 @_silgen_name("swiftui_State_wrappedValue_setter")
 public func State_wrappedValue_setter<T>(state : State<T>, value : T)
@@ -80,7 +81,7 @@ public func State_wrappedValue_setter<T>(state : State<T>, value : T)
 }
 
 //
-// Non-static sized struct: pointer passed in r13
+// Non-static sized struct: pointer passed in r13/x20
 //
 @_silgen_name("swiftui_State_wrappedValue_getter")
 public func State_wrappedValue_getter<T>(dest : UnsafeMutablePointer<T>, state : UnsafePointer<State<T>>)
@@ -89,7 +90,7 @@ public func State_wrappedValue_getter<T>(dest : UnsafeMutablePointer<T>, state :
 }
 
 //
-// Indirectly returned struct: return pointer is passed in rax.
+// Indirectly returned struct: return pointer is passed in rax/x8.
 //
 @_silgen_name("swiftui_TupleView_value")
 public func TupleView_value<T>(dest : UnsafeMutablePointer<TupleView<T>>, value : T)
@@ -98,7 +99,7 @@ public func TupleView_value<T>(dest : UnsafeMutablePointer<TupleView<T>>, value 
 }
 
 //
-// Indirectly returned struct: return pointer is passed in rax.
+// Indirectly returned struct: return pointer is passed in rax/x8.
 // Calling convention differs for CGFloat?
 //
 @_silgen_name("swiftui_VStack_align_spacing_content")
@@ -159,7 +160,7 @@ public func SetBodyFn(value : @escaping BodyFn)
 }
 
 //
-// Indirectly returned struct: return pointer is passed in rax.
+// Indirectly returned struct: return pointer is passed in rax/x8.
 //
 @_silgen_name("swiftui_View_opacity")
 public func SetViewOpacity<T: View>(dest : UnsafeMutableRawPointer, view : T, value : Double)
@@ -169,7 +170,7 @@ public func SetViewOpacity<T: View>(dest : UnsafeMutableRawPointer, view : T, va
 }
 
 //
-// Indirectly returned struct: return pointer is passed in rax.
+// Indirectly returned struct: return pointer is passed in rax/x8.
 //
 @_silgen_name("swiftui_View_background")
 public func SetViewBackground<TView: View, TBackground: View>(dest : UnsafeMutableRawPointer, view : TView, value : TBackground)

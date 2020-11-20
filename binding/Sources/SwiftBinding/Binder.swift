@@ -30,7 +30,10 @@ open class Binder: SyntaxVisitor {
 
 		// FIXME: Support these when we have an answer to Combine bindings
 		"SwiftUI.SubscriptionView": nil,
-		"Combine.ObservableObject": nil
+		"Combine.ObservableObject": nil,
+
+		// No plans to bind these for now..
+		"SwiftUI.ViewBuilder": nil
 	]
 
 	public var types: [TypeDecl] { typesByName.values.compactMap({ $0 }) }
@@ -111,9 +114,9 @@ open class Binder: SyntaxVisitor {
 			return nil
 		}
 
-		// try to bind some known SwiftStruct types first
-		//  must do "SwiftUI.Shape" first becuase it derives from View
 		if let sty = type as? StructDecl {
+			// try to bind some known SwiftStruct types first
+			//  must do "SwiftUI.Shape" first becuase it derives from View
 			if let swiftStruct = tryBind(struct: sty, as: "SwiftUI.Shape") ?? tryBind(struct: sty, as: "SwiftUI.View") {
 				return swiftStruct
 			}
@@ -127,9 +130,24 @@ open class Binder: SyntaxVisitor {
 			if type.isFrozen && !type.isNonPOD {
 				return BlittableStructBinding(sty)
 			}
+
+			// other structs just derive from SwiftStruct directly
+			return SwiftStructBinding(sty, "SwiftStruct")
 		}
 
 		return nil
+	}
+
+	open override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind
+	{
+		// FIXME
+		return .skipChildren
+	}
+
+	open override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind
+	{
+		extensions.append(ExtensionDecl(in: currentContext, node))
+		return .skipChildren
 	}
 
 	open override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind
@@ -141,12 +159,6 @@ open class Binder: SyntaxVisitor {
 	open override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind
 	{
 		add(type: ProtocolDecl(in: currentContext, node))
-		return .skipChildren
-	}
-
-	open override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind
-	{
-		extensions.append(ExtensionDecl(in: currentContext, node))
 		return .skipChildren
 	}
 }
