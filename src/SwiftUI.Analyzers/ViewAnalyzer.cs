@@ -16,18 +16,18 @@ namespace SwiftUI.Analyzers
 	public class ViewAnalyzer : DiagnosticAnalyzer
 	{
 		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-			=> ImmutableArray.Create (Diagnostics.MissingBody, Diagnostics.NotPartialClass);
+			=> ImmutableArray.Create (Diagnostics.MissingBody, Diagnostics.NotPartialRecord);
 
 		public override void Initialize (AnalysisContext context)
 		{
 			context.ConfigureGeneratedCodeAnalysis (GeneratedCodeAnalysisFlags.None);
 			context.EnableConcurrentExecution ();
-			context.RegisterSyntaxNodeAction (AnalyzeNode, SyntaxKind.ClassDeclaration);
+			context.RegisterSyntaxNodeAction (AnalyzeNode, SyntaxKind.RecordDeclaration);
 		}
 
 		static void AnalyzeNode (SyntaxNodeAnalysisContext ctx)
 		{
-			var decl = (ClassDeclarationSyntax)ctx.Node;
+			var decl = (RecordDeclarationSyntax)ctx.Node;
 			var symbol = ctx.SemanticModel.GetDeclaredSymbol (decl, ctx.CancellationToken);
 			if (symbol is null || !symbol.IsCustomView ())
 				return;
@@ -36,7 +36,7 @@ namespace SwiftUI.Analyzers
 				ctx.ReportDiagnostic (Diagnostic.Create (Diagnostics.MissingBody, decl.Identifier.GetLocation (), decl.Identifier));
 
 			if (!decl.HasModifier (SyntaxKind.PartialKeyword))
-				ctx.ReportDiagnostic (Diagnostic.Create (Diagnostics.NotPartialClass, decl.Identifier.GetLocation (), decl.Identifier));
+				ctx.ReportDiagnostic (Diagnostic.Create (Diagnostics.NotPartialRecord, decl.Identifier.GetLocation (), decl.Identifier));
 		}
 	}
 }

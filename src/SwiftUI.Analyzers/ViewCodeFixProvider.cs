@@ -37,7 +37,7 @@ namespace SwiftUI.Analyzers
 				.WithAdditionalAnnotations (Formatter.Annotation);
 
 		public override ImmutableArray<string> FixableDiagnosticIds
-			=> ImmutableArray.Create (Diagnostics.MissingBody.Id, Diagnostics.NotPartialClass.Id);
+			=> ImmutableArray.Create (Diagnostics.MissingBody.Id, Diagnostics.NotPartialRecord.Id);
 
 		public override FixAllProvider GetFixAllProvider () => WellKnownFixAllProviders.BatchFixer;
 
@@ -46,11 +46,11 @@ namespace SwiftUI.Analyzers
 			var diag = context.Diagnostics.First ();
 			var root = await context.Document.GetSyntaxRootAsync (context.CancellationToken);
 
-			// Find the class declaration that our diagnostic is on
+			// Find the record declaration that our diagnostic is on
 			var decl = root?.FindToken (diag.Location.SourceSpan.Start)
 			                .Parent?
 			                .AncestorsAndSelf ()
-			                .OfType<ClassDeclarationSyntax> ()
+			                .OfType<RecordDeclarationSyntax> ()
 			                .FirstOrDefault ();
 			if (decl is null)
 				return;
@@ -64,7 +64,7 @@ namespace SwiftUI.Analyzers
 				if (diags.ContainsId (Diagnostics.MissingBody.Id))
 					newDecl = newDecl.AddMembers (BodyPropertyDecl);
 
-				if (diags.ContainsId (Diagnostics.NotPartialClass.Id))
+				if (diags.ContainsId (Diagnostics.NotPartialRecord.Id))
 					newDecl = newDecl.AddModifiers (Token (SyntaxKind.PartialKeyword));
 
 				var newDoc = context.Document;

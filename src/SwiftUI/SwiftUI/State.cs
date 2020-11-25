@@ -11,7 +11,7 @@ namespace SwiftUI
 	using static State;
 
 	[SwiftImport (SwiftUILib.Path)]
-	public sealed class State<TValue> : SwiftStruct
+	public sealed record State<TValue> : SwiftStruct
 	{
 		TValue initialValue;
 

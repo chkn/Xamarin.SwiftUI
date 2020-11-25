@@ -11,10 +11,10 @@ namespace SwiftUI.Analyzers
 			"Custom view '{0}' does not declare a 'Body' property",
 			"SwiftUI", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-		public static readonly DiagnosticDescriptor NotPartialClass = new DiagnosticDescriptor (
+		public static readonly DiagnosticDescriptor NotPartialRecord = new DiagnosticDescriptor (
 			"SWUI002",
-			"Custom View Must be Partial Class",
-			"Custom view '{0}' is not declared as a partial class",
+			"Custom View Must be Partial Record",
+			"Custom view '{0}' is not declared as a partial record",
 			"SwiftUI", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
 		public static readonly DiagnosticDescriptor BodyReturnType = new DiagnosticDescriptor (

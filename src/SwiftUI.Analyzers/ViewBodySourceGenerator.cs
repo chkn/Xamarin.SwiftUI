@@ -64,14 +64,7 @@ namespace SwiftUI.Analyzers
 
 			public override void VisitClassDeclaration (ClassDeclarationSyntax node)
 			{
-				if (!node.HasModifier (SyntaxKind.PartialKeyword))
-					return;
-
-				var symbol = model.GetDeclaredSymbol (node, context.CancellationToken);
-				if (symbol is null || !symbol.IsCustomView ())
-					return;
-
-				base.VisitClassDeclaration (node);
+				// Don't visit children
 			}
 
 			public override void VisitMethodDeclaration (MethodDeclarationSyntax node)
@@ -79,10 +72,22 @@ namespace SwiftUI.Analyzers
 				// Don't visit children
 			}
 
+			public override void VisitRecordDeclaration (RecordDeclarationSyntax node)
+			{
+				if (!node.HasModifier (SyntaxKind.PartialKeyword))
+					return;
+
+				var symbol = model.GetDeclaredSymbol (node, context.CancellationToken);
+				if (symbol is null || !symbol.IsCustomView ())
+					return;
+
+				base.VisitRecordDeclaration (node);
+			}
+
 			public override void VisitPropertyDeclaration (PropertyDeclarationSyntax node)
 			{
-				var classDecl = node.Parent as ClassDeclarationSyntax;
-				if (classDecl is null)
+				var recordDecl = node.Parent as RecordDeclarationSyntax;
+				if (recordDecl is null)
 					return;
 
 				var symbol = model.GetDeclaredSymbol (node, context.CancellationToken);
@@ -116,14 +121,25 @@ namespace SwiftUI.Analyzers
 						.WithAccessorList (newNode.AccessorList)
 						.WithSemicolonToken (Token (SyntaxKind.SemicolonToken));
 
-				var newClassDecl =
-					ClassDeclaration (classDecl.Identifier)
-						.WithModifiers (classDecl.Modifiers)
-						.AddMembers (newNode);
+				var newRecordDecl =
+					RecordDeclaration (
+						attributeLists: default,
+						modifiers: recordDecl.Modifiers,
+						keyword: Token (SyntaxKind.RecordKeyword),
+						identifier: recordDecl.Identifier,
+						typeParameterList: recordDecl.TypeParameterList,
+						parameterList: default,
+						baseList: default,
+						constraintClauses: default,
+						openBraceToken: Token (SyntaxKind.OpenBraceToken),
+						members: new SyntaxList<MemberDeclarationSyntax> (newNode),
+						closeBraceToken: Token (SyntaxKind.CloseBraceToken),
+						semicolonToken: default
+						);
 
-				var container = classDecl.Parent is NamespaceDeclarationSyntax nsDecl
-					? NamespaceDeclaration (nsDecl.Name).AddMembers (newClassDecl)
-					: (MemberDeclarationSyntax)newClassDecl;
+				var container = recordDecl.Parent is NamespaceDeclarationSyntax nsDecl
+					? NamespaceDeclaration (nsDecl.Name).AddMembers (newRecordDecl)
+					: (MemberDeclarationSyntax)newRecordDecl;
 
 				Result = (Result ?? CompilationUnit()).AddMembers (container);
 			}
