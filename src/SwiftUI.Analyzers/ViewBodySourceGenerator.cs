@@ -16,11 +16,11 @@ namespace SwiftUI.Analyzers
 	[Generator]
 	public class ViewBodySourceGenerator : ISourceGenerator
 	{
-		public void Initialize (InitializationContext context)
+		public void Initialize (GeneratorInitializationContext context)
 		{
 		}
 
-		public void Execute (SourceGeneratorContext context)
+		public void Execute (GeneratorExecutionContext context)
 		{
 			foreach (var syntaxTree in context.Compilation.SyntaxTrees) {
 				if (context.CancellationToken.IsCancellationRequested)
@@ -44,13 +44,13 @@ namespace SwiftUI.Analyzers
 
 		sealed class CompilationUnitWalker : CSharpSyntaxWalker
 		{
-			SourceGeneratorContext context;
+			GeneratorExecutionContext context;
 			SemanticModel model;
 			PropertyRewriter rewriter;
 
 			public CompilationUnitSyntax? Result { get; private set; }
 
-			public CompilationUnitWalker (SourceGeneratorContext context, SemanticModel model)
+			public CompilationUnitWalker (GeneratorExecutionContext context, SemanticModel model)
 			{
 				this.context = context;
 				this.model = model;
@@ -130,10 +130,10 @@ namespace SwiftUI.Analyzers
 		}
 		sealed class PropertyRewriter : CSharpSyntaxRewriter
 		{
-			SourceGeneratorContext context;
+			GeneratorExecutionContext context;
 			SemanticModel model;
 
-			public PropertyRewriter (SourceGeneratorContext context, SemanticModel model)
+			public PropertyRewriter (GeneratorExecutionContext context, SemanticModel model)
 			{
 				this.context = context;
 				this.model = model;
