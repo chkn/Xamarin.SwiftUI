@@ -39,7 +39,7 @@ namespace SwiftUI.Tests
 			var types = typeof (SwiftCoreLib)
 				.Assembly
 				.GetTypes ()
-				.Where (ty => !ty.IsAbstract && Attribute.IsDefined (ty, typeof (SwiftTypeAttribute), true))
+				.Where (ty => !ty.IsAbstract && Attribute.IsDefined (ty, typeof (SwiftImportAttribute), true))
 				.Select (GetTypeForTest);
 			Assert.All (types, ty => Assert.NotNull (SwiftType.Of (ty)));
 		}

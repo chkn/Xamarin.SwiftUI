@@ -5,7 +5,7 @@ using Swift.Interop;
 namespace SwiftUI
 {
     [SwiftImport (SwiftUILib.Path, "$s7SwiftUI4ViewPAAE10background_9alignmentQrqd___AA9AlignmentVtAaBRd__lFQOMQ")]
-    public class ModifiedBackground<TView, TBackground> : View
+    public record ModifiedBackground<TView, TBackground> : View
         where TView : View
         where TBackground : View
     {

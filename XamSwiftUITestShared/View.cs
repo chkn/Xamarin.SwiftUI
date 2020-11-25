@@ -4,7 +4,7 @@ using SwiftUI;
 
 namespace SwiftUITestShared
 {
-	public partial class StackedView : View
+	public partial record StackedView : View
 	{
 		public VStack<TupleView<(ClickButton, Text)>> Body =>
 			new VStack<TupleView<(ClickButton, Text)>> (HorizontalAlignment.Trailing,
@@ -14,7 +14,7 @@ namespace SwiftUITestShared
 				)));
 	}
 
-	public partial class ClickButton : View
+	public partial record ClickButton : View
 	{
 		State<(string, bool)> state = new State<(string, bool)> (("Please click this button:", true));
 		public VStack<TupleView<(Text, Button<Text>?)>> Body =>

@@ -8,15 +8,8 @@ using Swift.Interop;
 namespace SwiftUI
 {
 	[SwiftImport (SwiftUILib.Path)]
-	public unsafe sealed class Text : View
+	public unsafe sealed record Text(string Verbatim) : View
 	{
-		public string Verbatim { get; }
-
-		public Text (string verbatim)
-		{
-			Verbatim = verbatim;
-		}
-
 		protected override void InitNativeData (void* handle, Nullability nullability)
 		{
 			using var str = new Swift.String (Verbatim);

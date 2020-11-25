@@ -15,7 +15,7 @@ namespace SwiftUI
 	}
 
 	[SwiftImport (SwiftUILib.Path)]
-	public unsafe partial class Color : View
+	public unsafe partial record Color : View
 	{
 		// not a pointer; the actual Color data
 		readonly IntPtr opaqueData;

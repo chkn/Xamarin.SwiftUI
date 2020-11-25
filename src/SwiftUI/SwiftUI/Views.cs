@@ -12,15 +12,15 @@ namespace SwiftUI
 	{
 		#region Button
 		public static Button<Text> Button (string label, Action action)
-			=> new Button<Text> (action, new Text (label));
+			=> new (action, new Text (label));
 
 		public static Button<TLabel> Button<TLabel> (Action action, TLabel label) where TLabel : View
-			=> new Button<TLabel> (action, label);
+			=> new (action, label);
 
 		public static View Button (Action action, [ViewBuilder] Action label)
 			=> throw new NotImplementedException (Msg.SourceGeneratorReqd);
 		#endregion
 
-		public static Text Text (string verbatim) => new Text (verbatim);
+		public static Text Text (string verbatim) => new (verbatim);
 	}
 }

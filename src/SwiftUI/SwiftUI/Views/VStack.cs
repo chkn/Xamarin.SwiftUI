@@ -9,12 +9,8 @@ namespace SwiftUI
 	using static VStack;
 
 	[SwiftImport (SwiftUILib.Path)]
-	public sealed class VStack<TContent> : View where TContent : View
+	public sealed record VStack<TContent>(HorizontalAlignment Alignment, double? Spacing, TContent Content) : View where TContent : View
 	{
-		readonly HorizontalAlignment alignment;
-		readonly double? spacing;
-		readonly TContent content;
-
 		public VStack (TContent content)
 			// FIXME: Call the functions to get the default values from SwiftUI
 			: this (HorizontalAlignment.Center, null, content)
@@ -27,18 +23,11 @@ namespace SwiftUI
 		{
 		}
 
-		public VStack (HorizontalAlignment alignment, double? spacing, TContent content)
-		{
-			this.alignment = alignment;
-			this.spacing = spacing;
-			this.content = content;
-		}
-
 		protected override unsafe void InitNativeData (void* handle, Nullability nullability)
 		{
-			using (var ctnt = content.GetSwiftHandle (nullability [0])) {
+			using (var ctnt = Content.GetSwiftHandle (nullability [0])) {
 				var cty = ctnt.SwiftType;
-				Init (handle, alignment, spacing.HasValue, spacing ?? 0, ctnt.Pointer, cty.Metadata, cty.GetProtocolConformance (SwiftUILib.ViewProtocol));
+				Init (handle, Alignment, Spacing.HasValue, Spacing ?? 0, ctnt.Pointer, cty.Metadata, cty.GetProtocolConformance (SwiftUILib.ViewProtocol));
 			}
 		}
 	}

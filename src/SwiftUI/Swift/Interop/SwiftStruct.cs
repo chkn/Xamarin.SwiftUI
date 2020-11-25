@@ -45,7 +45,7 @@ namespace Swift.Interop
 	/// When an instance of this class does own its data, the data is deinitialized and
 	///  deallocated when this instance is disposed or finalized.
 	/// </remarks>
-	public unsafe abstract class SwiftStruct : ISwiftFieldExposable
+	public unsafe abstract record SwiftStruct : ISwiftFieldExposable
 	{
 		// not null when data is not null
 		// FIXME: used by CustomViewType; a bit hacky

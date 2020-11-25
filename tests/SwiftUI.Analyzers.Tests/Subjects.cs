@@ -1,10 +1,12 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SwiftUI.Analyzers.Tests
 {
@@ -21,6 +23,9 @@ namespace SwiftUI.Analyzers.Tests
 					MetadataReference.CreateFromFile (GetLoadedAssemblyPath ("netstandard")),
 					MetadataReference.CreateFromFile (GetLoadedAssemblyPath ("System.Runtime")))
 				.AddSyntaxTrees (GetSubjectSyntax (fileName));
+
+		public static CompilationWithAnalyzers WithViewAnalyzer (this Compilation compilation)
+			=> compilation.WithAnalyzers (ImmutableArray.Create<DiagnosticAnalyzer> (new ViewAnalyzer ()));
 
 		static SyntaxTree GetSubjectSyntax (string fileName, [CallerFilePath] string path = null)
 			=> CSharpSyntaxTree.ParseText (File.ReadAllText (Path.Combine (Path.GetDirectoryName (path), "Subjects", fileName)));
