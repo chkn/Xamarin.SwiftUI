@@ -10,6 +10,11 @@ jobs:
   pool:
     vmImage: macOS-latest
   steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      packageType: sdk
+      useGlobalJson: true
   - task: MSBuild@1
     displayName: 'msbuild restore build.proj'
     inputs:
@@ -40,6 +45,11 @@ jobs:
   pool:
     vmImage: macOS-latest
   steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      packageType: sdk
+      useGlobalJson: true
   - task: NuGetToolInstaller@1
     displayName: 'Install NuGet tools'
   - task: DotNetCoreCLI@2
