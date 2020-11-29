@@ -84,6 +84,15 @@
 
 	<Target Name="SwiftUIGlue" DependsOnTargets="@(SwiftUIGlueTargets)" />
 
+	<Target Name="Restore">
+		<ItemGroup>
+			<TargetFramework Include="$(TargetFrameworks)" />
+		</ItemGroup>
+		<MSBuild
+			Projects="$(MSBuildThisFileDirectory)Xamarin.SwiftUI.sln"
+			Properties="Configuration=$(Configuration);TargetFramework=%(TargetFramework.Identity)" Targets="Restore"/>
+	</Target>
+
 	<Target Name="Build" DependsOnTargets="SwiftUIGlue">
 		<ItemGroup>
 			<TargetFramework Include="$(TargetFrameworks)" />

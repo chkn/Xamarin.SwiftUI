@@ -38,7 +38,7 @@ A simple custom view with state:
 using SwiftUI;
 using static SwiftUI.Views;
 
-public partial class ClickView : View
+public partial record ClickView : View
 {
 	readonly State<int> clicks = new State<int> (0);
 	public View Body
