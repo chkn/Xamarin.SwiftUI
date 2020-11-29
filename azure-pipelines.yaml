@@ -1,5 +1,5 @@
 # The version of the produced packages is defined here.
-name: '0.1.$(BuildID)-pre'
+name: '0.2.$(BuildID)-pre'
 trigger:
   branches:
     include:
@@ -10,6 +10,12 @@ jobs:
   pool:
     vmImage: macOS-latest
   steps:
+  - task: MSBuild@1
+    displayName: 'msbuild restore build.proj'
+    inputs:
+      solution: build.proj
+      configuration: Debug
+      msbuildArguments: '/t:Restore'
   - task: MSBuild@1
     displayName: 'msbuild build.proj'
     inputs:
@@ -41,6 +47,12 @@ jobs:
     inputs:
       command: 'restore'
       projects: 'Xamarin.SwiftUI.sln'
+  - task: MSBuild@1
+    displayName: 'msbuild restore build.proj'
+    inputs:
+      solution: build.proj
+      configuration: Release
+      msbuildArguments: '/t:Restore'
   - task: MSBuild@1
     displayName: 'msbuild build.proj'
     inputs:
