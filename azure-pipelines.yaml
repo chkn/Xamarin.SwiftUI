@@ -26,7 +26,7 @@ jobs:
     inputs:
       solution: build.proj
       configuration: Debug
-      msbuildArguments: '/restore /t:Build'
+      msbuildArguments: '/t:Build'
   - task: DotNetCoreCLI@2
     displayName: 'dotnet build SwiftUI.Tests.FSharp'
     inputs:
@@ -64,11 +64,20 @@ jobs:
       configuration: Release
       msbuildArguments: '/t:Restore'
   - task: MSBuild@1
+    name: 'build'
     displayName: 'msbuild build.proj'
+    continueOnError: true
     inputs:
       solution: build.proj
       configuration: Release
-      msbuildArguments: '/restore /p:Version=$(Build.BuildNumber)'
+      msbuildArguments: '/p:Version=$(Build.BuildNumber)'
+  - task: MSBuild@1
+    displayName: 'Retry msbuild build.proj'
+    condition: eq(variables['Agent.JobStatus'],'SucceededWithIssues')
+    inputs:
+      solution: build.proj
+      configuration: Release
+      msbuildArguments: '/p:Version=$(Build.BuildNumber)'
   - task: DotNetCoreCLI@2
     displayName: 'dotnet build SwiftUI.Tests.FSharp'
     inputs:

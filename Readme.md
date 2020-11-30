@@ -49,6 +49,7 @@ public partial record ClickView : View
 ## Building from Source
 
 ### Prerequisites
+- .NET 5 SDK
 - Xamarin toolchain
 - Xcode 11 or newer
 - Xcode [command line](https://developer.apple.com/library/archive/technotes/tn2339/_index.html) tools
@@ -67,11 +68,22 @@ msbuild build.proj /t:SwiftUIGlue /p:Configuration=Debug
 
 #### Packaging
 
+The major and minor version of nuget packages created by the CI pipeline is controlled by the `name:` element in `azure-pipelines.yaml`. This should be bumped for each release.
+
+For local development, the version of the package produced can be overridden:
+
 ```
 msbuild build.proj /p:Version=X.X.XXX
 ```
 
-The major and minor version of nuget packages created by the CI pipeline is controlled by the `name:` element in `azure-pipelines.yaml`. This should be bumped for each release.
+#### Troubleshooting
+
+You may receive the following errors on the first couple builds:
+
+- `error CS1617: Invalid option '9.0' for /langversion`
+- `error CS0012: The type '...' is defined in an assembly that is not referenced. You must add a reference to assembly 'netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'`
+
+If you receive either of the above failures, simply run the command again.
 
 ### Visual Studio for Mac
 
