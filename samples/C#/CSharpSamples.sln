@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.809.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpSamples.Classic.iOS", "Classic\iOS\CSharpSamples.Classic.iOS.csproj", "{558D207F-19C6-42AB-BD54-FEB22D4AC899}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Classic", "Classic", "{2E9A7E6D-3148-4EF6-B8C1-B194E591E42E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|iPhoneSimulator = Debug|iPhoneSimulator
+		Release|iPhone = Release|iPhone
+		Release|iPhoneSimulator = Release|iPhoneSimulator
+		Debug|iPhone = Debug|iPhone
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{558D207F-19C6-42AB-BD54-FEB22D4AC899}.Debug|iPhoneSimulator.ActiveCfg = Debug|iPhoneSimulator
+		{558D207F-19C6-42AB-BD54-FEB22D4AC899}.Debug|iPhoneSimulator.Build.0 = Debug|iPhoneSimulator
+		{558D207F-19C6-42AB-BD54-FEB22D4AC899}.Release|iPhone.ActiveCfg = Release|iPhone
+		{558D207F-19C6-42AB-BD54-FEB22D4AC899}.Release|iPhone.Build.0 = Release|iPhone
+		{558D207F-19C6-42AB-BD54-FEB22D4AC899}.Release|iPhoneSimulator.ActiveCfg = Release|iPhoneSimulator
+		{558D207F-19C6-42AB-BD54-FEB22D4AC899}.Release|iPhoneSimulator.Build.0 = Release|iPhoneSimulator
+		{558D207F-19C6-42AB-BD54-FEB22D4AC899}.Debug|iPhone.ActiveCfg = Debug|iPhone
+		{558D207F-19C6-42AB-BD54-FEB22D4AC899}.Debug|iPhone.Build.0 = Debug|iPhone
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BCC44AFE-121A-4120-A2DF-50EAD7980336}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{558D207F-19C6-42AB-BD54-FEB22D4AC899} = {2E9A7E6D-3148-4EF6-B8C1-B194E591E42E}
+	EndGlobalSection
+EndGlobal

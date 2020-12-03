@@ -1,12 +1,9 @@
 <Project DefaultTargets="Pack">
+	<Import Project="LocalArtifacts.props" />
 	<Import Project="msbuild/Xamarin.SwiftUI.props" />
 	<PropertyGroup>
-		<Version Condition=" '$(Version)' == '' ">99.0-pre</Version>
 		<TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">netstandard2.1;xamarin.mac20;xamarin.ios10</TargetFrameworks>
 		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
-
-		<!-- Directory to place created packages -->
-		<ArtifactOutputPath Condition=" '$(ArtifactOutputPath)' == '' ">$(MSBuildThisFileDirectory)artifacts</ArtifactOutputPath>
 
 		<!-- Managed code -->
 		<SrcPath Condition=" '$(SrcPath)' == '' ">$(MSBuildThisFileDirectory)src\</SrcPath>
