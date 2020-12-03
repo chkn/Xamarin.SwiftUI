@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12120" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="2743">
+    <device id="retina6_1" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12088"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--About-->
+        <!--Tab Bar Controller-->
+        <!--Browse-->
+        <!--About-->
+        <!--Items-->
+        <!--Title-->
+        <!--New Item-->
+        <scene sceneID="2742">
+            <objects>
+                <viewController id="2743" sceneMemberID="viewController" customClass="SwiftUIViewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="2740"/>
+                        <viewControllerLayoutGuide type="bottom" id="2741"/>
+                    </layoutGuides>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="2745" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2275" y="-468"/>
+        </scene>
+    </scenes>
+</document>

@@ -97,23 +97,11 @@ jobs:
       PathtoPublish: '$(System.DefaultWorkingDirectory)/artifacts'
       ArtifactName: packages
   - task: MSBuild@1
-    displayName: 'Build MacOS C# project XamMacSwiftUITest/XamMacSwiftUITest.csproj'
+    displayName: 'Build CSharpSamples.sln'
     inputs:
-      solution: XamMacSwiftUITest/XamMacSwiftUITest.csproj
+      solution: 'samples/C#/CSharpSamples.sln'
       configuration: Release
-      msbuildArguments: /restore
-  - task: MSBuild@1
-    displayName: 'Build MacOS F# project XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj'
-    inputs:
-      solution: XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj
-      configuration: Release
-      msbuildArguments: /restore
-  - task: MSBuild@1
-    displayName: 'Build iOS C# project XamiOSSwiftUITest/XamiOSSwiftUITest.csproj'
-    inputs:
-      solution: XamiOSSwiftUITest/XamiOSSwiftUITest.csproj
-      configuration: Release
-      msbuildArguments: /restore
+      msbuildArguments: '/restore /p:Version=$(Build.BuildNumber)'
   - task: NuGetAuthenticate@0
     displayName: 'NuGet Authenticate'
     condition: and( succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master') )
