@@ -280,7 +280,7 @@ namespace Swift.Interop
 				sizeof (FieldRecord) * NativeFields.Count +
 				NativeFields.Sum (fld => fld.SwiftType.MangledTypeSize) +
 				NativeFields.Sum (fld => fld.Field.Name.Length + 1) +
-				name.Length + ns.Length + 2 // (for nulls)
+				name.Length + ns.Length + 4 // (for nulls, alignment)
 			);
 			try {
 				modDesc->Context = new ContextDescriptor {
@@ -292,7 +292,7 @@ namespace Swift.Interop
 				Marshal.WriteByte (nsPtr, ns.Length, 0);
 				modDesc->NamePtr.Target = (void*)nsPtr;
 
-				desc = (StructDescriptor*)((byte*)nsPtr + ns.Length + 1);
+				desc = (StructDescriptor*)((byte*)nsPtr + ns.Length + (ns.Length % 2 == 0 ? 2 : 1)); //adding for null, alignment
 				desc->NominalType.Context.Flags = new ContextDescriptorFlags {
 					Kind = ContextDescriptorKind.Struct,
 					IsUnique = true
@@ -313,7 +313,7 @@ namespace Swift.Interop
 
 				// Even if there are no fields, the presence of the field descriptor
 				//  pointer is used to determine if the type is "reflectable"
-				var fldDesc = (FieldDescriptor*)((byte*)namePtr + name.Length + 1);
+				var fldDesc = (FieldDescriptor*)((byte*)namePtr + name.Length + (name.Length % 2 == 0 ? 2 : 1)); //adding for null, alignment
 				desc->NominalType.FieldsPtr.Target = (void*)fldDesc;
 
 				fldDesc->MangledTypeNamePtr = default; // FIXME:?

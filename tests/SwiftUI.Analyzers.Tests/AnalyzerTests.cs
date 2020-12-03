@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 
 using Microsoft.CodeAnalysis;
@@ -18,6 +19,12 @@ namespace SwiftUI.Analyzers.Tests
 		public void HasNoDiagnostics (string fileName)
 		{
 			Assert.Empty (Subjects.GetSubjectCompilation (fileName).GetDiagnostics ());
+		}
+
+		[Fact]
+		public async Task HasDiagnosticsWithAnalyzer ()
+		{
+			Assert.NotEmpty (await Subjects.TestViews.WithViewAnalyzer ().GetAllDiagnosticsAsync ());
 		}
 
 		[Theory]

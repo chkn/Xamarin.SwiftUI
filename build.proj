@@ -1,12 +1,9 @@
 <Project DefaultTargets="Pack">
+	<Import Project="LocalArtifacts.props" />
 	<Import Project="msbuild/Xamarin.SwiftUI.props" />
 	<PropertyGroup>
-		<Version Condition=" '$(Version)' == '' ">99.0-pre</Version>
 		<TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">netstandard2.1;xamarin.mac20;xamarin.ios10</TargetFrameworks>
 		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
-
-		<!-- Directory to place created packages -->
-		<ArtifactOutputPath Condition=" '$(ArtifactOutputPath)' == '' ">$(MSBuildThisFileDirectory)artifacts</ArtifactOutputPath>
 
 		<!-- Managed code -->
 		<SrcPath Condition=" '$(SrcPath)' == '' ">$(MSBuildThisFileDirectory)src\</SrcPath>
@@ -83,6 +80,15 @@
 	</Target>
 
 	<Target Name="SwiftUIGlue" DependsOnTargets="@(SwiftUIGlueTargets)" />
+
+	<Target Name="Restore">
+		<ItemGroup>
+			<TargetFramework Include="$(TargetFrameworks)" />
+		</ItemGroup>
+		<MSBuild
+			Projects="$(MSBuildThisFileDirectory)Xamarin.SwiftUI.sln"
+			Properties="Configuration=$(Configuration);TargetFramework=%(TargetFramework.Identity)" Targets="Restore"/>
+	</Target>
 
 	<Target Name="Build" DependsOnTargets="SwiftUIGlue">
 		<ItemGroup>

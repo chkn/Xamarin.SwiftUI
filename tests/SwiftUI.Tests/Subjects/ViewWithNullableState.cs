@@ -4,14 +4,14 @@ using SwiftUI;
 
 namespace SwiftUI.Tests
 {
-	public class ViewWithNullableReferenceState : View
+	public record ViewWithNullableReferenceState : View
 	{
 		readonly State<string?> message = new State<string?> ("Hello World");
 
 		public Text Body => new Text (message.Value ?? "No message");
 	}
 
-	public class ViewWithNullableValueState : View
+	public record ViewWithNullableValueState : View
 	{
 		readonly State<int?> count = new State<int?> (0);
 

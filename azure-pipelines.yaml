@@ -1,5 +1,5 @@
 # The version of the produced packages is defined here.
-name: '0.1.$(BuildID)-pre'
+name: '0.2.$(BuildID)-pre'
 trigger:
   branches:
     include:
@@ -10,12 +10,23 @@ jobs:
   pool:
     vmImage: macOS-latest
   steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      packageType: sdk
+      useGlobalJson: true
+  - task: MSBuild@1
+    displayName: 'msbuild restore build.proj'
+    inputs:
+      solution: build.proj
+      configuration: Debug
+      msbuildArguments: '/t:Restore'
   - task: MSBuild@1
     displayName: 'msbuild build.proj'
     inputs:
       solution: build.proj
       configuration: Debug
-      msbuildArguments: '/restore /t:Build'
+      msbuildArguments: '/t:Build'
   - task: DotNetCoreCLI@2
     displayName: 'dotnet build SwiftUI.Tests.FSharp'
     inputs:
@@ -34,6 +45,11 @@ jobs:
   pool:
     vmImage: macOS-latest
   steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      packageType: sdk
+      useGlobalJson: true
   - task: NuGetToolInstaller@1
     displayName: 'Install NuGet tools'
   - task: DotNetCoreCLI@2
@@ -42,11 +58,26 @@ jobs:
       command: 'restore'
       projects: 'Xamarin.SwiftUI.sln'
   - task: MSBuild@1
-    displayName: 'msbuild build.proj'
+    displayName: 'msbuild restore build.proj'
     inputs:
       solution: build.proj
       configuration: Release
-      msbuildArguments: '/restore /p:Version=$(Build.BuildNumber)'
+      msbuildArguments: '/t:Restore'
+  - task: MSBuild@1
+    name: 'build'
+    displayName: 'msbuild build.proj'
+    continueOnError: true
+    inputs:
+      solution: build.proj
+      configuration: Release
+      msbuildArguments: '/p:Version=$(Build.BuildNumber)'
+  - task: MSBuild@1
+    displayName: 'Retry msbuild build.proj'
+    condition: eq(variables['Agent.JobStatus'],'SucceededWithIssues')
+    inputs:
+      solution: build.proj
+      configuration: Release
+      msbuildArguments: '/p:Version=$(Build.BuildNumber)'
   - task: DotNetCoreCLI@2
     displayName: 'dotnet build SwiftUI.Tests.FSharp'
     inputs:
@@ -66,23 +97,11 @@ jobs:
       PathtoPublish: '$(System.DefaultWorkingDirectory)/artifacts'
       ArtifactName: packages
   - task: MSBuild@1
-    displayName: 'Build MacOS C# project XamMacSwiftUITest/XamMacSwiftUITest.csproj'
+    displayName: 'Build CSharpSamples.sln'
     inputs:
-      solution: XamMacSwiftUITest/XamMacSwiftUITest.csproj
+      solution: 'samples/C#/CSharpSamples.sln'
       configuration: Release
-      msbuildArguments: /restore
-  - task: MSBuild@1
-    displayName: 'Build MacOS F# project XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj'
-    inputs:
-      solution: XamMacSwiftUITest.FSharp/XamMacSwiftUITest.FSharp.csproj
-      configuration: Release
-      msbuildArguments: /restore
-  - task: MSBuild@1
-    displayName: 'Build iOS C# project XamiOSSwiftUITest/XamiOSSwiftUITest.csproj'
-    inputs:
-      solution: XamiOSSwiftUITest/XamiOSSwiftUITest.csproj
-      configuration: Release
-      msbuildArguments: /restore
+      msbuildArguments: '/restore /p:Version=$(Build.BuildNumber)'
   - task: NuGetAuthenticate@0
     displayName: 'NuGet Authenticate'
     condition: and( succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master') )

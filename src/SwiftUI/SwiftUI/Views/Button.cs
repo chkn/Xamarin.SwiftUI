@@ -9,18 +9,10 @@ namespace SwiftUI
 	using static Button;
 
 	[SwiftImport (SwiftUILib.Path)]
-	public sealed class Button<TLabel> : View where TLabel : View
+	public sealed record Button<TLabel>(Action Action, TLabel Label) : View where TLabel : View
 	{
-		public Action Action { get; }
-		public TLabel Label { get; [Obsolete(Msg.SetterInternal, false)] set; }
-
-		public Button (Action action, TLabel label)
-		{
-			Action = action ?? throw new ArgumentNullException (nameof (action));
-			#pragma warning disable 618
-			Label = label; // cannot have null check here due to FSharpExtensions
-			#pragma warning restore 618
-		}
+		// Cannot use default init-only property because it breaks F# view builder syntax
+		public TLabel Label { get; [Obsolete (Msg.SetterInternal, false)] set; } = Label;
 
 		protected override unsafe void InitNativeData (void* handle, Nullability nullability)
 		{

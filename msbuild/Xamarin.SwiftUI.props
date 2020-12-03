@@ -9,6 +9,6 @@
 		<NullableContextOptions>enable</NullableContextOptions>
 
 		<!-- We need this until Xamarin ships with a C# 9 compiler -->
-		<RoslynNugetVersion>3.7.0</RoslynNugetVersion>
+		<RoslynNugetVersion>3.8.0</RoslynNugetVersion>
 	</PropertyGroup>
 </Project>

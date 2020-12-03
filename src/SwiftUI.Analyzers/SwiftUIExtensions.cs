@@ -94,5 +94,8 @@ namespace SwiftUI.Analyzers
 
 		internal static bool HasModifier (this ClassDeclarationSyntax cls, SyntaxKind modifier)
 			=> cls.Modifiers.Any (m => m.IsKind (modifier));
+
+		internal static bool HasModifier (this RecordDeclarationSyntax rec, SyntaxKind modifier)
+			=> rec.Modifiers.Any (m => m.IsKind (modifier));
 	}
 }

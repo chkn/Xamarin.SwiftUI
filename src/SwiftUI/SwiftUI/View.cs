@@ -39,9 +39,10 @@ namespace SwiftUI
 	///  declares its return type as a concrete subclass of <see cref="View"/>
 	///   (it may not declare its return type as the <see cref="View"/> base class itself).
 	/// </remarks>
+	// Note that this class cannot be abstract due to issues subclassing C# records in F#
 	[CustomView]
 	[SwiftProtocol (SwiftUILib.Path, "SwiftUI", "View")]
-	public unsafe abstract class View : SwiftStruct
+	public unsafe record View : SwiftStruct
 	{
 		// by convention:
 		//public abstract TBody Body { get; }
@@ -49,7 +50,7 @@ namespace SwiftUI
 		GCHandle gch;
 		long refCount = 0; // number of refs passed to native code
 
-		public View ()
+		protected View ()
 		{
 		}
 

@@ -1,0 +1,10 @@
+<Project>
+	<PropertyGroup>
+		<!-- Note: this Version only affects packages produced locally. For CI/release package version, change azure-pipelines.yaml -->
+		<Version Condition=" '$(Version)' == '' ">99.0.0-pre</Version>
+
+		<!-- Directory to place created packages -->
+		<ArtifactOutputPath Condition=" '$(ArtifactOutputPath)' == '' ">$(MSBuildThisFileDirectory)artifacts</ArtifactOutputPath>
+		<RestoreAdditionalProjectSources>$(RestoreAdditionalProjectSources);$(ArtifactOutputPath)</RestoreAdditionalProjectSources>
+	</PropertyGroup>
+</Project>
