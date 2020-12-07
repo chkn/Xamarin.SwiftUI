@@ -1,34 +1,14 @@
-//
-//  main.swift
-//  generator
-//
-//  Created by Alex Corrado on 7/12/20.
-//
 
 import Darwin
 import Foundation
 
-import PathKit
-import Stencil
 import SwiftSyntax
-
 import SwiftBinding
-
-// Compute some paths..
-
-// binding dir within our source tree
-let bindingPath = URL(fileURLWithPath: #file).deletingLastPathComponent().appendingPathComponent("../..")
-
-// Generated source outputs
-let generatedCS = bindingPath.appendingPathComponent("../src/SwiftUI/Generated")
-let generatedGlue = bindingPath.appendingPathComponent("../src/SwiftUIGlue")
-
-// Templates within our source tree
-var env = Environment(loader: FileSystemLoader(paths: [Path(bindingPath.appendingPathComponent("Templates").path)]))
 
 // SwiftUI binaries and swiftinterface files within Xcode
 var xcode: Xcode
 var frameworkPath = "/System/Library/Frameworks/SwiftUI.framework"
+
 switch CommandLine.arguments.count {
 case 1:
 	xcode = Xcode.default
@@ -49,30 +29,62 @@ default:
 	exit(1)
 }
 
-// FIXME: Iter SDKs and/or take as argument
-let sdk = SDK.macOS
-let framework = xcode.framework(at: URL(fileURLWithPath: frameworkPath), for: sdk)
+// HACK: To access the value witness table, we dlopen the mac framework
+//   and assume that these ABI details (e.g. @frozen) are the same across all platforms
+let frameworkURL = URL(fileURLWithPath: frameworkPath)
+let macFramework = xcode.framework(at: frameworkURL, for: SDK.macOS)
+let loadedLib = dlopen(macFramework.binary.path, 0)
 
-var binder = Binder()
-binder.run(framework, loadedLib: dlopen(framework.binary.path, 0))
+// Run the binding for every SDK, conditionalizing the generated code for any differences
+let binder = Binder()
+var bindings : [String:[(SDK,Binding)]] = [:]
 
-for ty in binder.bindings {
-	var templateName: String
-	switch ty {
+var sdks = Set(SDK.allCases)
+for sdk in SDK.allCases {
+	let framework = xcode.framework(at: frameworkURL, for: sdk)
 
-	case is SwiftStructBinding:
-		templateName = "SwiftStruct.cs"
-
-	case is BlittableStructBinding:
-		templateName = "BlittableStruct.cs"
-	default:
+	binder.resetTypes()
+	guard let result = binder.run(framework, loadedLib: loadedLib) else {
+		sdks.remove(sdk)
 		continue
 	}
+	for binding in result {
+	/*
+		if let ty = b as? TypeBinding {
+			write(ty, as: csharp)
+		}
+		*/
 
-	let rendered = try env.renderTemplate(name: templateName, context: [ "type": ty ])
-	try rendered.write(to: generatedCS.appendingPathComponent(ty.name + ".g.cs"), atomically: false, encoding: .utf8)
+		var list = bindings[binding.id] ?? []
+		list.append((sdk, binding))
+		bindings.updateValue(list, forKey: binding.id)
+	}
 }
 
-for msg in binder.diagnostics {
-	print(msg)
+let cw = ConditionalWriter(sdks)
+
+for kv in bindings {
+	let binding = kv.value.first!.1
+	switch binding {
+	case let tb as TypeBinding:
+		if let writer = csharp(tb.name) {
+			cw.write(bindings: kv.value, to: writer)
+		} else {
+			binder.diagnose(Diagnostic.Message(.error, "Cannot open file for writing"))
+		}
+	default:
+		print("Don't know which Writer to use for \(binding)")
+	}
 }
+
+// De-dupe the messages and print them out
+let diags = binder.diagnostics.map({ ($0.location?.file, Set([$0.debugDescription])) })
+let msgs: [String?:Set<String>] = Dictionary(diags, uniquingKeysWith: { $0.union($1) })
+for kv in msgs {
+	print("In file \(kv.key ?? "<unknown>"):")
+	for msg in kv.value {
+		print("\t\(msg)")
+	}
+}
+exit(Int32(diags.count))
+

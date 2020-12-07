@@ -13,16 +13,15 @@ let package = Package(
     .library(name: "SwiftBinding", targets: ["SwiftBinding"]),
   ],
   dependencies: [
-    // requires Xcode 11.4
+    // requires Xcode 12.x
     .package(url: "https://github.com/apple/swift-syntax.git", .exact("0.50300.0")),
-    .package(url: "https://github.com/stencilproject/Stencil", .branch("master")),
   ],
   targets: [
     // Targets are the basic building blocks of a package. A target can define a module or a test suite.
     // Targets can depend on other targets in this package, and on products in packages which this package depends on.
     .target(
       name: "swiftbind",
-      dependencies: ["SwiftBinding", "Stencil"]),
+      dependencies: ["SwiftBinding"]),
 
     .target(
 	  name: "SwiftBinding",

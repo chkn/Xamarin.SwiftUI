@@ -1,11 +1,19 @@
 
 import Foundation
 
-public enum SDK: CaseIterable {
+public enum SDK: CaseIterable, Hashable {
 	case macOS
 	case iOS
 	case tvOS
-	case watchOS
+	//case watchOS
+
+	public var conditionalDefine: String {
+		switch self {
+		case .macOS: return "__MACOS__"
+		case .iOS: return "__IOS__"
+		case .tvOS: return "__TVOS__"
+		}
+	}
 
 	/// Runtime root for this SDK
 	public func runtimeRoot(_ developerPath: URL) -> URL
@@ -16,9 +24,9 @@ public enum SDK: CaseIterable {
 		case .iOS:
 			return developerPath.appendingPathComponent("Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime/Contents/Resources/RuntimeRoot")
 		case .tvOS:
-			abort()
-		case .watchOS:
-			abort()
+			return developerPath.appendingPathComponent("Platforms/AppleTVOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/tvOS.simruntime/Contents/Resources/RuntimeRoot")
+//		case .watchOS:
+//			return developerPath.appendingPathComponent("Platforms/WatchOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/watchOS.simruntime/Contents/Resources/RuntimeRoot")
 		}
 	}
 
@@ -31,9 +39,9 @@ public enum SDK: CaseIterable {
 		case .iOS:
 			return developerPath.appendingPathComponent("Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk")
 		case .tvOS:
-			abort()
-		case .watchOS:
-			abort()
+			return developerPath.appendingPathComponent("Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS.sdk")
+//		case .watchOS:
+//			return developerPath.appendingPathComponent("Platforms/WatchOS.platform/Developer/SDKs/WatchOS.sdk")
 		}
 	}
 }
