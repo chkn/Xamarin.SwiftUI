@@ -11,7 +11,7 @@ public class SwiftStructBinding: TypeBinding {
 
 	override public func writeType(_ writer: Writer)
 	{
-		writer.write("\tpublic unsafe sealed class \(genericFullName) : \(baseClass)\n")
+		writer.write("\tpublic unsafe sealed record \(genericFullName) : \(baseClass)\n")
 		for gp in genericParameterConstraints {
 			writer.write("\t\twhere \(gp.name) : \(gp.types.map({ $0.qualifiedName }).sorted().joined(separator: ", "))\n")
 		}
