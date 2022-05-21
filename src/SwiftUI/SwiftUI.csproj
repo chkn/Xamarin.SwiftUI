@@ -1,13 +1,8 @@
-<Project>
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" />
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="../../msbuild/Xamarin.SwiftUI.props" />
-  <PropertyGroup>
-    <_RealLangVersion>$(LangVersion)</_RealLangVersion>
-  </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
-    <TargetFrameworks Condition="'$(MSBuildRuntimeType)' != 'Core'">$(TargetFrameworks);xamarin.mac20;xamarin.ios10</TargetFrameworks>
+    <TargetFrameworks>net6.0;net6.0-macos;net6.0-ios</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <OutputPath>..\..\managed\$(Configuration)</OutputPath>
@@ -23,30 +18,19 @@
   </ItemGroup>
 
   <!-- Conditionally exclude platform-specific source files -->
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != 'Xamarin.Mac' ">
+  <ItemGroup Condition=" '$(TargetPlatformIdentifier)' != 'macos' ">
     <Compile Remove="Mac\**\*.*" />
     <None Include="Mac\**\*.*" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != 'Xamarin.iOS' ">
+  <ItemGroup Condition=" '$(TargetPlatformIdentifier)' != 'ios' ">
     <Compile Remove="iOS\**\*.*" />
     <None Include="iOS\**\*.*" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != 'netstandard' Or '$(MSBuildRuntimeType)' != 'Core' ">
-    <!-- KLUDGE: Hack in a C# 9 compiler for Xamarin -->
-    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="$(RoslynNugetVersion)" />
-  </ItemGroup>
-  <PropertyGroup Condition=" '$(TargetFrameworkIdentifier)' != 'netstandard' ">
+  <PropertyGroup Condition=" '$(TargetPlatformIdentifier)' != '' ">
     <!-- Embed the native library where possible -->
     <IsBindingProject>true</IsBindingProject>
   </PropertyGroup>
-
-  <!-- Hack around https://github.com/xamarin/xamarin-macios/commit/9f28bce6b87ca6ea4cc51a0dff3e2db0064bf6ca -->
-  <Target Name="ForceResetLangVersion">
-    <PropertyGroup>
-      <LangVersion>$(_RealLangVersion)</LangVersion>
-    </PropertyGroup>
-  </Target>
 
   <ItemGroup>
     <!-- KLUDGE: We auto-generate a blank file for this -->
@@ -57,12 +41,4 @@
   <Target Name="CreateDummyApiDefinition" BeforeTargets="_GenerateBindings">
     <WriteLinesToFile Lines="" File="@(ObjcBindingApiDefinition)" Condition="!Exists('@(ObjcBindingApiDefinition)')" />
   </Target>
-
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" />
-  <PropertyGroup>
-    <CompileDependsOn>
-      ForceResetLangVersion;
-      $(CompileDependsOn)
-    </CompileDependsOn>
-  </PropertyGroup>
 </Project>

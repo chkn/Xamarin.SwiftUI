@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
@@ -8,12 +8,12 @@
     <Folder Include="Subjects\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\native\Debug\xamarin.mac20\libSwiftUIGlue.dylib" />
+    <None Include="..\..\native\Debug\$(TargetFramework)-macos\libSwiftUIGlue.dylib" />
     <Compile Include="Subjects\ViewWithOptionState.fs" />
     <Compile Include="TypeTests.fs" />
     <Compile Include="ColorTests.fs" />
     <Compile Include="Program.fs" />
-    <None Include="..\..\native\$(Configuration)\xamarin.mac20\libSwiftUIGlue.dylib" Visible="false">
+    <None Include="..\..\native\$(Configuration)\$(TargetFramework)-macos\libSwiftUIGlue.dylib" Visible="false">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />

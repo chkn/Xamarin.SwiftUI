@@ -2,7 +2,7 @@
 	<Import Project="LocalArtifacts.props" />
 	<Import Project="msbuild/Xamarin.SwiftUI.props" />
 	<PropertyGroup>
-		<TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">netstandard2.1;xamarin.mac20;xamarin.ios10</TargetFrameworks>
+		<TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">net6.0;net6.0-macos;net6.0-ios</TargetFrameworks>
 		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
 
 		<!-- Managed code -->
@@ -21,18 +21,18 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<SwiftUIGlueTargets Condition="$(TargetFrameworks.Contains('xamarin.mac20'))" Include="SwiftUIGlueMac" />
-		<SwiftUIGlueTargets Condition="$(TargetFrameworks.Contains('xamarin.ios10'))" Include="SwiftUIGlueXcode" />
+		<SwiftUIGlueTargets Condition="$(TargetFrameworks.Contains('net6.0-macos'))" Include="SwiftUIGlueMac" />
+		<SwiftUIGlueTargets Condition="$(TargetFrameworks.Contains('net6.0-ios'))" Include="SwiftUIGlueXcode" />
 
 		<SwiftUIGlueSources Include="$(SwiftUIGlueDir)*.swift" />
 
 		<!-- Mac -->
 		<!-- FIXME: Include dSYM? -->
 		<SwiftUIGlueDylibOutputs Include="$(SwiftUIGlueDylib)" />
-		<SwiftUIGlueMacOutputs Include="@(SwiftUIGlueDylibOutputs->'$(NativeOutputPath)xamarin.mac20\%(RecursiveDir)%(Filename)%(Extension)')" />
+		<SwiftUIGlueMacOutputs Include="@(SwiftUIGlueDylibOutputs->'$(NativeOutputPath)net6.0-macos\%(RecursiveDir)%(Filename)%(Extension)')" />
 
 		<!-- All other platforms -->
-		<SwiftUIGlueSdks Condition="$(TargetFrameworks.Contains('xamarin.ios10'))" Include="iphoneos;iphonesimulator" TargetFramework="xamarin.ios10" />
+		<SwiftUIGlueSdks Condition="$(TargetFrameworks.Contains('net6.0-ios'))" Include="iphoneos;iphonesimulator" TargetFramework="net6.0-ios" />
 
 		<SwiftUIGlueSdks Update="@(SwiftUIGlueSdks)">
 			<ExtraArgs></ExtraArgs>
