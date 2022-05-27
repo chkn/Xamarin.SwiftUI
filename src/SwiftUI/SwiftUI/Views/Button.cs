@@ -30,7 +30,7 @@ namespace SwiftUI
 		static void OnAction (void* gcHandlePtr)
 		{
 			var gcHandle = GCHandle.FromIntPtr ((IntPtr)gcHandlePtr);
-			((Action)gcHandle.Target).Invoke ();
+			((Action)gcHandle.Target!).Invoke ();
 		}
 		internal static readonly PtrFunc OnActionDel = OnAction;
 

@@ -47,14 +47,15 @@ namespace SwiftUI.Interop
 		internal CustomViewType (Type customViewType): base (customViewType, MetadataKinds.Struct)
 		{
 			try {
-				BodyProperty =
+				var bodyProperty =
 					customViewType.GetProperty ("Body__", BindingFlags.NonPublic | BindingFlags.Instance) ??
 					customViewType.GetProperty ("Body", BindingFlags.Public | BindingFlags.Instance);
-				if (BodyProperty is null || !BodyProperty.CanRead || BodyProperty.CanWrite || !BodyProperty.PropertyType.IsSubclassOf (typeof (View)))
+				if (bodyProperty is null || !bodyProperty.CanRead || bodyProperty.CanWrite || !bodyProperty.PropertyType.IsSubclassOf (typeof (View)))
 					throw new ArgumentException ($"View implementations must either have a {nameof (SwiftImportAttribute)}, or declare a public, read-only `Body` property returning a concrete type of `{nameof (View)}`");
+				BodyProperty = bodyProperty;
 
-				BodyNullability = Nullability.Of (BodyProperty);
-				BodySwiftType = SwiftType.Of (BodyProperty.PropertyType, BodyNullability)!;
+				BodyNullability = Nullability.Of (bodyProperty);
+				BodySwiftType = SwiftType.Of (bodyProperty.PropertyType, BodyNullability)!;
 
 				var thunkMetadata = (CustomViewMetadata*)fullMetadata;
 				thunkMetadata->ThunkViewU = Metadata;
@@ -112,9 +113,9 @@ namespace SwiftUI.Interop
 		{
 			// Manage ref counts
 			if (funcType.IsCopy ())
-				((CustomViewData*)src)->View.AddRef ();
+				((CustomViewData*)src)->View?.AddRef ();
 			if (funcType.IsAssign ())
-				((CustomViewData*)dest)->View.UnRef ();
+				((CustomViewData*)dest)->View?.UnRef ();
 
 			// This msut come after the above, since AddRef might modify the GCHandle
 			//  that we're copying here..
@@ -124,7 +125,7 @@ namespace SwiftUI.Interop
 		protected internal override unsafe void Destroy (void* data)
 		{
 			base.Destroy (data);
-			((CustomViewData*)data)->View.UnRef ();
+			((CustomViewData*)data)->View?.UnRef ();
 		}
 
 		// View data appears to be passed in context register
@@ -133,17 +134,22 @@ namespace SwiftUI.Interop
 		{
 			var data = (CustomViewData*)dataPtr;
 			var view = data->View;
+
+			// FIXME: What is the case where the managed view could've been collected here?
+			Debug.Assert (view is not null);
+
 			var customViewType = (CustomViewType)view.swiftType!;
 
 			// HACK: Overwrite our data array with the given native data
 			view.OverwriteNativeData (data);
 
 			// Now, when we call Body, it will operate on the new data
-			var body = (ISwiftValue)customViewType.BodyProperty.GetValue (view);
+			var bodyProperty = customViewType.BodyProperty;
+			var body = bodyProperty.GetValue (view);
 
 			// Copy the returned view into dest
-			using (var handle = body.GetSwiftHandle (customViewType.BodyNullability))
-				handle.SwiftType.Transfer (dest, handle.Pointer, TransferFuncType.InitWithCopy);
+			using var handle = SwiftValue.GetSwiftHandle (body, bodyProperty.PropertyType, customViewType.BodyNullability);
+			handle.SwiftType.Transfer (dest, handle.Pointer, TransferFuncType.InitWithCopy);
 		}
 		static readonly PtrPtrFunc bodyFn = Body;
 

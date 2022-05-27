@@ -297,7 +297,7 @@ namespace Swift.Interop
 		}
 
 		internal static string Mangle (Type managedType)
-			=> Mangle (managedType.Namespace, GetSwiftTypeName (managedType), GetSwiftTypeCode (managedType));
+			=> Mangle (managedType.Namespace ?? "", GetSwiftTypeName (managedType), GetSwiftTypeCode (managedType));
 
 		internal static string Mangle (string module, string name)
 			=> (module == "Swift" ? "s" : module.Length + module) + name.Length + name;

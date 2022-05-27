@@ -38,10 +38,10 @@ namespace Swift.Interop
 		}
 
 		public override int GetHashCode () => (int)ptr;
-		public override bool Equals (object obj) => Equals ((TaggedPointer)obj);
+		public override bool Equals (object? obj) => Equals ((TaggedPointer)obj!);
 
 		public bool Equals (TaggedPointer other)
-			=> Pointer == other.Pointer;
+			=> Pointer == other!.Pointer;
 
 		[MethodImpl (MethodImplOptions.AggressiveInlining)]
 		public static bool operator == (TaggedPointer tp, void* ptr)

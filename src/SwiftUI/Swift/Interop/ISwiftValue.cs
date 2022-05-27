@@ -116,8 +116,8 @@ namespace Swift.Interop
 					return Optional.Wrap (null, swiftType, underlyingSwiftType);
 				} else {
 					var unwrapped = Nullability.Unwrap (obj);
-					using (var unwrappedHandle = unwrapped.GetSwiftHandle (nullability.Strip ()))
-						return Optional.Wrap (unwrappedHandle.Pointer, swiftType, unwrappedHandle.SwiftType);
+					using var unwrappedHandle = unwrapped.GetSwiftHandle (nullability.Strip ());
+					return Optional.Wrap (unwrappedHandle.Pointer, swiftType, unwrappedHandle.SwiftType);
 				}
 			} else if (obj is null) {
 				throw new ArgumentNullException (nameof (obj), "Value cannot be null given the nullability info provided.");

@@ -56,7 +56,7 @@ namespace Swift.Interop
 				args [TRestIndex] = CreateTuple (tupleType.GetGenericArguments () [TRestIndex], args [TRestIndex..]);
 				Array.Resize (ref args, TRestIndex + 1);
 			}
-			return Activator.CreateInstance (tupleType, args);
+			return Activator.CreateInstance (tupleType, args)!;
 		}
 	}
 }
