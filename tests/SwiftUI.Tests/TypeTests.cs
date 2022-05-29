@@ -10,7 +10,7 @@ using Swift;
 using SwiftUI;
 using Swift.Interop;
 using SwiftUI.Interop;
-using SwiftUI.Tests.FSharp;
+//using SwiftUI.Tests.FSharp;
 
 namespace SwiftUI.Tests
 {
@@ -47,7 +47,7 @@ namespace SwiftUI.Tests
 		[Theory]
 		[InlineData (typeof (ViewWithNullableReferenceState))]
 		[InlineData (typeof (ViewWithNullableValueState))]
-		[InlineData (typeof (ViewWithOptionState))]
+		//[InlineData (typeof (ViewWithOptionState))]
 		public void NullableFieldConvertsToSwiftOptional (Type viewType)
 		{
 			var sty = SwiftType.Of (viewType) as CustomViewType;
