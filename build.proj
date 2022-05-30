@@ -1,8 +1,9 @@
 <Project DefaultTargets="Pack">
 	<Import Project="LocalArtifacts.props" />
+	<Import Project="TargetFrameworks.props" />
 	<Import Project="msbuild/Xamarin.SwiftUI.props" />
 	<PropertyGroup>
-		<TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">net6.0;net6.0-macos;net6.0-ios</TargetFrameworks>
+		<TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">$(PackageTargetFrameworks)</TargetFrameworks>
 		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
 
 		<!-- Managed code -->
@@ -21,18 +22,18 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<SwiftUIGlueTargets Condition="$(TargetFrameworks.Contains('net6.0-macos'))" Include="SwiftUIGlueMac" />
-		<SwiftUIGlueTargets Condition="$(TargetFrameworks.Contains('net6.0-ios'))" Include="SwiftUIGlueXcode" />
+		<SwiftUIGlueTargets Condition="$(TargetFrameworks.Contains('$(MacTargetFramework)'))" Include="SwiftUIGlueMac" />
+		<SwiftUIGlueTargets Condition="$(TargetFrameworks.Contains('$(iOSTargetFramework)'))" Include="SwiftUIGlueXcode" />
 
 		<SwiftUIGlueSources Include="$(SwiftUIGlueDir)*.swift" />
 
 		<!-- Mac -->
 		<!-- FIXME: Include dSYM? -->
 		<SwiftUIGlueDylibOutputs Include="$(SwiftUIGlueDylib)" />
-		<SwiftUIGlueMacOutputs Include="@(SwiftUIGlueDylibOutputs->'$(NativeOutputPath)net6.0-macos\%(RecursiveDir)%(Filename)%(Extension)')" />
+		<SwiftUIGlueMacOutputs Include="@(SwiftUIGlueDylibOutputs->'$(NativeOutputPath)$(MacTargetFramework)\%(RecursiveDir)%(Filename)%(Extension)')" />
 
 		<!-- All other platforms -->
-		<SwiftUIGlueSdks Condition="$(TargetFrameworks.Contains('net6.0-ios'))" Include="iphoneos;iphonesimulator" TargetFramework="net6.0-ios" />
+		<SwiftUIGlueSdks Condition="$(TargetFrameworks.Contains('$(iOSTargetFramework)'))" Include="iphoneos;iphonesimulator" TargetFramework="$(iOSTargetFramework)" />
 
 		<SwiftUIGlueSdks Update="@(SwiftUIGlueSdks)">
 			<ExtraArgs></ExtraArgs>
@@ -82,12 +83,9 @@
 	<Target Name="SwiftUIGlue" DependsOnTargets="@(SwiftUIGlueTargets)" />
 
 	<Target Name="Restore">
-		<ItemGroup>
-			<TargetFramework Include="$(TargetFrameworks)" />
-		</ItemGroup>
 		<MSBuild
 			Projects="$(MSBuildThisFileDirectory)Xamarin.SwiftUI.sln"
-			Properties="Configuration=$(Configuration);TargetFramework=%(TargetFramework.Identity)" Targets="Restore"/>
+			Properties="Configuration=$(Configuration)" Targets="Restore"/>
 	</Target>
 
 	<Target Name="Build" DependsOnTargets="SwiftUIGlue">
@@ -96,16 +94,20 @@
 		</ItemGroup>
 		<MSBuild
 			Projects="$(SrcPath)SwiftUI\SwiftUI.csproj"
-			Properties="Configuration=$(Configuration);TargetFramework=%(TargetFramework.Identity)" Targets="Restore;Build"/>
+			Properties="Configuration=$(Configuration);TargetFramework=%(TargetFramework.Identity)" Targets="Build"/>
+		<MSBuild
+			Projects="$(SrcPath)SwiftUI.FSharp\SwiftUI.FSharp.fsproj"
+			Properties="Configuration=$(Configuration);TargetFramework=%(TargetFramework.Identity)" Targets="Build"/>
 	</Target>
 
 	<Target Name="Pack" DependsOnTargets="Build">
 		<MakeDir Directories="$(ArtifactOutputPath)" />
 		<MSBuild
 			Projects="$(SrcPath)SwiftUI.Analyzers\SwiftUI.Analyzers.csproj"
-			Properties="Configuration=$(Configuration)" Targets="Restore;Build"/>
-		<Exec
-			Command="nuget pack Xamarin.SwiftUI.nuspec -OutputDirectory '$(ArtifactOutputPath)' -Properties 'configuration=$(Configuration);version=$(Version);roslynnugetversion=$(RoslynNugetVersion)'" />
+			Properties="Configuration=$(Configuration)" Targets="Build"/>
+		<MSBuild
+			Projects="$(SrcPath)SwiftUI\SwiftUI.csproj"
+			Properties="Configuration=$(Configuration);NoBuild=true" Targets="Pack"/>
 	</Target>
 
 	<Target Name="Clean">

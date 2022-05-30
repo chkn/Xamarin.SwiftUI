@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="../../TargetFrameworks.props" />
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>$(BaseTargetFramework)</TargetFramework>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<IsPackable>false</IsPackable>
 

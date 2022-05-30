@@ -4,19 +4,9 @@ A managed binding to SwiftUI.
 
 ## Getting Started with Master Builds
 
-[![Build Status](https://alcorra.visualstudio.com/Xamarin.SwiftUI/_apis/build/status/Xamarin.SwiftUI?branchName=master)](https://alcorra.visualstudio.com/Xamarin.SwiftUI/_build/latest?definitionId=1&branchName=master)
-
 ### Requirements
 
-This binding is designed to provide a decent API from either C# 9 or F# 5.
-
-- C# 9
-
-  The NuGet package currently pulls in and enables the correct C# compiler and language version (see below). No manual configuration should be needed, but watch out for any settings in your csproj that might conflict.
-
-- F# 5
-
-  If you are using VS Mac, you must currently install [this Mono build](https://github.com/mono/mono/pull/20511#issuecomment-717160671) to get the F# 5 compiler for Xamarin.
+.NET 6
 
 ### Install the NuGet Package
 
@@ -26,8 +16,6 @@ Until the project is ready for use in real apps, there are no official packages.
 2. Add the `Xamarin.SwiftUI` package to your project. If you do not see the package, ensure pre-release packages are enabled.
 
 Adding the above package will make the following changes to your project:
-- Set LangVersion to `preview` to enable source generators.
-- Use a version of the Roslyn C# compiler that supports source generators.
 - Enable C# reference type nullability, as passing null values to Swift is only supported with proper nullability annotations.
 
 ### Example
@@ -49,21 +37,19 @@ public partial record ClickView : View
 ## Building from Source
 
 ### Prerequisites
-- .NET 5 SDK
-- Xamarin toolchain
-- Xcode 11 or newer
-- Xcode [command line](https://developer.apple.com/library/archive/technotes/tn2339/_index.html) tools
+- .NET 6 SDK
+- Xcode 13 or newer
 
 ### Build Everything and NuGet Package
 
 ```
-msbuild build.proj
+dotnet msbuild /restore build.proj
 ```
 
 If you need to make changes to the SwiftUIGlue native glue library during development, you can rebuild just those bits by running:
 
 ```
-msbuild build.proj /t:SwiftUIGlue /p:Configuration=Debug
+dotnet msbuild build.proj /t:SwiftUIGlue /p:Configuration=Debug
 ```
 
 #### Packaging
@@ -76,17 +62,6 @@ For local development, the version of the package produced can be overridden:
 msbuild build.proj /p:Version=X.X.XXX
 ```
 
-#### Troubleshooting
-
-You may receive the following errors on the first couple builds:
-
-- `error CS1617: Invalid option '9.0' for /langversion`
-- `error CS0012: The type '...' is defined in an assembly that is not referenced. You must add a reference to assembly 'netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'`
-
-If you receive either of the above failures, simply run the command again.
-
-### Visual Studio for Mac
-
-Open `Xamarin.SwiftUI.sln`
+---
 
 For more information about the internals and guidance on developing the binding itself, see the document titled [Hacking](Hacking.md).

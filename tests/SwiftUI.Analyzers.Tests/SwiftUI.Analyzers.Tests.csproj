@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../TargetFrameworks.props" />
   <Import Project="../../msbuild/Xamarin.SwiftUI.props" />
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>$(BaseTargetFramework)</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>

@@ -1,11 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../LocalArtifacts.props" />
+  <Import Project="../../TargetFrameworks.props" />
   <Import Project="../../msbuild/Xamarin.SwiftUI.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net6.0-macos;net6.0-ios</TargetFrameworks>
+    <TargetFrameworks>$(DefaultTargetFrameworks)</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <OutputPath>..\..\managed\$(Configuration)</OutputPath>
+
+    <!-- NuGet -->
+    <NoWarn>NU5128</NoWarn>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NuspecFile>..\..\Xamarin.SwiftUI.nuspec</NuspecFile>
+    <NuspecProperties>configuration=$(Configuration);version=$(Version)</NuspecProperties>
+    <PackageOutputPath>$(ArtifactOutputPath)</PackageOutputPath>
+    <NuspecBasePath>..\..</NuspecBasePath>
   </PropertyGroup>
 
   <ItemGroup>

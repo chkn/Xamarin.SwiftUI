@@ -15,9 +15,6 @@
     TBD
     </description>
     <tags>xamarin android ios tvos watchos ipados swiftui swift toolkit</tags>
-    <dependencies>
-      <dependency id="Microsoft.Net.Compilers.Toolset" version="$roslynnugetversion$" />
-    </dependencies>
    </metadata>
    <files>
     <file src="msbuild/*" exclude="**/.DS_Store" target="build" />

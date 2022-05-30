@@ -1,12 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../TargetFrameworks.props" />
+
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>$(BaseTargetFramework)</TargetFramework>
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
+
   <ItemGroup>
     <Folder Include="Subjects\" />
   </ItemGroup>
+
   <ItemGroup>
     <None Include="..\..\native\Debug\$(TargetFramework)-macos\libSwiftUIGlue.dylib" />
     <Compile Include="Subjects\ViewWithOptionState.fs" />

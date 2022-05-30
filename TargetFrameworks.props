@@ -1,0 +1,12 @@
+<Project>
+	<PropertyGroup>
+		<BaseTargetFramework>net6.0</BaseTargetFramework>
+		<MacTargetFramework>$(BaseTargetFramework)-macos12.0</MacTargetFramework>
+		<iOSTargetFramework>$(BaseTargetFramework)-ios15.0</iOSTargetFramework>
+
+		<!-- We include $(BaseTargetFramework) for the tests, but we do not package it -->
+		<DefaultTargetFrameworks>$(BaseTargetFramework);$(MacTargetFramework);$(iOSTargetFramework)</DefaultTargetFrameworks>
+
+		<PackageTargetFrameworks>$(MacTargetFramework);$(iOSTargetFramework)</PackageTargetFrameworks>
+	</PropertyGroup>
+</Project>
