@@ -1,8 +1,0 @@
-<Project>
-	<PropertyGroup>
-		<!-- Nullability is strongly recommended -->
-		<!-- FIXME: Currently need both: "Nullable" for Windows, "NullableContextOptions" for Mac -->
-		<Nullable>enable</Nullable>
-		<NullableContextOptions>enable</NullableContextOptions>
-	</PropertyGroup>
-</Project>

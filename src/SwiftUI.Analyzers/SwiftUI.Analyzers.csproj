@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="../../msbuild/Xamarin.SwiftUI.props" />
   <PropertyGroup>
     <!-- We don't actually need to build this with C# 9, even though it provides source generators.. -->
     <LangVersion>default</LangVersion>
@@ -8,6 +7,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugType>embedded</DebugType>
+    <Nullable>enable</Nullable>
     <NoWarn>RS2008</NoWarn>
   </PropertyGroup>
 

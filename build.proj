@@ -1,7 +1,7 @@
 <Project DefaultTargets="Pack">
 	<Import Project="LocalArtifacts.props" />
 	<Import Project="TargetFrameworks.props" />
-	<Import Project="msbuild/Xamarin.SwiftUI.props" />
+
 	<PropertyGroup>
 		<TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">$(PackageTargetFrameworks)</TargetFrameworks>
 		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
@@ -33,7 +33,7 @@
 		<SwiftUIGlueMacOutputs Include="@(SwiftUIGlueDylibOutputs->'$(NativeOutputPath)$(MacTargetFramework)\%(RecursiveDir)%(Filename)%(Extension)')" />
 
 		<!-- All other platforms -->
-		<SwiftUIGlueSdks Condition="$(TargetFrameworks.Contains('$(iOSTargetFramework)'))" Include="iphoneos;iphonesimulator" TargetFramework="$(iOSTargetFramework)" />
+		<SwiftUIGlueSdks Condition="$(TargetFrameworks.Contains('$(iOSTargetFramework)'))" Include="iphoneos;iphonesimulator" TargetPlatformIdentifier="ios" TargetFramework="$(iOSTargetFramework)" />
 
 		<SwiftUIGlueSdks Update="@(SwiftUIGlueSdks)">
 			<ExtraArgs></ExtraArgs>
@@ -62,8 +62,8 @@
 			DestinationFolder="%(SwiftUIGlueSdks.OutputFrameworkDir)\_CodeSignature" />
 
 		<Copy
-			Condition="Exists('$(SwiftUIGlueDir)\%(SwiftUIGlueSdks.TargetFramework)\Info.plist')"
-			SourceFiles="$(SwiftUIGlueDir)\%(SwiftUIGlueSdks.TargetFramework)\Info.plist"
+			Condition="Exists('$(SwiftUIGlueDir)\%(SwiftUIGlueSdks.TargetPlatformIdentifier)\Info.plist')"
+			SourceFiles="$(SwiftUIGlueDir)\%(SwiftUIGlueSdks.TargetPlatformIdentifier)\Info.plist"
 			DestinationFolder="%(SwiftUIGlueSdks.OutputFrameworkDir)" />
 
 		<Exec
@@ -107,7 +107,7 @@
 			Properties="Configuration=$(Configuration)" Targets="Build"/>
 		<MSBuild
 			Projects="$(SrcPath)SwiftUI\SwiftUI.csproj"
-			Properties="Configuration=$(Configuration);NoBuild=true" Targets="Pack"/>
+			Properties="Configuration=$(Configuration);NoBuild=true;TargetFrameworks=$(TargetFrameworks)" Targets="Pack"/>
 	</Target>
 
 	<Target Name="Clean">

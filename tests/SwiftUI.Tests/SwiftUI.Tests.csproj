@@ -5,10 +5,7 @@
 		<TargetFramework>$(BaseTargetFramework)</TargetFramework>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<IsPackable>false</IsPackable>
-
-		<!-- FIXME: Currently need both: "Nullable" for Windows, "NullableContextOptions" for Mac -->
 		<Nullable>enable</Nullable>
-		<NullableContextOptions>enable</NullableContextOptions>
 	</PropertyGroup>
 
 	<ItemGroup>

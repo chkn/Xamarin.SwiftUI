@@ -2,7 +2,8 @@
   <Import Project="../../TargetFrameworks.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>$(DefaultTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">$(DefaultTargetFrameworks)</TargetFrameworks>
+    <DebugType>embedded</DebugType>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <OutputPath>..\..\managed\$(Configuration)</OutputPath>
   </PropertyGroup>
