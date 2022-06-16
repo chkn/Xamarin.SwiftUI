@@ -1,4 +1,4 @@
-name: Xamarin.SwiftUI.0.2.${{ env.BuildID }}-pre
+name: Xamarin.SwiftUI
 
 # Controls when the workflow will run
 on:
@@ -14,6 +14,37 @@ on:
 jobs:
   DebugBuildAndTest:
     name: Debug Build and Test
+    
+    # The type of runner that the job will run on
+    runs-on: macOS-latest
+
+    steps:
+      # Checks-out repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout current repo
+        uses: actions/checkout@v2
+      
+      # Ensure we have .NET 5 and 6 installed
+      - name: Setup .NET Core SDK 5.0.x and 6.0.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: |
+            5.0.x
+            6.0.x
+
+      - name: Restore build.proj
+        run: msbuild 'build.proj' /p:configuration='Debug' /t:Restore
+
+      - name: Build build.proj
+        run: msbuild 'build.proj' /p:configuration='Debug' /t:Build
+
+      - name: Build SwiftUI.Tests.FSharp
+        run: dotnet build tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj --configuration Debug
+
+      - name: Run Tests in Xamarin.SwiftUI.sln
+        run: dotnet test Xamarin.SwiftUI.sln --configuration Debug
+      
+  ReleaseBuildTestAndPackage:
+    name: Release Build, Test and Package
 
     # The type of runner that the job will run on
     runs-on: macOS-latest
@@ -30,3 +61,40 @@ jobs:
           dotnet-version: |
             5.0.x
             6.0.x
+
+      - name: Install NuGet tools
+        uses: NuGet/setup-nuget@v1.0.5
+
+      - name: Restore Xamarin.SwiftUI.sln
+        run: dotnet restore Xamarin.SwiftUI.sln
+
+      - name: Restore build.proj
+        run: msbuild 'build.proj' /p:configuration='Release' /t:Restore
+
+
+      - name: Build build.proj
+        run: msbuild 'build.proj' /p:configuration='Release' /p:Version=${{ github.run_number }}
+        continue-on-error: true
+
+      - name: Retry Build build.proj
+        if: (variables['Agent.JobStatus'] =='SucceededWithIssues')
+        run: msbuild 'build.proj' /p:configuration='Release' /p:Version=${{ github.run_number }}
+      
+      - name: Build SwiftUI.Tests.FSharp
+        run: dotnet build tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj --configuration Release
+
+      - name: Run Tests in Xamarin.SwiftUI.sln
+        run: dotnet test Xamarin.SwiftUI.sln --configuration Release
+
+      - name: Build CSharpSamples.sln
+        run: msbuild 'samples/C#/CSharpSamples.sln' /p:configuration='Release' /restore /p:Version=${{ github.run_number }}
+
+      - name: Publish artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: ${{ github.workspace }}/artifacts
+          name: packages
+
+      - name: Publish Nuget Package
+        if: (success() && (github.ref == 'refs/heads/master'))
+        run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
