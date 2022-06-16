@@ -13,10 +13,7 @@ A managed binding to SwiftUI.
 Until the project is ready for use in real apps, there are no official packages. For now, you can get a sneak peek by installing the latest package from the master feed:
 
 1. Add this feed as a NuGet source: `https://pkgs.dev.azure.com/alcorra/Xamarin.SwiftUI/_packaging/master/nuget/v3/index.json`
-2. Add the `Xamarin.SwiftUI` package to your project. If you do not see the package, ensure pre-release packages are enabled.
-
-Adding the above package will make the following changes to your project:
-- Enable C# reference type nullability, as passing null values to Swift is only supported with proper nullability annotations.
+2. Add the `SwiftUI.NET` package to your project. If you do not see the package, ensure pre-release packages are enabled.
 
 ### Example
 
@@ -37,6 +34,7 @@ public partial record ClickView : View
 ## Building from Source
 
 ### Prerequisites
+
 - .NET 6 SDK
 - Xcode 13 or newer
 
@@ -59,7 +57,7 @@ The major and minor version of nuget packages created by the CI pipeline is cont
 For local development, the version of the package produced can be overridden:
 
 ```
-msbuild build.proj /p:Version=X.X.XXX
+dotnet msbuild /restore build.proj /p:Version=X.X.XXX
 ```
 
 ---
