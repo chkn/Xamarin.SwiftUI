@@ -73,11 +73,12 @@ jobs:
 
 
       - name: Build build.proj
+        id: BuildProj
         run: msbuild 'build.proj' /p:configuration='Release' /p:Version=${{ github.run_number }}
         continue-on-error: true
 
       - name: Retry Build build.proj
-        if: (variables['Agent.JobStatus'] =='SucceededWithIssues')
+        if: job.steps.BuildProj.status == failure()
         run: msbuild 'build.proj' /p:configuration='Release' /p:Version=${{ github.run_number }}
       
       - name: Build SwiftUI.Tests.FSharp

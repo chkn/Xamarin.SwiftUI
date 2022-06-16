@@ -2,6 +2,9 @@
 
 A managed binding to SwiftUI.
 
+## Build Status
+[![.github/workflows/build.yml](https://github.com/CartBlanche/Xamarin.SwiftUI/actions/workflows/build.yml/badge.svg)](https://github.com/CartBlanche/Xamarin.SwiftUI/actions/workflows/build.yml)
+
 ## Getting Started with Master Builds
 
 ### Requirements
