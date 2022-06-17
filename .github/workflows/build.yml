@@ -13,7 +13,7 @@ on:
 
 jobs:
   DebugBuildAndTest:
-    name: Debug Build and Test
+    name: Debug - Build and Test
     
     # The type of runner that the job will run on
     runs-on: macOS-latest
@@ -53,7 +53,7 @@ jobs:
         run: dotnet test Xamarin.SwiftUI.sln --configuration Debug
       
   ReleaseBuildTestAndPackage:
-    name: Release Build, Test and Package
+    name: Release - Build, Test and Package
 
     # The type of runner that the job will run on
     runs-on: macOS-latest
@@ -104,8 +104,9 @@ jobs:
       - name: Run Tests in Xamarin.SwiftUI.sln
         run: dotnet test Xamarin.SwiftUI.sln --configuration Release
 
-      - name: Build CSharpSamples.sln
-        run: dotnet msbuild 'samples/C#/CSharpSamples.sln' /p:configuration='Release' /restore /p:Version=${{ github.run_number }}
+      # Samples No Currently available
+      # - name: Build CSharpSamples.sln
+      #   run: dotnet msbuild 'samples/C#/CSharpSamples.sln' /p:configuration='Release' /restore /p:Version=${{ github.run_number }}
 
       - name: Publish artifacts
         uses: actions/upload-artifact@v2
