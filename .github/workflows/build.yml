@@ -36,6 +36,10 @@ jobs:
           dotnet workload install ios
           dotnet workload install macos
 
+      - name: Create artifacts subdir (for now)
+        run: |
+          mkdir artifacts
+
       - name: Restore build.proj
         run: dotnet msbuild 'build.proj' /p:configuration='Debug' /t:Restore
 
@@ -43,7 +47,7 @@ jobs:
         run: dotnet msbuild 'build.proj' /p:configuration='Debug' /t:Build
 
       - name: Build SwiftUI.Tests.FSharp
-        run: dotnet msbuild tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj --configuration Debug
+        run: dotnet msbuild tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj /p:Configuration='Debug' /t:Build
 
       - name: Run Tests in Xamarin.SwiftUI.sln
         run: dotnet test Xamarin.SwiftUI.sln --configuration Debug
@@ -72,6 +76,10 @@ jobs:
           dotnet workload install ios
           dotnet workload install macos
 
+      - name: Create artifacts subdir (for now)
+        run: |
+          mkdir artifacts
+
       - name: Install NuGet tools
         uses: NuGet/setup-nuget@v1.0.5
 
@@ -91,7 +99,7 @@ jobs:
         run: dotnet msbuild 'build.proj' /p:configuration='Release' /p:Version=${{ github.run_number }}
       
       - name: Build SwiftUI.Tests.FSharp
-        run: dotnet msbuild tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj --configuration Release
+        run: dotnet msbuild tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj /p:configuration='Release'
 
       - name: Run Tests in Xamarin.SwiftUI.sln
         run: dotnet test Xamarin.SwiftUI.sln --configuration Release
