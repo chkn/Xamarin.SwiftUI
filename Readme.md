@@ -3,7 +3,19 @@
 A managed binding to SwiftUI.
 
 ## Build Status
-[![.github/workflows/build.yml](https://github.com/CartBlanche/Xamarin.SwiftUI/actions/workflows/build.yml/badge.svg)](https://github.com/CartBlanche/Xamarin.SwiftUI/actions/workflows/build.yml)
+[![.github/workflows/build.yml](https://github.com/chkn/Xamarin.SwiftUI/actions/workflows/build.yml/badge.svg)](https://github.com/chkn/Xamarin.SwiftUI/actions/workflows/build.yml)
+
+## Project Status:
+✅ **Active**.
+
+Xamarin.SwiftUI provides a managed binding SwiftUI binding to Apple's [SwiftUI](https://developer.apple.com/documentation/swiftui?language=objc). Using your favourite .NET language, you should be able to create SwiftUI Apps.
+
+## Nuget Status 
+[![Version](https://img.shields.io/nuget/v/Xamarin.SwiftUI.svg)](https://nuget.org/packages/Xamarin.SwiftUI)
+[![Downloads](https://img.shields.io/nuget/dt/Xamarin.SwiftUI.svg)](https://nuget.org/packages/Xamarin.SwiftUI)
+
+## Nuget Download
+📦 [NuGet](https://nuget.org/packages/Xamarin.SwiftUI): `dotnet add package Xamarin.SwiftUI`
 
 ## Getting Started with Master Builds
 
