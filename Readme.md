@@ -8,29 +8,19 @@ A managed binding to SwiftUI.
 ## Project Status:
 ✅ **Active**.
 
-Xamarin.SwiftUI provides a managed binding SwiftUI binding to Apple's [SwiftUI](https://developer.apple.com/documentation/swiftui?language=objc). Using your favourite .NET language, you should be able to create SwiftUI Apps.
+Xamarin.SwiftUI provides a managed binding to Apple's next-generation [SwiftUI](https://developer.apple.com/documentation/swiftui) toolkit. Using your favourite .NET language, you should be able to create SwiftUI apps. However, only a handful of APIs are currently bound. [Work is ongoing](https://github.com/chkn/Xamarin.SwiftUI/tree/swift-parser2) on a binding generator to automatically cover the entire API surface.
 
+<!--
 ## Nuget Status 
-[![Version](https://img.shields.io/nuget/v/Xamarin.SwiftUI.svg)](https://nuget.org/packages/Xamarin.SwiftUI)
-[![Downloads](https://img.shields.io/nuget/dt/Xamarin.SwiftUI.svg)](https://nuget.org/packages/Xamarin.SwiftUI)
+[![Version](https://img.shields.io/nuget/v/SwiftUI.NET.svg)](https://nuget.org/packages/SwiftUI.NET)
+[![Downloads](https://img.shields.io/nuget/dt/SwiftUI.NET.svg)](https://nuget.org/packages/SwiftUI.NET)
+
 
 ## Nuget Download
-📦 [NuGet](https://nuget.org/packages/Xamarin.SwiftUI): `dotnet add package Xamarin.SwiftUI`
+📦 [NuGet](https://nuget.org/packages/SwiftUI.NET): `dotnet add package SwiftUI.NET`
+-->
 
-## Getting Started with Master Builds
-
-### Requirements
-
-.NET 6
-
-### Install the NuGet Package
-
-Until the project is ready for use in real apps, there are no official packages. For now, you can get a sneak peek by installing the latest package from the master feed:
-
-1. Add this feed as a NuGet source: `https://pkgs.dev.azure.com/alcorra/Xamarin.SwiftUI/_packaging/master/nuget/v3/index.json`
-2. Add the `SwiftUI.NET` package to your project. If you do not see the package, ensure pre-release packages are enabled.
-
-### Example
+## Example
 
 A simple custom view with state:
 
