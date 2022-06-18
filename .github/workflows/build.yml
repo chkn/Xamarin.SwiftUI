@@ -32,10 +32,6 @@ jobs:
           dotnet workload install ios
           dotnet workload install macos
 
-      - name: Create artifacts subdir (for now)
-        run: |
-          mkdir artifacts
-
       - name: Restore build.proj
         run: dotnet msbuild 'build.proj' /p:configuration='Debug' /t:Restore
 
@@ -72,9 +68,6 @@ jobs:
           dotnet workload install ios
           dotnet workload install macos
 
-      - name: Create artifacts subdir (for now)
-        run: |
-          mkdir artifacts
 
       - name: Install NuGet tools
         uses: NuGet/setup-nuget@v1.0.5

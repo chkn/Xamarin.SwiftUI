@@ -83,9 +83,10 @@
 	<Target Name="SwiftUIGlue" DependsOnTargets="@(SwiftUIGlueTargets)" />
 
 	<Target Name="Restore">
+		<MakeDir Directories="artifacts" />
 		<MSBuild
 			Projects="$(MSBuildThisFileDirectory)Xamarin.SwiftUI.sln"
-			Properties="Configuration=$(Configuration)" Targets="Restore"/>
+			Properties="Configuration=$(Configuration)" Targets="Restore" />
 	</Target>
 
 	<Target Name="Build" DependsOnTargets="SwiftUIGlue">
@@ -94,20 +95,20 @@
 		</ItemGroup>
 		<MSBuild
 			Projects="$(SrcPath)SwiftUI\SwiftUI.csproj"
-			Properties="Configuration=$(Configuration);TargetFramework=%(TargetFramework.Identity)" Targets="Build"/>
+			Properties="Configuration=$(Configuration);TargetFramework=%(TargetFramework.Identity)" Targets="Build" />
 		<MSBuild
 			Projects="$(SrcPath)SwiftUI.FSharp\SwiftUI.FSharp.fsproj"
-			Properties="Configuration=$(Configuration);TargetFramework=%(TargetFramework.Identity)" Targets="Build"/>
+			Properties="Configuration=$(Configuration);TargetFramework=%(TargetFramework.Identity)" Targets="Build" />
 	</Target>
 
 	<Target Name="Pack" DependsOnTargets="Build">
 		<MakeDir Directories="$(ArtifactOutputPath)" />
 		<MSBuild
 			Projects="$(SrcPath)SwiftUI.Analyzers\SwiftUI.Analyzers.csproj"
-			Properties="Configuration=$(Configuration)" Targets="Build"/>
+			Properties="Configuration=$(Configuration)" Targets="Build" />
 		<MSBuild
 			Projects="$(SrcPath)SwiftUI\SwiftUI.csproj"
-			Properties="Configuration=$(Configuration);NoBuild=true;TargetFrameworks=$(TargetFrameworks)" Targets="Pack"/>
+			Properties="Configuration=$(Configuration);NoBuild=true;TargetFrameworks=$(TargetFrameworks)" Targets="Pack" />
 	</Target>
 
 	<Target Name="Clean">
