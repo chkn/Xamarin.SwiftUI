@@ -33,13 +33,13 @@ jobs:
           dotnet workload install macos
 
       - name: Restore build.proj
-        run: dotnet msbuild 'build.proj' /p:configuration='Debug' /t:Restore
+        run: dotnet msbuild build.proj /p:Configuration=Debug /t:Restore
 
       - name: Build build.proj
-        run: dotnet msbuild 'build.proj' /p:configuration='Debug' /t:Build
+        run: dotnet msbuild build.proj /p:Configuration=Debug /t:Build
 
       - name: Build SwiftUI.Tests.FSharp
-        run: dotnet msbuild tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj /p:Configuration='Debug' /t:Build
+        run: dotnet build tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj --configuration Debug
 
       - name: Run Tests in Xamarin.SwiftUI.sln
         run: dotnet test Xamarin.SwiftUI.sln --configuration Debug
@@ -76,26 +76,25 @@ jobs:
         run: dotnet restore Xamarin.SwiftUI.sln
 
       - name: Restore build.proj
-        run: dotnet msbuild 'build.proj' /p:configuration='Release' /t:Restore
+        run: dotnet msbuild build.proj /p:Configuration=Release /t:Restore
 
       - name: Build build.proj
         id: BuildProj
-        run: dotnet msbuild 'build.proj' /p:configuration='Release' /p:Version=${{ github.run_number }}
+        run: dotnet msbuild build.proj /p:Configuration=Release /t:Build /p:Version=${{ github.run_number }}
         continue-on-error: true
 
-      - name: Retry Build build.proj
+      - name: Retry build build.proj
         if: job.steps.BuildProj.status == failure()
-        run: dotnet msbuild 'build.proj' /p:configuration='Release' /p:Version=${{ github.run_number }}
+        run: dotnet msbuild build.proj /p:Configuration=Release /t:Build /p:Version=${{ github.run_number }}
       
       - name: Build SwiftUI.Tests.FSharp
-        run: dotnet msbuild tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj /p:configuration='Release'
+        run: dotnet build tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj --configuration Release
 
-      - name: Run Tests in Xamarin.SwiftUI.sln
+      - name: Run tests in Xamarin.SwiftUI.sln
         run: dotnet test Xamarin.SwiftUI.sln --configuration Release
 
-      # Samples No Currently available
-      # - name: Build CSharpSamples.sln
-      #   run: dotnet msbuild 'samples/C#/CSharpSamples.sln' /p:configuration='Release' /restore /p:Version=${{ github.run_number }}
+      - name: Build C# samples
+        run: dotnet msbuild /restore samples/C#/Samples.csproj /p:Configuration=Release  /p:Version=${{ github.run_number }}
 
       - name: Publish artifacts
         uses: actions/upload-artifact@v2
@@ -103,6 +102,6 @@ jobs:
           path: ${{ github.workspace }}/artifacts
           name: packages
 
-      - name: Publish Nuget Package
-        if: (success() && (github.ref == 'refs/heads/master'))
-        run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
+      # - name: Publish Nuget Package
+      #   if: (success() && (github.ref == 'refs/heads/master'))
+      #   run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
