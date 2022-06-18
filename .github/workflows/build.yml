@@ -23,13 +23,9 @@ jobs:
       - name: Checkout current repo
         uses: actions/checkout@v2
       
-      # Ensure we have .NET 5 and 6 installed
-      - name: Setup .NET Core SDK 5.0.x and 6.0.x
+      # Ensure we have .NET SDK installed (version taken from global.json)
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: |
-            5.0.x
-            6.0.x
 
       - name: Install iOS and macOS workloads
         run: |
