@@ -68,9 +68,6 @@ jobs:
           dotnet workload install ios
           dotnet workload install macos
 
-      - name: Restore Xamarin.SwiftUI.sln
-        run: dotnet restore Xamarin.SwiftUI.sln
-
       - name: Restore build.proj
         run: dotnet msbuild build.proj /p:Configuration=Release /t:Restore
 
