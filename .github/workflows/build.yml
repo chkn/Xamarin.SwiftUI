@@ -68,10 +68,6 @@ jobs:
           dotnet workload install ios
           dotnet workload install macos
 
-
-      - name: Install NuGet tools
-        uses: NuGet/setup-nuget@v1.0.5
-
       - name: Restore Xamarin.SwiftUI.sln
         run: dotnet restore Xamarin.SwiftUI.sln
 
