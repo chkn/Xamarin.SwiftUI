@@ -68,14 +68,8 @@ jobs:
         run: dotnet msbuild build.proj /p:Configuration=Release /t:Restore
 
       - name: Build build.proj
-        id: BuildProj
         run: dotnet msbuild build.proj /p:Configuration=Release /t:Build
-        continue-on-error: true
 
-      - name: Retry build build.proj
-        if: ${{ failure() }}
-        run: dotnet msbuild build.proj /p:Configuration=Release /t:Build
-      
       - name: Build SwiftUI.Tests.FSharp
         run: dotnet build tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj --configuration Release
 
