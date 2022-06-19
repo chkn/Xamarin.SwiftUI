@@ -16,7 +16,7 @@ jobs:
     name: Debug - Build and Test
     
     # The type of runner that the job will run on
-    runs-on: macOS-latest
+    runs-on: macOS-12
 
     steps:
       # Checks-out repository under $GITHUB_WORKSPACE, so your job can access it
@@ -48,7 +48,7 @@ jobs:
     name: Release - Build, Test and Package
 
     # The type of runner that the job will run on
-    runs-on: macOS-latest
+    runs-on: macOS-12
 
     steps:
       # Checks-out repository under $GITHUB_WORKSPACE, so your job can access it
