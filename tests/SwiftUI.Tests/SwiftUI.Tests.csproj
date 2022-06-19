@@ -24,7 +24,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="Subjects\" />
-		<None Include="..\..\native\$(Configuration)\$(TargetFramework)-macos\libSwiftUIGlue.dylib" Visible="false">
+		<None Include="..\..\native\$(Configuration)\$(MacTargetFramework)\libSwiftUIGlue.dylib" Visible="false">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
