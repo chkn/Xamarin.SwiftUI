@@ -23,7 +23,8 @@
 import SwiftSyntax
 
 /// An extension declaration.
-public class ExtensionDecl: Decl, Derivable {
+public class ExtensionDecl: Decl, Derivable, HasMembers {
+	public var members: [MemberDecl] = []
 
     var extendedTypeQualifiedName: String
 

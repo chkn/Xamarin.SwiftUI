@@ -10,7 +10,7 @@ namespace SwiftUI
 	using static TupleView;
 
 	[SwiftImport (SwiftUILib.Path)]
-	public sealed record TupleView<TTuple> : View, ISwiftValue
+	public sealed record TupleView<TTuple> : View
 	// FIXME: Add this constraint back and remove static ctor if this is ever resolved:
 	//  https://github.com/dotnet/fsharp/issues/5654#issuecomment-696504156
 	//	where TTuple : ITuple

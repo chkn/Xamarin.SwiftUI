@@ -10,12 +10,11 @@ public class BlittableStructBinding: TypeBinding {
 	override public func writeType(_ writer: Writer)
 	{
 		writer.write("""
-			[StructLayout (LayoutKind.Sequential)]
-			public readonly struct \(genericFullName) : ISwiftBlittableStruct<\(genericFullName)>
-			{
+[StructLayout (LayoutKind.Sequential)]
+public readonly struct \(genericFullName) : ISwiftBlittableStruct<\(genericFullName)>
+{
 
-			}
-
-		""")
+}
+""")
 	}
 }

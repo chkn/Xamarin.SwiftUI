@@ -51,6 +51,8 @@ namespace SwiftUI
 			this.initialValue = initialValue;
 		}
 
+		public override string? ToString () => Value?.ToString ();
+
 		protected override unsafe void InitNativeData (void* handle, Nullability nullability)
 		{
 			valueNullability = nullability [0];

@@ -1,4 +1,4 @@
-// based on https://github.com/SwiftDocOrg/SwiftSemantics/blob/6c42cdf1c016090bd09aef8968ba4c84bf4bf409/Sources/SwiftSemantics/Declarations/Protocol.swift
+// based on https://raw.githubusercontent.com/SwiftDocOrg/SwiftSemantics/db025ec43c8cb3588c7e1787732584e74e0a160f/Sources/SwiftSemantics/Declarations/Initializer.swift
 
 //Copyright 2019 Read Evaluate Press, LLC
 //
@@ -22,14 +22,23 @@
 
 import SwiftSyntax
 
-/// A protocol declaration.
-public class ProtocolDecl: TypeDecl, Derivable {
-	public var inheritance: [TypeDecl]
+/// An initializer declaration.
+public class InitializerDecl: FunctionDecl {
 
-	/// Creates an instance initialized with the given syntax node.
-	public init(in context: Decl?, _ node: ProtocolDeclSyntax)
-	{
-		inheritance = node.inheritanceClause?.inheritedTypes(in: context) ?? []
-		super.init(in: context, node.attributes, node.modifiers, node.identifier.text.trim())
-	}
+    /// Whether the initializer is optional.
+    public var optional: Bool
+
+    /// The `throws` or `rethrows` keyword, if any.
+    public var throwsOrRethrows: ThrowSpec? = nil
+
+    /// Creates an instance initialized with the given syntax node.
+    public init(in context: Decl?, _ node: InitializerDeclSyntax)
+    {
+        optional = node.optionalMark != nil
+        if let keyword = node.throwsOrRethrowsKeyword {
+			throwsOrRethrows = ThrowSpec(rawValue: keyword.description.trim())
+		}
+		// FIXME: name should be full selector?
+        super.init(in: context, node.attributes, node.modifiers, "init", node.genericParameterClause, node.parameters, node.genericWhereClause)
+    }
 }

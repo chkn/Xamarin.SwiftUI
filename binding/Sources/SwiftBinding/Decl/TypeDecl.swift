@@ -33,6 +33,17 @@ public extension Extendable {
 	}
 }
 
+public protocol HasMembers {
+	var members: [MemberDecl] { get set }
+}
+
+public extension HasMembers where Self: Extendable {
+	var membersIncludingExtensions: [MemberDecl] {
+		var result = members
+		result.append(contentsOf: extensions.filter({ $0.genericRequirements.isEmpty }).flatMap { $0.members })
+		return result
+	}
+}
 
 open class TypeDecl: Decl {
 	public var typeCode: Character? { nil }
@@ -54,7 +65,12 @@ open class TypeDecl: Decl {
 	}()
 }
 
-open class GenericTypeDecl: TypeDecl {
+open class NominalTypeDecl: TypeDecl, HasMembers, Extendable {
+	public var members: [MemberDecl] = []
+	public var extensions: [ExtensionDecl] = []
+}
+
+open class GenericTypeDecl: NominalTypeDecl {
 	public var genericParameters: [GenericParameter] = []
 
 	public init(in context: Decl?, _ attributes: AttributeListSyntax?, _ modifiers: ModifierListSyntax?, _ name: String, _ genericParameterClause: GenericParameterClauseSyntax?, _ genericWhereClause: GenericWhereClauseSyntax?)

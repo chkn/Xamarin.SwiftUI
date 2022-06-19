@@ -3,6 +3,8 @@
 public class SwiftStructBinding: TypeBinding {
 	public let baseClass: String
 
+	public var primaryCtor: PrimaryCtorBinding? = nil
+
 	public init(_ type: StructDecl, _ baseClass: String)
 	{
 		self.baseClass = baseClass
@@ -11,12 +13,16 @@ public class SwiftStructBinding: TypeBinding {
 
 	override public func writeType(_ writer: Writer)
 	{
-		writer.write("\tpublic unsafe sealed record \(genericFullName) : \(baseClass)\n")
-		for gp in genericParameterConstraints {
-			writer.write("\t\twhere \(gp.name) : \(gp.types.map({ $0.qualifiedName }).sorted().joined(separator: ", "))\n")
+		writer.write("public unsafe sealed record \(genericFullName)")
+		if let pctor = primaryCtor {
+			writer.write(child: pctor)
 		}
-		writer.write("\t{\n")
+		writer.write(" : \(baseClass)\n")
+		for gp in genericParameterConstraints {
+			writer.write("\twhere \(gp.name) : \(gp.types.map({ $0.qualifiedName }).sorted().joined(separator: ", "))\n")
+		}
+		writer.write("{\n")
 
-		writer.write("\t}\n")
+		writer.write("}\n")
 	}
 }

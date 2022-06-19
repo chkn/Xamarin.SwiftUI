@@ -23,9 +23,8 @@
 import SwiftSyntax
 
 /// A structure declaration.
-public class StructDecl: GenericTypeDecl, Derivable, Extendable, HasTypesToResolve {
+public class StructDecl: GenericTypeDecl, Derivable, HasTypesToResolve {
 	public var inheritance: [TypeDecl] = []
-	public var extensions: [ExtensionDecl] = []
 
 	public override var typeCode: Character? { "V" }
 

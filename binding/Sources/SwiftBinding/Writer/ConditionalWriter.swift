@@ -82,11 +82,9 @@ public struct ConditionalWriter {
 
 	func merge(_ initial: [WriterAction]?, with unexpandedActions2: [WriterAction]) -> [WriterAction]?
 	{
-		guard let unexpandedActions1 = initial else { return unexpandedActions2 }
-
 		// first, expand all the conditional writeChild values
-		let actions1 = ConditionalWriter.expand(unexpandedActions1)
 		let actions2 = ConditionalWriter.expand(unexpandedActions2)
+		guard let actions1 = initial else { return actions2 }
 
 		let diff = actions2.difference(from: actions1).inferringMoves()
 
@@ -169,9 +167,9 @@ public struct ConditionalWriter {
 		case .writeChild(let child): writer.write(child: child)
 		case .conditional(let sdks, let conditionalAction):
 			let defines = sdks.map({ $0.conditionalDefine }).sorted().joined(separator: " || ")
-			writer.write("#if \(defines)\n")
+			writer.write("\n#if \(defines)\n")
 			write(action: conditionalAction, to: writer)
-			writer.write("#endif\n")
+			writer.write("\n#endif\n")
 		}
 	}
 }

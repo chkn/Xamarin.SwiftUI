@@ -49,13 +49,10 @@ open class TypeBinding: Binding {
 		writer.write("using System;\nusing System.Runtime.InteropServices;\n\n")
 
 		if let ns = qualifier {
-			writer.write("namespace \(ns)\n{\n")
+			writer.write("namespace \(ns);\n\n")
 		}
-		writer.write("\t[Swift.Interop.SwiftImport (\"\(libPath)\")]\n")
+		writer.write("[Swift.Interop.SwiftImport (\"\(libPath)\")]\n")
 		writeType(writer)
-		if let _ = qualifier {
-			writer.write("}\n")
-		}
 	}
 
 	open func writeType(_ writer: Writer)

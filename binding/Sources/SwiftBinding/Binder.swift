@@ -143,45 +143,82 @@ open class Binder: SyntaxVisitor {
 
 	func tryBind(struct type: StructDecl, as baseClass: String) -> SwiftStructBinding?
 	{
+		var binding: SwiftStructBinding? = nil
 		if type.inherits(from: baseClass) {
-			return SwiftStructBinding(type, baseClass)
+			binding = SwiftStructBinding(type, baseClass)
+		} else if let ext = type.extensionInherits(from: baseClass) {
+			let b = SwiftStructBinding(type, baseClass)
+			b.apply(ext, resolve)
+			binding = b
 		}
-		if let ext = type.extensionInherits(from: baseClass) {
-			let binding = SwiftStructBinding(type, baseClass)
-			binding.apply(ext, resolve)
-			return binding
-		}
-		return nil
+		return binding
 	}
 
 	open func bind(type: TypeDecl, into bindings: inout [Binding])
 	{
-		// don't bind internal/non-public types
-		if type.name.hasPrefix("_") || !type.isPublic {
+		// don't bind internal/non-public types, or types without any children
+		if !type.isPublic || type.name.hasPrefix("_") {
 			return
 		}
+
+		if let mty = type as? HasMembers, mty.members.isEmpty {
+			return
+		}
+
+		var typeBinding: TypeBinding? = nil
 
 		if let sty = type as? StructDecl {
 			// try to bind some known SwiftStruct types first
 			//  must do "SwiftUI.Shape" first becuase it derives from View
 			if let swiftStruct = tryBind(struct: sty, as: "SwiftUI.Shape") ?? tryBind(struct: sty, as: "SwiftUI.View") {
+				typeBinding = swiftStruct
 				bindings.append(swiftStruct)
-				return
 			}
 
-			if let _ = tryBind(struct: sty, as: "SwiftUI.ViewModifier") {
+			else if let _ = tryBind(struct: sty, as: "SwiftUI.ViewModifier") {
 				// FIXME: We need to support ViewModifiers
-				return
 			}
 
 			// frozen POD structs -> blittableStruct
-			if type.isFrozen && !type.isNonPOD {
-				bindings.append(BlittableStructBinding(sty))
-				return
+			else if type.isFrozen && !type.isNonPOD {
+				let binding = BlittableStructBinding(sty)
+				typeBinding = binding
+				bindings.append(binding)
 			}
 
-			// other structs just derive from SwiftStruct directly
-			bindings.append(SwiftStructBinding(sty, "SwiftStruct"))
+			else {
+				// other structs just derive from SwiftStruct directly
+				let binding = SwiftStructBinding(sty, "SwiftStruct")
+				typeBinding = binding
+				bindings.append(binding)
+			}
+		}
+
+		if let tyb = typeBinding, let nom = type as? NominalTypeDecl {
+			for member in nom.membersIncludingExtensions {
+				bind(member: member, for: tyb, into: &bindings)
+			}
+		}
+	}
+
+	open func bind(member: MemberDecl, for binding: TypeBinding, into bindings: inout [Binding])
+	{
+		// don't bind disfavored overloads for now
+		if member.attributes.contains(._disfavoredOverload) {
+			return
+		}
+
+		let type = member.context as! NominalTypeDecl
+
+		if let ctor = member as? InitializerDecl {
+			if let sty = binding as? SwiftStructBinding {
+				// try to identify a primary ctor
+				let isPrimary = !type.membersIncludingExtensions.contains(where: { $0 is InitializerDecl && !$0.attributes.contains(._disfavoredOverload) && $0 !== ctor })
+
+				if isPrimary {
+					sty.primaryCtor = PrimaryCtorBinding(ctor)
+				}
+			}
 		}
 	}
 
@@ -201,21 +238,41 @@ open class Binder: SyntaxVisitor {
 		return .skipChildren
 	}
 
-	open override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind
+	open override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind
 	{
-		extensions.append(ExtensionDecl(in: currentContext, node))
+		// FIXME
 		return .skipChildren
 	}
 
-	open override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind
+	open override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind
 	{
-		add(type: StructDecl(in: currentContext, node))
-		return .skipChildren
+		extensions.append(ExtensionDecl(in: currentContext, node))
+		return .visitChildren
 	}
 
 	open override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind
 	{
 		add(type: ProtocolDecl(in: currentContext, node))
+		return .skipChildren
+	}
+
+	open override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind
+	{
+		let decl = StructDecl(in: currentContext, node)
+		add(type: decl)
+		currentContext = decl
+		return .visitChildren
+	}
+
+	open override func visitPost(_ node: StructDeclSyntax) {
+		currentContext = currentContext?.context
+	}
+
+	open override func visit(_ node: InitializerDeclSyntax) -> SyntaxVisitorContinueKind
+	{
+		if var ty = currentContext as? HasMembers {
+			ty.members.append(InitializerDecl(in: currentContext, node))
+		}
 		return .skipChildren
 	}
 }
