@@ -43,7 +43,7 @@ public partial record ClickView : View
 - .NET 6 SDK
 - Xcode 13 or newer
 
-### Build Everything and NuGet Package
+### Building
 
 ```
 dotnet msbuild /restore build.proj
@@ -52,17 +52,17 @@ dotnet msbuild /restore build.proj
 If you need to make changes to the SwiftUIGlue native glue library during development, you can rebuild just those bits by running:
 
 ```
-dotnet msbuild build.proj /t:SwiftUIGlue /p:Configuration=Debug
+dotnet msbuild build.proj /t:SwiftUIGlue
 ```
 
 #### Packaging
 
-The major and minor version of nuget packages created by the CI pipeline is controlled by the `name:` element in `azure-pipelines.yaml`. This should be bumped for each release.
+The major and minor version of nuget packages created by the CI pipeline is controlled by the `VERSION` file. This does not need to be bumped for patch releases.
 
 For local development, the version of the package produced can be overridden:
 
 ```
-dotnet msbuild /restore build.proj /p:Version=X.X.XXX
+dotnet msbuild /restore build.proj /t:Pack /p:Version=X.X.XXX
 ```
 
 ---

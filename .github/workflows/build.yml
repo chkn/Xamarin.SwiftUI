@@ -41,7 +41,7 @@ jobs:
       - name: Build SwiftUI.Tests.FSharp
         run: dotnet build tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj --configuration Debug
 
-      - name: Run Tests in Xamarin.SwiftUI.sln
+      - name: Run tests in Xamarin.SwiftUI.sln
         run: dotnet test Xamarin.SwiftUI.sln --configuration Debug
       
   ReleaseBuildTestAndPackage:
@@ -55,13 +55,9 @@ jobs:
       - name: Checkout current repo
         uses: actions/checkout@v2
       
-      # Ensure we have .NET 5 and 6 installed
-      - name: Setup .NET Core SDK 5.0.x and 6.0.x
+      # Ensure we have .NET SDK installed (version taken from global.json)
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: |
-            5.0.x
-            6.0.x
     
       - name: Install iOS and macOS workloads
         run: |
@@ -73,12 +69,12 @@ jobs:
 
       - name: Build build.proj
         id: BuildProj
-        run: dotnet msbuild build.proj /p:Configuration=Release /t:Build /p:Version=${{ github.run_number }}
+        run: dotnet msbuild build.proj /p:Configuration=Release /t:Build
         continue-on-error: true
 
       - name: Retry build build.proj
         if: ${{ failure() }}
-        run: dotnet msbuild build.proj /p:Configuration=Release /t:Build /p:Version=${{ github.run_number }}
+        run: dotnet msbuild build.proj /p:Configuration=Release /t:Build
       
       - name: Build SwiftUI.Tests.FSharp
         run: dotnet build tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj --configuration Release
@@ -86,8 +82,17 @@ jobs:
       - name: Run tests in Xamarin.SwiftUI.sln
         run: dotnet test Xamarin.SwiftUI.sln --configuration Release
 
+      # Packaging
+
+      - name: Derive package version
+        uses: avakar/derive-version@v1.1.0
+        id: version
+
+      - name: Pack build.proj
+        run: dotnet msbuild build.proj /t:Pack /p:Configuration=Release /p:Version=${{ steps.version.outputs.version }}
+
       - name: Build C# samples
-        run: dotnet msbuild /restore samples/C#/Samples.csproj /p:Configuration=Release  /p:Version=${{ github.run_number }}
+        run: dotnet msbuild /restore samples/C#/Samples.csproj /p:Configuration=Release /p:Version=${{ steps.version.outputs.version }}
 
       - name: Publish artifacts
         uses: actions/upload-artifact@v2

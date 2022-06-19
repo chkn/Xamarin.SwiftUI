@@ -4,7 +4,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">$(PackageTargetFrameworks)</TargetFrameworks>
-		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+		<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
 
 		<!-- Managed code -->
 		<SrcPath Condition=" '$(SrcPath)' == '' ">$(MSBuildThisFileDirectory)src\</SrcPath>
