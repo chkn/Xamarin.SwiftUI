@@ -67,6 +67,6 @@ namespace Swift.Interop {
 		internal RelativePointer MangledTypeNamePtr;
 		internal RelativePointer FieldNamePtr;
 
-		public string FieldName => Marshal.PtrToStringAnsi ((IntPtr)FieldNamePtr.Target);
+		public string? FieldName => Marshal.PtrToStringAnsi ((IntPtr)FieldNamePtr.Target);
 	}
 }

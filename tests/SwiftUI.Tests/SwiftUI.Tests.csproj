@@ -1,13 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="../../TargetFrameworks.props" />
 
 	<PropertyGroup>
-		<TargetFramework>net5.0</TargetFramework>
+		<TargetFramework>$(BaseTargetFramework)</TargetFramework>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<IsPackable>false</IsPackable>
-
-		<!-- FIXME: Currently need both: "Nullable" for Windows, "NullableContextOptions" for Mac -->
 		<Nullable>enable</Nullable>
-		<NullableContextOptions>enable</NullableContextOptions>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -26,7 +24,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="Subjects\" />
-		<None Include="..\..\native\$(Configuration)\xamarin.mac20\libSwiftUIGlue.dylib" Visible="false">
+		<None Include="..\..\native\$(Configuration)\$(MacTargetFramework)\libSwiftUIGlue.dylib" Visible="false">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>

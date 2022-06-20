@@ -2,35 +2,25 @@
 
 A managed binding to SwiftUI.
 
-## Getting Started with Master Builds
+## Build Status
+[![.github/workflows/build.yml](https://github.com/chkn/Xamarin.SwiftUI/actions/workflows/build.yml/badge.svg)](https://github.com/chkn/Xamarin.SwiftUI/actions/workflows/build.yml)
 
-[![Build Status](https://alcorra.visualstudio.com/Xamarin.SwiftUI/_apis/build/status/Xamarin.SwiftUI?branchName=master)](https://alcorra.visualstudio.com/Xamarin.SwiftUI/_build/latest?definitionId=1&branchName=master)
+## Project Status:
+✅ **Active**.
 
-### Requirements
+Xamarin.SwiftUI provides a managed binding to Apple's next-generation [SwiftUI](https://developer.apple.com/documentation/swiftui) toolkit. Using your favourite .NET language, you should be able to create SwiftUI apps. However, only a handful of APIs are currently bound. [Work is ongoing](https://github.com/chkn/Xamarin.SwiftUI/tree/swift-parser2) on a binding generator to automatically cover the entire API surface.
 
-This binding is designed to provide a decent API from either C# 9 or F# 5.
+<!--
+## Nuget Status 
+[![Version](https://img.shields.io/nuget/v/SwiftUI.NET.svg)](https://nuget.org/packages/SwiftUI.NET)
+[![Downloads](https://img.shields.io/nuget/dt/SwiftUI.NET.svg)](https://nuget.org/packages/SwiftUI.NET)
 
-- C# 9
 
-  The NuGet package currently pulls in and enables the correct C# compiler and language version (see below). No manual configuration should be needed, but watch out for any settings in your csproj that might conflict.
+## Nuget Download
+📦 [NuGet](https://nuget.org/packages/SwiftUI.NET): `dotnet add package SwiftUI.NET`
+-->
 
-- F# 5
-
-  If you are using VS Mac, you must currently install [this Mono build](https://github.com/mono/mono/pull/20511#issuecomment-717160671) to get the F# 5 compiler for Xamarin.
-
-### Install the NuGet Package
-
-Until the project is ready for use in real apps, there are no official packages. For now, you can get a sneak peek by installing the latest package from the master feed:
-
-1. Add this feed as a NuGet source: `https://pkgs.dev.azure.com/alcorra/Xamarin.SwiftUI/_packaging/master/nuget/v3/index.json`
-2. Add the `Xamarin.SwiftUI` package to your project. If you do not see the package, ensure pre-release packages are enabled.
-
-Adding the above package will make the following changes to your project:
-- Set LangVersion to `preview` to enable source generators.
-- Use a version of the Roslyn C# compiler that supports source generators.
-- Enable C# reference type nullability, as passing null values to Swift is only supported with proper nullability annotations.
-
-### Example
+## Example
 
 A simple custom view with state:
 
@@ -49,44 +39,32 @@ public partial record ClickView : View
 ## Building from Source
 
 ### Prerequisites
-- .NET 5 SDK
-- Xamarin toolchain
-- Xcode 11 or newer
-- Xcode [command line](https://developer.apple.com/library/archive/technotes/tn2339/_index.html) tools
 
-### Build Everything and NuGet Package
+- .NET 6 SDK
+- Xcode 13 or newer
+
+### Building
 
 ```
-msbuild build.proj
+dotnet msbuild /restore build.proj
 ```
 
 If you need to make changes to the SwiftUIGlue native glue library during development, you can rebuild just those bits by running:
 
 ```
-msbuild build.proj /t:SwiftUIGlue /p:Configuration=Debug
+dotnet msbuild build.proj /t:SwiftUIGlue
 ```
 
 #### Packaging
 
-The major and minor version of nuget packages created by the CI pipeline is controlled by the `name:` element in `azure-pipelines.yaml`. This should be bumped for each release.
+The major and minor version of nuget packages created by the CI pipeline is controlled by the `VERSION` file. This does not need to be bumped for patch releases.
 
 For local development, the version of the package produced can be overridden:
 
 ```
-msbuild build.proj /p:Version=X.X.XXX
+dotnet msbuild /restore build.proj /t:Pack /p:Version=X.X.XXX
 ```
 
-#### Troubleshooting
-
-You may receive the following errors on the first couple builds:
-
-- `error CS1617: Invalid option '9.0' for /langversion`
-- `error CS0012: The type '...' is defined in an assembly that is not referenced. You must add a reference to assembly 'netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'`
-
-If you receive either of the above failures, simply run the command again.
-
-### Visual Studio for Mac
-
-Open `Xamarin.SwiftUI.sln`
+---
 
 For more information about the internals and guidance on developing the binding itself, see the document titled [Hacking](Hacking.md).

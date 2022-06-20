@@ -48,8 +48,8 @@ namespace Swift.Interop
 		public ProtocolDescriptor* GetProtocol (string module, string name)
 			=> (ProtocolDescriptor*)RequireSymbol ("$s" + SwiftType.Mangle (module, name) + "Mp");
 
-		public bool Equals (NativeLib other) => handle == other.handle;
-		public override bool Equals (object obj) => Equals ((NativeLib)obj);
+		public bool Equals (NativeLib? other) => handle == other!.handle;
+		public override bool Equals (object? obj) => Equals ((NativeLib?)obj);
 		public override int GetHashCode () => unchecked ((int)handle);
 
 		public void Dispose ()

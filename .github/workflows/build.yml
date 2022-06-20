@@ -1,0 +1,99 @@
+name: Xamarin.SwiftUI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  DebugBuildAndTest:
+    name: Debug - Build and Test
+    
+    # The type of runner that the job will run on
+    runs-on: macOS-12
+
+    steps:
+      # Checks-out repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout current repo
+        uses: actions/checkout@v2
+      
+      # Ensure we have .NET SDK installed (version taken from global.json)
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v1
+
+      - name: Install iOS and macOS workloads
+        run: |
+          dotnet workload install ios
+          dotnet workload install macos
+
+      - name: Restore build.proj
+        run: dotnet msbuild build.proj /p:Configuration=Debug /t:Restore
+
+      - name: Build build.proj
+        run: dotnet msbuild build.proj /p:Configuration=Debug /t:Build
+
+      - name: Build SwiftUI.Tests.FSharp
+        run: dotnet build tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj --configuration Debug
+
+      - name: Run tests in Xamarin.SwiftUI.sln
+        run: dotnet test Xamarin.SwiftUI.sln --configuration Debug
+      
+  ReleaseBuildTestAndPackage:
+    name: Release - Build, Test and Package
+
+    # The type of runner that the job will run on
+    runs-on: macOS-12
+
+    steps:
+      # Checks-out repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout current repo
+        uses: actions/checkout@v2
+      
+      # Ensure we have .NET SDK installed (version taken from global.json)
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v1
+    
+      - name: Install iOS and macOS workloads
+        run: |
+          dotnet workload install ios
+          dotnet workload install macos
+
+      - name: Restore build.proj
+        run: dotnet msbuild build.proj /p:Configuration=Release /t:Restore
+
+      - name: Build build.proj
+        run: dotnet msbuild build.proj /p:Configuration=Release /t:Build
+
+      - name: Build SwiftUI.Tests.FSharp
+        run: dotnet build tests/SwiftUI.Tests.FSharp/SwiftUI.Tests.FSharp.fsproj --configuration Release
+
+      - name: Run tests in Xamarin.SwiftUI.sln
+        run: dotnet test Xamarin.SwiftUI.sln --configuration Release
+
+      # Packaging
+
+      - name: Derive package version
+        uses: avakar/derive-version@v1.1.0
+        id: version
+
+      - name: Pack build.proj
+        run: dotnet msbuild build.proj /t:Pack /p:Configuration=Release /p:Version=${{ steps.version.outputs.version }}
+
+      - name: Build C# samples
+        run: dotnet msbuild /restore samples/C#/Samples.csproj /p:Configuration=Release /p:Version=${{ steps.version.outputs.version }}
+
+      - name: Publish artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: ${{ github.workspace }}/artifacts
+          name: packages
+
+      # - name: Publish Nuget Package
+      #   if: (success() && (github.ref == 'refs/heads/master'))
+      #   run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}

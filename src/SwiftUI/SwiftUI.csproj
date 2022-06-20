@@ -1,16 +1,21 @@
-<Project>
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" />
-  <Import Project="../../msbuild/Xamarin.SwiftUI.props" />
-  <PropertyGroup>
-    <_RealLangVersion>$(LangVersion)</_RealLangVersion>
-  </PropertyGroup>
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../LocalArtifacts.props" />
+  <Import Project="../../TargetFrameworks.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
-    <TargetFrameworks Condition="'$(MSBuildRuntimeType)' != 'Core'">$(TargetFrameworks);xamarin.mac20;xamarin.ios10</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">$(DefaultTargetFrameworks)</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <DebugType>embedded</DebugType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <OutputPath>..\..\managed\$(Configuration)</OutputPath>
+
+    <!-- NuGet -->
+    <NoWarn>NU5128</NoWarn>
+    <PackageId>SwiftUI.NET</PackageId>
+    <Authors>Alex Corrado</Authors>
+    <PackageOutputPath>$(ArtifactOutputPath)</PackageOutputPath>
+    <PackageTags>apple;ios;macos;swiftui;swift;ui;toolkit</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,22 +28,25 @@
   </ItemGroup>
 
   <!-- Conditionally exclude platform-specific source files -->
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != 'Xamarin.Mac' ">
+  <ItemGroup Condition=" '$(TargetPlatformIdentifier)' != 'macos' ">
     <Compile Remove="Mac\**\*.*" />
     <None Include="Mac\**\*.*" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != 'Xamarin.iOS' ">
+  <ItemGroup Condition=" '$(TargetPlatformIdentifier)' != 'ios' ">
     <Compile Remove="iOS\**\*.*" />
     <None Include="iOS\**\*.*" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != 'netstandard' Or '$(MSBuildRuntimeType)' != 'Core' ">
-    <!-- KLUDGE: Hack in a C# 9 compiler for Xamarin -->
-    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="$(RoslynNugetVersion)" />
+  <!-- Additional files to pack in the nuget -->
+  <ItemGroup>
+    <None Include="$(OutputPath)\**\SwiftUI.FSharp.dll" Pack="true" PackagePath="lib" Visible="false" />
+    <None Include="..\SwiftUI.Analyzers\bin\$(Configuration)\netstandard2.0\SwiftUI.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
-  <PropertyGroup Condition=" '$(TargetFrameworkIdentifier)' != 'netstandard' ">
-    <!-- Embed the native library where possible -->
+
+  <PropertyGroup>
+    <!-- Package the native library -->
     <IsBindingProject>true</IsBindingProject>
+    <NoBindingEmbedding>true</NoBindingEmbedding>
   </PropertyGroup>
 
   <!-- Hack around https://github.com/xamarin/xamarin-macios/commit/9f28bce6b87ca6ea4cc51a0dff3e2db0064bf6ca -->
@@ -49,13 +57,27 @@
   </Target>
 
   <ItemGroup>
+    <NativeReference Include="..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework" Condition="Exists('..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework')" Kind="Framework" Visible="false" />
+    <NativeReference Include="..\..\native\$(Configuration)\$(TargetFramework)\*.dylib" Kind="Dynamic" Visible="false" />
+
     <!-- KLUDGE: We auto-generate a blank file for this -->
     <ObjcBindingApiDefinition Include="$(IntermediateOutputPath)\ApiDefinition.cs" />
-    <ObjcBindingNativeFramework Include="..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework" Condition="Exists('..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework')" Visible="false" />
-    <ObjcBindingNativeLibrary Include="..\..\native\$(Configuration)\$(TargetFramework)\*.dylib" Visible="false" />
   </ItemGroup>
   <Target Name="CreateDummyApiDefinition" BeforeTargets="_GenerateBindings">
     <WriteLinesToFile Lines="" File="@(ObjcBindingApiDefinition)" Condition="!Exists('@(ObjcBindingApiDefinition)')" />
+  </Target>
+
+  <!-- FIXME: Remove this workaround once we get .NET SDK 6.0.400 (see https://github.com/dotnet/msbuild/issues/4584) -->
+  <PropertyGroup>
+    <GenerateNuspecDependsOn>
+      $(GenerateNuspecDependsOn);
+      _RemoveNativeManifestFromPack;
+    </GenerateNuspecDependsOn>
+  </PropertyGroup>
+  <Target Name="_RemoveNativeManifestFromPack">
+    <ItemGroup>
+      <_BuildOutputInPackage Remove="@(_BuildOutputInPackage)" Condition="'%(Filename)%(Extension)' == 'Native.SwiftUI.manifest'" />
+    </ItemGroup>
   </Target>
 
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" />

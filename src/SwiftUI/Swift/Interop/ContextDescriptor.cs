@@ -23,7 +23,7 @@ namespace Swift.Interop
 	{
 		public ContextDescriptor Context;
 		internal RelativePointer NamePtr;
-		public string Name => Marshal.PtrToStringAnsi ((IntPtr)NamePtr.Target);
+		public string? Name => Marshal.PtrToStringAnsi ((IntPtr)NamePtr.Target);
 
 #if DEBUG_TOSTRING
 		public override string ToString ()
@@ -46,7 +46,7 @@ namespace Swift.Interop
 		// A pointer to the field descriptor for the type, if any.
 		internal RelativePointer FieldsPtr;
 
-		public string Name => Marshal.PtrToStringAnsi ((IntPtr)NamePtr.Target);
+		public string? Name => Marshal.PtrToStringAnsi ((IntPtr)NamePtr.Target);
 
 #if DEBUG_TOSTRING
 		public override string ToString ()

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Diagnostics.CodeAnalysis;
 
@@ -47,7 +48,7 @@ namespace Swift.Interop
 			return true;
 		}
 		public static bool operator != (Nullability a, Nullability b) => !(a == b);
-		public override bool Equals (object other) => Equals ((Nullability)other);
+		public override bool Equals (object? other) => Equals ((Nullability)other!);
 		public bool Equals (Nullability other) => this == other;
 		public override int GetHashCode () => throw new NotImplementedException ();
 
@@ -67,7 +68,7 @@ namespace Swift.Interop
 			var newElements = new Nullability [len + otherLen];
 			if (elements != null)
 				Array.Copy (elements, newElements, len);
-			Array.Copy (nullability.elements, 0, newElements, len, otherLen);
+			Array.Copy (nullability.elements!, 0, newElements, len, otherLen);
 
 			return new Nullability (IsNullable, newElements);
 		}
@@ -123,14 +124,15 @@ namespace Swift.Interop
 					continue;
 
 				var flagsField = attrType.GetField ("NullableFlags");
-				var flags = flagsField?.GetValue (attr) as byte [];
-				if (flags != null)
+				if (flagsField?.GetValue (attr) is byte [] flags)
 					return flags;
 			}
 			// Also check member's declaring type for a NullableContextAttribute
-			foreach (var attr in member.DeclaringType.CustomAttributes) {
-				if (attr.AttributeType.FullName == NullableContextAttributeTypeFullName)
-					return new[] { (byte)attr.ConstructorArguments[0].Value };
+			if (member.DeclaringType is Type declTy) {
+				foreach (var attr in declTy.CustomAttributes) {
+					if (attr.AttributeType.FullName == NullableContextAttributeTypeFullName)
+						return new[] { (byte)attr.ConstructorArguments[0].Value! };
+				}
 			}
 			return null;
 		}
@@ -162,28 +164,29 @@ namespace Swift.Interop
 			   ty.GetGenericTypeDefinition ().FullName == FSharpValueOptionTypeFullName &&
 			   IsFSharpCore (ty.Assembly);
 
-		public static bool IsNull ([NotNullWhen (returnValue: false)] object? value)
+		static bool IsFSharpValueNone (object value)
 		{
-			// Handles nullable reference and values types, and FSharpOption
-			if (value is null)
-				return true;
-
-			// Handle FSharpValueOption
 			var ty = value.GetType ();
-			if (IsFSharpValueOption (ty))
-				return ty.GetProperty ("Tag")?.GetValue (value) is int tag && tag == 0;
-
-			return false;
+			return IsFSharpValueOption (ty) && ty.GetProperty ("Tag")?.GetValue (value) is int tag && tag == 0;
 		}
 
-		public static object Unwrap (object value)
+		public static bool IsNull ([NotNullWhen (returnValue: false)] object? value)
+			=> value is null || IsFSharpValueNone (value);
+
+		public static object? Unwrap (object? value)
 		{
+			if (IsNull (value))
+				return null;
+
 			var type = value.GetType ();
 			if (!IsReifiedNullable (type)) {
 				// Nullable reference or value type
 				return value;
 			}
+
+			// All our reified nullable types have a Value property..
 			var prop = type.GetProperty ("Value");
+			Debug.Assert (prop is not null);
 			return prop.GetValue (value);
 		}
 

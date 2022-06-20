@@ -17,7 +17,7 @@ namespace SwiftUI
 	struct CustomViewData
 	{
 		internal IntPtr GcHandleToView;
-		public View View => (View)GCHandle.FromIntPtr (GcHandleToView).Target;
+		public View? View => (View?)GCHandle.FromIntPtr (GcHandleToView).Target;
 	}
 
 	[AttributeUsage (AttributeTargets.Class, Inherited = true)]
@@ -90,8 +90,7 @@ namespace SwiftUI
 			//  make a copy or not...
 			SetGCHandle (handle, GCHandleType.WeakTrackResurrection);
 
-			// FIXME: '!' shouldn't be needed as we have Debug.Assert
-			cvt!.InitNativeFields (this, handle);
+			cvt.InitNativeFields (this, handle);
 		}
 
 		protected override void Dispose (bool disposing)

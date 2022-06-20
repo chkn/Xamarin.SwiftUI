@@ -125,9 +125,8 @@ namespace Swift.Interop
 				var nullability = Nullability.Of (fld);
 				var swiftType = SwiftType.Of (fld.FieldType, nullability);
 				Debug.Assert (swiftType != null, "ISwiftFieldExposable types must be SwiftTypes");
-				// FIXME: '!' shouldn't be needed as we have Debug.Assert
-				swiftFields.Add (new SwiftFieldInfo (fld, swiftType!, nullability, offset));
-				offset += swiftType!.NativeDataSize; // FIXME: alignment?
+				swiftFields.Add (new SwiftFieldInfo (fld, swiftType, nullability, offset));
+				offset += swiftType.NativeDataSize; // FIXME: alignment?
 			}
 			return swiftFields.ToArray ();
 		}
@@ -135,7 +134,10 @@ namespace Swift.Interop
 		public void InitNativeFields (object instance, void* data)
 		{
 			foreach (var fldInfo in NativeFields) {
-				var fld = (ISwiftFieldExposable)fldInfo.Field.GetValue (instance);
+				var fld = (ISwiftFieldExposable?)fldInfo.Field.GetValue (instance);
+				// FIXME: Handle nullable fields exposed to Swift
+				if (fld is null)
+					throw new NotImplementedException ("Nullable field exposed to Swift");
 				fld.InitNativeData ((byte*)data + fldInfo.Offset, fldInfo.Nullability);
 			}
 		}
@@ -210,7 +212,12 @@ namespace Swift.Interop
 			var offs = ((StructDescriptor*)metadata->TypeDescriptor)->FieldOffsetVectorOffset - 1;
 			var loc = (IntPtr*)metadata + offs;
 			var ptr = *loc;
-			return (ManagedSwiftType)GCHandle.FromIntPtr (ptr).Target;
+
+			// Technically this can return null if its System.Type was collected, which would be a really
+			//  weird scenario, perhaps involving assembly unloading? Revisit if we ever come across a repro
+			var target = (ManagedSwiftType?)GCHandle.FromIntPtr (ptr).Target;
+			Debug.Assert(target is not null);
+			return target;
 		}
 
 		//FIXME: MonoPInvokeCallback
@@ -270,7 +277,7 @@ namespace Swift.Interop
 				throw new NotImplementedException (Metadata->Kind.ToString ());
 
 			var name = Encoding.ASCII.GetBytes (Sanitize (managedType.Name));
-			var ns = Encoding.ASCII.GetBytes (Sanitize (managedType.Namespace));
+			var ns = Encoding.ASCII.GetBytes (Sanitize (managedType.Namespace ?? ""));
 
 			StructDescriptor* desc;
 			var modDesc = (ModuleDescriptor*)Marshal.AllocHGlobal (

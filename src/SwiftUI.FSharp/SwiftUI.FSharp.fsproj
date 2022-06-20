@@ -1,8 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../TargetFrameworks.props" />
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">$(DefaultTargetFrameworks)</TargetFrameworks>
+    <DebugType>embedded</DebugType>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <OutputPath>..\..\managed\$(Configuration)</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
