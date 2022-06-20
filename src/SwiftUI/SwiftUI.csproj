@@ -49,13 +49,6 @@
     <NoBindingEmbedding>true</NoBindingEmbedding>
   </PropertyGroup>
 
-  <!-- Hack around https://github.com/xamarin/xamarin-macios/commit/9f28bce6b87ca6ea4cc51a0dff3e2db0064bf6ca -->
-  <Target Name="ForceResetLangVersion">
-    <PropertyGroup>
-      <LangVersion>$(_RealLangVersion)</LangVersion>
-    </PropertyGroup>
-  </Target>
-
   <ItemGroup>
     <NativeReference Include="..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework" Condition="Exists('..\..\native\$(Configuration)\$(TargetFramework)\SwiftUIGlue.framework')" Kind="Framework" Visible="false" />
     <NativeReference Include="..\..\native\$(Configuration)\$(TargetFramework)\*.dylib" Kind="Dynamic" Visible="false" />
@@ -79,12 +72,4 @@
       <_BuildOutputInPackage Remove="@(_BuildOutputInPackage)" Condition="'%(Filename)%(Extension)' == 'Native.SwiftUI.manifest'" />
     </ItemGroup>
   </Target>
-
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" />
-  <PropertyGroup>
-    <CompileDependsOn>
-      ForceResetLangVersion;
-      $(CompileDependsOn)
-    </CompileDependsOn>
-  </PropertyGroup>
 </Project>
