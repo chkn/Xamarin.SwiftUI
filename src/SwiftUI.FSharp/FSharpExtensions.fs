@@ -8,6 +8,8 @@
 [<AutoOpen>]
 module SwiftUI.FSharpExtensions
 
+open System.Runtime.CompilerServices
+
 /// A struct type that can be used in place of unit `()`
 // Using this type instead of unit (a reference type) facilitates overload resolution.
 //  Alternatively, we could've used the regular unit type and struct tuples, but the
@@ -33,8 +35,8 @@ type TupleConvert = ToStructTuple with
 //  where 'a is the type of the child view-- either #View or TupleView<_>. In the latter case, 'b is a
 //  tuple that will be wrapped in the TupleView<_> type denoted by 'a.
 let inline private view (view : #View) = (view, N.A)
-let inline private tuple<'t,'u> (tuple : 'u) : TupleView<'t> * 'u = (Unchecked.defaultof<_>, tuple)
-let inline private untuple<'v, ^t, ^u when ^t : not struct and (TupleConvert or  ^t) : (static member ( $ ) : TupleConvert *  ^t ->  ^u)> (_ : 'v, tuple : ^t) : 'v =
+let inline private tuple<'t,'u when 't :> ITuple> (tuple : 'u) : TupleView<'t> * 'u = (Unchecked.defaultof<_>, tuple)
+let inline private untuple<'v, ^t, ^u when ^u :> ITuple and ^t : not struct and (TupleConvert or  ^t) : (static member ( $ ) : TupleConvert *  ^t ->  ^u)> (_ : 'v, tuple : ^t) : 'v =
     unbox (TupleView<_>(TupleConvert.ToStructTuple $ tuple))
 
 type View with
