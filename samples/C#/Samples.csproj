@@ -8,8 +8,19 @@
     <RuntimeIdentifiers>osx-arm64;osx-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <EnableCodeSigning>false</EnableCodeSigning>
+    <UseSGen>false</UseSGen>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <EnableCodeSigning>false</EnableCodeSigning>
+    <UseSGen>false</UseSGen>
+  </PropertyGroup>
   <ItemGroup>
     <None Include="Info.plist" />
-    <PackageReference Include="SwiftUI.NET" Version="$(Version)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SwiftUI\SwiftUI.csproj" />
+    <ProjectReference Include="..\..\src\SwiftUI.Analyzers\SwiftUI.Analyzers.csproj" />
   </ItemGroup>
 </Project>
