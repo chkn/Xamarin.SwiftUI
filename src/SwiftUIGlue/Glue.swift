@@ -198,3 +198,10 @@ public func GetRGBColorSpacesRGBLinear(dest : UnsafeMutableRawPointer)
     let sRGBLinear = Color.RGBColorSpace.sRGBLinear
     dest.initializeMemory(as: type(of: sRGBLinear), repeating: sRGBLinear, count: 1)
 }
+
+@_silgen_name("swiftui_View_modifier")
+public func SetViewModifier<TView: View, TViewModifier: ViewModifier>(dest : UnsafeMutableRawPointer, view : TView, value : TViewModifier)
+{
+    let result = view.modifier(value)
+    dest.initializeMemory(as: type(of: result), repeating: result, count: 1)
+}

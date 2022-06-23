@@ -48,6 +48,29 @@ namespace SwiftUI
 			}
 		}
 
+		public static ModifiedView<TView, TViewModifier> Modifier<TView, TViewModifier> (this TView view, TViewModifier viewmodifier)
+			where TView : View
+			where TViewModifier : ViewModifier<View>
+		{
+			var opaqueViewMetadata = SwiftType.Of (typeof (ModifiedView<TView, TViewModifier>))!;
+			var result = TaggedPointer.AllocHGlobal (opaqueViewMetadata.NativeDataSize);
+			try {
+				using (var viewHandle = view.GetSwiftHandle ())
+				using (var viewModifierHandle = viewmodifier.GetSwiftHandle ()) {
+					var viewType = viewHandle.SwiftType;
+					var viewModifierType = viewModifierHandle.SwiftType;
+
+					// Note : When passing 2 generic parameters (in this case TView and TViewModifier) the order is IMPORTANT. The order is Generic1Pointer, Generic2Pointer, Generic1Metadata, Generic2Metadata, Generic1Prototcol, Generic2Prototcol
+					ViewModifier (result.Pointer, viewHandle.Pointer, viewModifierHandle.Pointer, viewType.Metadata, viewModifierType.Metadata, viewType.GetProtocolConformance (SwiftUILib.ViewProtocol), viewModifierType.GetProtocolConformance (SwiftUILib.ViewProtocol));
+
+					return new ModifiedView<TView, TViewModifier> (result);
+				}
+			} catch {
+				result.Dispose ();
+				throw;
+			}
+		}
+
 		[DllImport (SwiftGlueLib.Path,
 		CallingConvention = CallingConvention.Cdecl,
 		EntryPoint = "swiftui_View_opacity")]
@@ -57,5 +80,10 @@ namespace SwiftUI
 		CallingConvention = CallingConvention.Cdecl,
 		EntryPoint = "swiftui_View_background")]
 		internal static extern void ViewBackground (void* resultPointer, void* viewPointer, void* backgroundPointer, TypeMetadata* viewMetatdata, TypeMetadata* backgroundMetatdata, ProtocolWitnessTable* viewConformance, ProtocolWitnessTable* backgroundConformance);
+
+		[DllImport (SwiftGlueLib.Path,
+		CallingConvention = CallingConvention.Cdecl,
+		EntryPoint = "swiftui_View_modifier")]
+		internal static extern void ViewModifier (void* resultPointer, void* viewPointer, void* viewModifierPointer, TypeMetadata* viewMetatdata, TypeMetadata* viewModifierMetatdata, ProtocolWitnessTable* viewConformance, ProtocolWitnessTable* viewModifierConformance);
 	}
 }
