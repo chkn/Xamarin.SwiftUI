@@ -18,7 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{0A30
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SwiftUI.FSharp", "src\SwiftUI.FSharp\SwiftUI.FSharp.fsproj", "{01AABDE7-D7FE-4C2F-9C28-2E316A72A6F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples", "samples\C#\Samples.csproj", "{78803784-1500-4918-BF0F-1C82CA096230}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.macOS", "samples\C#\Sample.macOS.csproj", "{78803784-1500-4918-BF0F-1C82CA096230}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
