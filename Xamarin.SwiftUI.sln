@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{0A30
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SwiftUI.FSharp", "src\SwiftUI.FSharp\SwiftUI.FSharp.fsproj", "{01AABDE7-D7FE-4C2F-9C28-2E316A72A6F0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.macOS", "samples\C#\Sample.macOS.csproj", "{78803784-1500-4918-BF0F-1C82CA096230}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -100,6 +102,18 @@ Global
 		{01AABDE7-D7FE-4C2F-9C28-2E316A72A6F0}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 		{01AABDE7-D7FE-4C2F-9C28-2E316A72A6F0}.Debug|iPhone.ActiveCfg = Debug|Any CPU
 		{01AABDE7-D7FE-4C2F-9C28-2E316A72A6F0}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{78803784-1500-4918-BF0F-1C82CA096230}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78803784-1500-4918-BF0F-1C82CA096230}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78803784-1500-4918-BF0F-1C82CA096230}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78803784-1500-4918-BF0F-1C82CA096230}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78803784-1500-4918-BF0F-1C82CA096230}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{78803784-1500-4918-BF0F-1C82CA096230}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{78803784-1500-4918-BF0F-1C82CA096230}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{78803784-1500-4918-BF0F-1C82CA096230}.Release|iPhone.Build.0 = Release|Any CPU
+		{78803784-1500-4918-BF0F-1C82CA096230}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{78803784-1500-4918-BF0F-1C82CA096230}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+		{78803784-1500-4918-BF0F-1C82CA096230}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{78803784-1500-4918-BF0F-1C82CA096230}.Debug|iPhone.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -111,5 +125,6 @@ Global
 		{CCA6EDBD-0F63-4C2C-95E8-FEDBFA9BD0ED} = {96D409C9-7355-4EAA-8091-14802423E32E}
 		{28883268-FEE9-48E7-90A2-FDCED575CDE2} = {96D409C9-7355-4EAA-8091-14802423E32E}
 		{D9211517-73D3-4548-B5DA-CAFB0A5B74A5} = {96D409C9-7355-4EAA-8091-14802423E32E}
+		{78803784-1500-4918-BF0F-1C82CA096230} = {0A30EAB4-9484-4C3D-B7AF-3FF29EF250EC}
 	EndGlobalSection
 EndGlobal
