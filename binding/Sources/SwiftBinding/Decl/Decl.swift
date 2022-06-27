@@ -24,7 +24,7 @@ open class Decl: CustomStringConvertible {
 	public init(in context: Decl?, _ attributes: AttributeListSyntax?, _ modifiers: ModifierListSyntax?, _ name: String)
 	{
 		self.context = context
-		self.attributes = attributes?.compactMap { $0.as(AttributeSyntax.self) }.compactMap { DeclAttribute(rawValue: $0.name) } ?? []
+		self.attributes = attributes?.compactMap(DeclAttribute.parse) ?? []
 		self.modifiers = modifiers?.compactMap { DeclModifier(rawValue: $0.name.text.trim()) } ?? []
 		self.name = name
 	}

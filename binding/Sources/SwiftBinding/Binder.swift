@@ -213,7 +213,7 @@ open class Binder: SyntaxVisitor {
 		if let ctor = member as? InitializerDecl {
 			if let sty = binding as? SwiftStructBinding {
 				// try to identify a primary ctor
-				let isPrimary = !type.membersIncludingExtensions.contains(where: { $0 is InitializerDecl && !$0.attributes.contains(._disfavoredOverload) && $0 !== ctor })
+				let isPrimary = !type.membersIncludingExtensions.contains(where: { $0 is InitializerDecl && !$0.attributes.contains(._disfavoredOverload) && $0.genericParameters.isEmpty && $0 !== ctor })
 
 				if isPrimary {
 					sty.primaryCtor = PrimaryCtorBinding(ctor)

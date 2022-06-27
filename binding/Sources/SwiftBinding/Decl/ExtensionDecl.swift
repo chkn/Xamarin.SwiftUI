@@ -69,4 +69,12 @@ public class ExtensionDecl: Decl, Derivable, HasMembers {
 		genericRequirements = GenericRequirement.genericRequirements(from: node.genericWhereClause?.requirementList)
 		super.init(in: context, node.attributes, node.modifiers, name)
     }
+
+    public func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?)
+	{
+		inheritance = inheritance.compactMap(resolve)
+		for member in members {
+			member.resolveTypes(resolve)
+		}
+	}
 }

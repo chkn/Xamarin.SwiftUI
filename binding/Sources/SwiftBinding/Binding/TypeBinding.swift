@@ -10,7 +10,6 @@ open class TypeBinding: Binding {
 	public let genericFullName: String
 	public private(set) var genericParameterConstraints: [GenericParameter]
 
-	public let children: [Binding]
 	public var id: String { "\(qualifier?.appending(".") ?? "")\(name)" }
 
 	public init(_ type: GenericTypeDecl)
@@ -18,7 +17,6 @@ open class TypeBinding: Binding {
 		self.type = type
 		self.genericFullName = type.genericParameters.isEmpty ? type.name : "\(type.name)<" + type.genericParameters.map({ $0.name }).sorted().joined(separator: ", ") + ">"
 		self.genericParameterConstraints = type.genericParameters.filter({ !$0.types.isEmpty })
-		self.children = []
 	}
 
 	/// Applies the generic parameter constraints from the given extension

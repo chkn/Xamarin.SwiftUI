@@ -33,8 +33,17 @@ public extension Extendable {
 	}
 }
 
-public protocol HasMembers {
+public protocol HasMembers: HasTypesToResolve {
 	var members: [MemberDecl] { get set }
+}
+
+public extension HasMembers {
+	mutating func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?)
+	{
+		for member in members {
+			member.resolveTypes(resolve)
+		}
+	}
 }
 
 public extension HasMembers where Self: Extendable {
@@ -68,6 +77,12 @@ open class TypeDecl: Decl {
 open class NominalTypeDecl: TypeDecl, HasMembers, Extendable {
 	public var members: [MemberDecl] = []
 	public var extensions: [ExtensionDecl] = []
+
+	open func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?) {
+		for member in members {
+			member.resolveTypes(resolve)
+		}
+	}
 }
 
 open class GenericTypeDecl: NominalTypeDecl {
@@ -77,5 +92,14 @@ open class GenericTypeDecl: NominalTypeDecl {
 	{
 		genericParameters = genericParameterClause?.genericParameterList.map { GenericParameter(in: context, $0, genericWhereClause) } ?? []
 		super.init(in: context, attributes, modifiers, name)
+	}
+
+	open override func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?) {
+		super.resolveTypes(resolve)
+		for i in 0..<genericParameters.count {
+			var gp = genericParameters[i]
+			gp.resolveTypes(resolve)
+			genericParameters[i] = gp
+		}
 	}
 }

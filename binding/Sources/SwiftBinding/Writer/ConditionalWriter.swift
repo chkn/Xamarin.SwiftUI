@@ -73,7 +73,8 @@ public struct ConditionalWriter {
 	{
 		// compare actions for all SDKs and merge into one list of WriterActions
 		if let mergedActions = actions.reduce(nil, merge) {
-			let coalescedActions = ConditionalWriter.coalesce(mergedActions)
+			let expandedActions = ConditionalWriter.expand(mergedActions, expandAllChildren: true)
+			let coalescedActions = ConditionalWriter.coalesce(expandedActions)
 			for action in coalescedActions {
 				write(action: action, to: writer)
 			}
@@ -83,7 +84,7 @@ public struct ConditionalWriter {
 	func merge(_ initial: [WriterAction]?, with unexpandedActions2: [WriterAction]) -> [WriterAction]?
 	{
 		// first, expand all the conditional writeChild values
-		let actions2 = ConditionalWriter.expand(unexpandedActions2)
+		let actions2 = ConditionalWriter.expand(unexpandedActions2, expandAllChildren: false)
 		guard let actions1 = initial else { return actions2 }
 
 		let diff = actions2.difference(from: actions1).inferringMoves()
@@ -126,13 +127,14 @@ public struct ConditionalWriter {
 		return combined
 	}
 
-	static func expand(_ acts: [WriterAction]) -> [WriterAction]
+	static func expand(_ acts: [WriterAction], expandAllChildren: Bool) -> [WriterAction]
 	{
 		var result: [WriterAction] = []
 		for action in acts {
 			switch action {
+			case .writeChild(let binding) where expandAllChildren: result.append(contentsOf: expand(actions(for: binding), expandAllChildren: true))
 			case .conditional(let sdks, .writeChild(let binding)):
-				let expandedActions: [WriterAction] = actions(for: binding).map { .conditional(sdks, $0) }
+				let expandedActions: [WriterAction] = expand(actions(for: binding), expandAllChildren: expandAllChildren).map { .conditional(sdks, $0) }
 				result.append(contentsOf: expandedActions)
 			default:
 				result.append(action)

@@ -23,7 +23,7 @@
 import SwiftSyntax
 
 /// A structure declaration.
-public class StructDecl: GenericTypeDecl, Derivable, HasTypesToResolve {
+public class StructDecl: GenericTypeDecl, Derivable {
 	public var inheritance: [TypeDecl] = []
 
 	public override var typeCode: Character? { "V" }
@@ -34,13 +34,9 @@ public class StructDecl: GenericTypeDecl, Derivable, HasTypesToResolve {
 		super.init(in: context, node.attributes, node.modifiers, node.identifier.text.trim(), node.genericParameterClause, node.genericWhereClause)
 	}
 
-	public func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?)
+	public override func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?)
 	{
+		super.resolveTypes(resolve)
 		inheritance = inheritance.compactMap(resolve)
-		for i in 0..<genericParameters.count {
-			var gp = genericParameters[i]
-			gp.resolveTypes(resolve)
-			genericParameters[i] = gp
-		}
 	}
 }

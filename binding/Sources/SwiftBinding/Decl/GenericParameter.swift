@@ -16,7 +16,7 @@ public struct GenericParameter: HasTypesToResolve {
 	/// Creates an instance initialized with the given syntax node.
 	public init(in context: Decl?, _ node: GenericParameterSyntax, _ whereClause: GenericWhereClauseSyntax?)
 	{
-		attributes = node.attributes?.compactMap { $0.as(AttributeSyntax.self) }.compactMap { DeclAttribute(rawValue: $0.name) } ?? []
+		attributes = node.attributes?.compactMap(DeclAttribute.parse) ?? []
 
 		name = node.name.text.trim()
 		if let tyName = node.inheritedType?.name {

@@ -1,7 +1,7 @@
 
 import Foundation
 
-public struct Version: RawRepresentable, CustomStringConvertible, ExpressibleByStringLiteral {
+public struct Version: RawRepresentable, CustomStringConvertible, ExpressibleByStringLiteral, Equatable {
 	public var major: Int
 	public var minor: Int?
 	public var revision: Int?

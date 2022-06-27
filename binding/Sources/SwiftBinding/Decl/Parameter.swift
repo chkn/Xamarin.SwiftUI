@@ -27,9 +27,9 @@ import SwiftSyntax
  This type can also be used to represent
  initializer parameters and associated values for enumeration cases.
  */
-public struct Parameter {
+public struct Parameter: HasTypesToResolve {
 	/// The declaration attributes.
-	public let attributes: [DeclAttribute]
+	public var attributes: [DeclAttribute]
 
 	/**
 	 The first, external name of the parameter.
@@ -65,7 +65,7 @@ public struct Parameter {
 	 func greet(_ person: Person, with phrases: String...)
 	 ```
 	*/
-	public let type: String?
+	public var type: TypeDecl?
 
 	/**
 	 Whether the parameter accepts a variadic argument.
@@ -91,11 +91,25 @@ public struct Parameter {
 
 	public init(_ node: FunctionParameterSyntax)
 	{
-        self.attributes = node.attributes?.compactMap { $0.as(AttributeSyntax.self) }.compactMap { DeclAttribute(rawValue: $0.name) } ?? []
+        self.attributes = node.attributes?.compactMap(DeclAttribute.parse) ?? []
         firstName = node.firstName?.text.trim()
         secondName = node.secondName?.text.trim()
-        type = node.type?.description.trim()
+        if let nty = node.type {
+			// SwiftSyntax doesn't treat @escaping as an attribute, but we want to
+			var name = nty.name
+			if name.hasPrefix("@escaping ") {
+				self.attributes.append(.escaping)
+				name = String(name.suffix(from: name.index(name.startIndex, offsetBy: 10)))
+			}
+			type = UnresolvedTypeDecl(in: nil, name: name)
+		}
         variadic = node.ellipsis != nil
         defaultArgument = node.defaultArgument?.value.description.trim()
     }
+
+	public mutating func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?) {
+		if let ty = type {
+			type = resolve(ty)
+		}
+	}
 }
