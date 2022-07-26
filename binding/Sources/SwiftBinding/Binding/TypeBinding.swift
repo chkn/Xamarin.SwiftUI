@@ -1,5 +1,5 @@
 
-open class TypeBinding: Binding {
+open class TypeBinding: Binding, CSharpWritable {
 	public let type: GenericTypeDecl
 
 	public var name: String { type.name }
@@ -20,40 +20,41 @@ open class TypeBinding: Binding {
 	}
 
 	/// Applies the generic parameter constraints from the given extension
-	func apply(_ ext: ExtensionDecl, _ resolve: (String) -> TypeDecl?)
+	func apply(_ ext: ExtensionDecl)
 	{
 		for req in ext.genericRequirements {
 			if req.relation == .conformance {
-				if let i = genericParameterConstraints.firstIndex(where: { $0.name == req.leftTypeIdentifier }) {
+				if let i = genericParameterConstraints.firstIndex(where: { $0.name == req.leftType.qualifiedName }) {
 					var gp = genericParameterConstraints[i]
-					if let ty = resolve(req.rightTypeIdentifier) {
-						gp.types.append(ty)
-					}
+					gp.types.append(req.rightType)
 					genericParameterConstraints[i] = gp
 					continue
 				}
-				if var gp = genericParameters.first(where: { $0.name == req.leftTypeIdentifier }) {
-					if let ty = resolve(req.rightTypeIdentifier) {
-						gp.types.append(ty)
-					}
+				if var gp = genericParameters.first(where: { $0.name == req.leftType.qualifiedName }) {
+					gp.types.append(req.rightType)
 					genericParameterConstraints.append(gp)
 				}
 			}
 		}
 	}
 
-	open func write(_ writer: Writer)
+	open func writePrelude(to writer: Writer, csharp: CSharpState)
 	{
+		// FIXME: get usings from state?
 		writer.write("using System;\nusing System.Runtime.InteropServices;\n\n")
 
 		if let ns = qualifier {
 			writer.write("namespace \(ns);\n\n")
 		}
 		writer.write("[Swift.Interop.SwiftImport (\"\(libPath)\")]\n")
-		writeType(writer)
 	}
 
-	open func writeType(_ writer: Writer)
+	open func writeType(to writer: Writer, csharp: CSharpState)
 	{
+	}
+
+	open func write(to writer: Writer, csharp state: CSharpState) {
+		writePrelude(to: writer, csharp: state)
+		writeType(to: writer, csharp: state)
 	}
 }

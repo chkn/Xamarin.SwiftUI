@@ -19,7 +19,6 @@ public enum Availability: Equatable {
 public enum DeclAttribute: Equatable {
 	case _disfavoredOverload
 	case available(availability: [Availability])
-	case escaping // SwiftSyntax doesn't treat this as an attribute, but we will
 	case frozen
 	case ViewBuilder
 }
@@ -74,7 +73,7 @@ public extension DeclAttribute {
 		}
 
 		if let attr = CustomAttributeSyntax(syntax) {
-			switch attr.attributeName.name {
+			switch attr.name {
 			case "SwiftUI.ViewBuilder": return .ViewBuilder
 			default: return nil
 			}

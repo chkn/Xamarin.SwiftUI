@@ -1,8 +1,7 @@
 
 /// A struct bound as a managed reference type deriving from SwiftStruct
-public class SwiftStructBinding: TypeBinding {
+open class SwiftStructBinding: TypeBinding {
 	public let baseClass: String
-
 	public var primaryCtor: PrimaryCtorBinding? = nil
 
 	public init(_ type: StructDecl, _ baseClass: String)
@@ -11,15 +10,17 @@ public class SwiftStructBinding: TypeBinding {
 		super.init(type)
 	}
 
-	override public func writeType(_ writer: Writer)
+	override open func writeType(to writer: Writer, csharp: CSharpState)
 	{
 		writer.write("public unsafe sealed record \(genericFullName)")
 		if let pctor = primaryCtor {
-			writer.write(child: pctor)
+			writer.write(child: Writable(pctor, csharp))
 		}
 		writer.write(" : \(baseClass)\n")
 		for gp in genericParameterConstraints {
-			writer.write("\twhere \(gp.name) : \(gp.types.map({ $0.qualifiedName }).sorted().joined(separator: ", "))\n")
+			let types = gp.types.compactMap({ $0.qualifiedName }).sorted()
+			if types.isEmpty { continue }
+			writer.write("\twhere \(gp.name) : \(types.joined(separator: ", "))\n")
 		}
 		writer.write("{\n")
 

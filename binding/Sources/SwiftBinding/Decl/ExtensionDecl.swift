@@ -42,7 +42,7 @@ public class ExtensionDecl: Decl, Derivable, HasMembers {
      extension S: P, Q {}
     ```
     */
-	public var inheritance: [TypeDecl]
+	public var inheritance: [TypeRef]
 
     /**
      The generic parameter requirements for the declaration.
@@ -58,7 +58,7 @@ public class ExtensionDecl: Decl, Derivable, HasMembers {
      extension S where T: Hashable {}
      ```
      */
-	public let genericRequirements: [GenericRequirement]
+	public var genericRequirements: [GenericRequirement]
 
     /// Creates an instance initialized with the given syntax node.
     public init(in context: Decl?, _ node: ExtensionDeclSyntax)
@@ -70,9 +70,14 @@ public class ExtensionDecl: Decl, Derivable, HasMembers {
 		super.init(in: context, node.attributes, node.modifiers, name)
     }
 
-    public func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?)
+    public func resolveTypes(_ resolve: (TypeRef) -> TypeRef)
 	{
-		inheritance = inheritance.compactMap(resolve)
+		inheritance = inheritance.map(resolve)
+		for i in 0..<genericRequirements.count {
+			var req = genericRequirements[i]
+			req.resolveTypes(resolve)
+			genericRequirements[i] = req
+		}
 		for member in members {
 			member.resolveTypes(resolve)
 		}

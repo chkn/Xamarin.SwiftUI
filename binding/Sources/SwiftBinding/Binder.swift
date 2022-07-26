@@ -11,13 +11,20 @@ import SwiftSyntax
 open class Binder: SyntaxVisitor {
 	var currentContext: Decl? = nil
 	var extensions: [ExtensionDecl] = []
-	var typesByName: [String:TypeDecl?] = [:]
+	var typesByName: [String:TypeRef] = [:]
 
 	// diagnostics
 	var currentFile: URL? = nil
 	let diag: DiagnosticEngine = DiagnosticEngine()
 
-	var types: [TypeDecl] { typesByName.values.compactMap({ $0 }) }
+	var types: [TypeDecl] {
+		typesByName.values.compactMap({ tyr in
+			switch tyr {
+			case .decl(let decl): return decl
+			default: return nil
+			}
+		})
+	}
 
 	public var diagnostics: [Diagnostic] { diag.diagnostics }
 
@@ -27,78 +34,93 @@ open class Binder: SyntaxVisitor {
 		self.resetTypes()
 	}
 
-	/// Resets the types to the initial state of pre-mapped types
-	open func resetTypes()
+	public func resetTypes()
 	{
-		// Pre-map some types onto managed types
-		//  nil means erase the type or do not bind
+		self.resetTypes(&typesByName)
+	}
+
+	/// Resets the types to the initial state of pre-mapped types
+	open func resetTypes(_ typesByName: inout [String:TypeRef])
+	{
+		// Pre-map some types
 		typesByName = [
 			// General .NET types..
-			"Swift.Comparable": UnresolvedTypeDecl(in: nil, name: "IComparable"),
+			"Swift.Bool": .managed("System", "Boolean", []),
+			"Swift.Comparable": .managed("System", "IComparable", []),
+			"Swift.Int": .nint,
+			"Swift.Int8": .managed("System", "SByte", []),
+			"Swift.UInt": .nuint,
+			"Swift.UInt32": .managed("System", "UInt32", []),
+			"Swift.Void": .managed("System", "Void", []),
+
 			// I think we don't care about these because all .net types can satisfy them..
-			"Swift.Equatable": nil,
-			"Swift.Hashable": nil,
-			"Swift.CustomStringConvertible": nil,
-			"Swift.CustomDebugStringConvertible": nil,
+			"Swift.Equatable": .erased,
+			"Swift.Hashable": .erased,
+			"Swift.CustomStringConvertible": .erased,
+			"Swift.CustomDebugStringConvertible": .erased,
 
 			// FIXME: Support these when we have an answer to Combine bindings
-			"SwiftUI.SubscriptionView": nil,
-			"Combine.ObservableObject": nil,
+			"SwiftUI.SubscriptionView": .erased,
+			"Combine.ObservableObject": .erased,
 
 			// FIXME: Do we need any of these?
-			"Swift.LosslessStringConvertible": nil,
-			"Swift.BinaryFloatingPoint": nil,
-			"Swift.RandomAccessCollection": nil,
-			"Swift.OptionSet": nil,
-			"Swift.Decodable": nil,
-			"Swift.Identifiable": nil,
-			"Swift.AdditiveArithmetic": nil,
-			"Swift.ExpressibleByExtendedGraphemeClusterLiteral": nil,
-			"Swift.Codable": nil,
-			"Swift.SetAlgebra": nil,
-			"Swift.ExpressibleByStringLiteral": nil,
-			"Swift.CustomReflectable": nil,
-			"Swift.RawRepresentable": nil,
-			"Swift.Encodable": nil,
-			"Swift.ExpressibleByStringInterpolation": nil,
+			"Swift.LosslessStringConvertible": .erased,
+			"Swift.BinaryFloatingPoint": .erased,
+			"Swift.RandomAccessCollection": .erased,
+			"Swift.OptionSet": .erased,
+			"Swift.Decodable": .erased,
+			"Swift.Identifiable": .erased,
+			"Swift.AdditiveArithmetic": .erased,
+			"Swift.ExpressibleByExtendedGraphemeClusterLiteral": .erased,
+			"Swift.Codable": .erased,
+			"Swift.SetAlgebra": .erased,
+			"Swift.ExpressibleByStringLiteral": .erased,
+			"Swift.CustomReflectable": .erased,
+			"Swift.RawRepresentable": .erased,
+			"Swift.Encodable": .erased,
+			"Swift.ExpressibleByStringInterpolation": .erased,
 
 			// These types aren't actually used in public API, but our binder still touches them
 			// FIXME: This name is incorrectly qualified in the "SwiftUI" namespace somewhere
-			"SwiftUI.AnyObject": nil,
-			"SwiftUI._VariadicView.UnaryViewRoot": nil,
+			"SwiftUI.AnyObject": .erased,
+			"SwiftUI._VariadicView.UnaryViewRoot": .erased,
 
-			// Add manually-bound and Xamarin-bound types as unresolved
-			"AppKit.NSApplicationDelegate": UnresolvedTypeDecl(in: nil, name: "AppKit.INSApplicationDelegate"),
-			"CoreData.NSFetchRequestResult": UnresolvedTypeDecl(in: nil, name: "CoreData.INSFetchRequestResult"),
-			"ObjectiveC.NSObject": UnresolvedTypeDecl(in: nil, name: "Foundation.NSObject"),
-			"QuartzCore.CALayer": UnresolvedTypeDecl(in: nil, name: "CoreAnimation.CALayer"),
-			"SwiftUI.View": UnresolvedTypeDecl(in: nil, name: "SwiftUI.View"),
-			"UIKit.UIApplicationDelegate": UnresolvedTypeDecl(in: nil, name: "UIKit.IUIApplicationDelegate"),
+			// Add manually-bound and Xamarin-bound types
+			"AppKit.NSApplicationDelegate": .managed("AppKit", "INSApplicationDelegate", []),
+			"CoreData.NSFetchRequestResult": .managed("CoreData", "INSFetchRequestResult", []),
+			"CoreGraphics.CGFloat": .managed("System.Runtime.InteropServices", "NFloat", []),
+			"CoreGraphics.CGLineCap": .managed("CoreGraphics", "CGLineCap", []),
+			"CoreGraphics.CGRect": .managed("CoreGraphics", "CGRect", []),
+			"ObjectiveC.NSObject": .managed("Foundation", "NSObject", []),
+			"QuartzCore.CALayer": .managed("CoreAnimation", "CALayer", []),
+			"Swift.String": .managed("Swift", "String", []),
+			"SwiftUI.View": .managed("SwiftUI", "View", []),
+			"UIKit.UIApplicationDelegate": .managed("UIKit", "IUIApplicationDelegate", []),
 
 			// No plans to bind these for now..
-			"SwiftUI.ViewBuilder": nil
+			"SwiftUI.ViewBuilder": .erased
 		]
 	}
 
 	open func add(type ty: TypeDecl)
 	{
 		if typesByName[ty.qualifiedName] == nil {
-			typesByName.updateValue(ty, forKey: ty.qualifiedName)
+			typesByName.updateValue(.decl(ty), forKey: ty.qualifiedName)
 		}
 	}
 
-	open func resolve(type ty: TypeDecl) -> TypeDecl?
+	open func resolve(type tyr: TypeRef) -> TypeRef
 	{
-		resolve(ty.qualifiedName)
-	}
+		// create mutable copy
+		var tyr2 = tyr
+		tyr2.resolveTypes(resolve)
 
-	open func resolve(_ qualifiedName: String) -> TypeDecl?
-	{
-		if let ty = typesByName[qualifiedName] {
+		// If we already have a mapping for the type, just go with that
+		if let qualifiedName = tyr2.qualifiedName, let ty = typesByName[qualifiedName] {
 			return ty
 		}
-		diagnose(typeUnresolved(qualifiedName))
-		return nil
+
+		return tyr2
 	}
 
 	open func run(_ framework: Framework, loadedLib: UnsafeMutableRawPointer? = nil) -> [Binding]?
@@ -117,18 +139,24 @@ open class Binder: SyntaxVisitor {
 		walk(tree)
 
 		// resolve all types
-		for el in typesByName {
-			if var ty = el.value as? HasTypesToResolve {
-				ty.resolveTypes(resolve)
+		typesByName = typesByName.mapValues(resolve)
+
+		// resolve extensions and attach to types
+		for ext in extensions {
+			ext.resolveTypes(resolve)
+			if case let .decl(decl) = typesByName[ext.extendedTypeQualifiedName], var extendedType = decl as? Extendable {
+				extendedType.extensions.append(ext)
 			}
 		}
 
-		// resolve extensions and attach to types
-		for var ext in extensions {
-			ext.resolveTypes(resolve)
-			if var extendedType = typesByName[ext.extendedTypeQualifiedName] as? Extendable {
-				extendedType.extensions.append(ext)
-			}
+		// if we still have some unresolved types, create diagnostics
+		for var el in typesByName {
+			el.value.resolveTypes({ tyr in
+				if case let .unresolved(name) = tyr {
+					diagnose(typeUnresolved(name))
+				}
+				return tyr
+			})
 		}
 
 		currentContext = nil
@@ -148,7 +176,7 @@ open class Binder: SyntaxVisitor {
 			binding = SwiftStructBinding(type, baseClass)
 		} else if let ext = type.extensionInherits(from: baseClass) {
 			let b = SwiftStructBinding(type, baseClass)
-			b.apply(ext, resolve)
+			b.apply(ext)
 			binding = b
 		}
 		return binding
@@ -165,7 +193,7 @@ open class Binder: SyntaxVisitor {
 			return
 		}
 
-		var typeBinding: TypeBinding? = nil
+		var typeBinding: Binding? = nil
 
 		if let sty = type as? StructDecl {
 			// try to bind some known SwiftStruct types first
@@ -201,23 +229,29 @@ open class Binder: SyntaxVisitor {
 		}
 	}
 
-	open func bind(member: MemberDecl, for binding: TypeBinding, into bindings: inout [Binding])
+	open func bind(member: MemberDecl, for binding: Binding, into bindings: inout [Binding])
 	{
 		// don't bind disfavored overloads for now
-		if member.attributes.contains(._disfavoredOverload) {
-			return
-		}
+		if member.attributes.contains(._disfavoredOverload) { return }
+		guard let type = member.context as? NominalTypeDecl else { return }
 
-		let type = member.context as! NominalTypeDecl
-
-		if let ctor = member as? InitializerDecl {
+		if let ctor = member as? InitializerDecl, ctor.isPublic {
 			if let sty = binding as? SwiftStructBinding {
 				// try to identify a primary ctor
-				let isPrimary = !type.membersIncludingExtensions.contains(where: { $0 is InitializerDecl && !$0.attributes.contains(._disfavoredOverload) && $0.genericParameters.isEmpty && $0 !== ctor })
+				func isPrimaryCandidate(_ d: InitializerDecl) -> Bool
+				{
+					d.isPublic && !d.optional && !d.attributes.contains(._disfavoredOverload) && d.genericParameters.isEmpty
+				}
+
+				// this one is primary if it meets all the requirements and there is no other ctor that does
+				let isPrimary = isPrimaryCandidate(ctor) && !type.membersIncludingExtensions.contains(where: {
+					if let d = $0 as? InitializerDecl, d !== ctor && isPrimaryCandidate(d) { return true } else { return false } })
 
 				if isPrimary {
 					sty.primaryCtor = PrimaryCtorBinding(ctor)
 				}
+
+				// FIXME: Bind optional and generic ctors as static Create methods
 			}
 		}
 	}

@@ -42,7 +42,8 @@ import SwiftSyntax
  - The second generic requirement establsihes a `sameType` relation
    between the generic types identified by `"C1.Element"` and `"C2.Element"`
  */
-public struct GenericRequirement: Hashable, Codable {
+public struct GenericRequirement: HasTypesToResolve {
+
     /**
      A relation between the two types identified
      in the generic requirement.
@@ -53,7 +54,7 @@ public struct GenericRequirement: Hashable, Codable {
      that the type identified by `"T"`
      conforms to the type identified by `"Equatable"`.
      */
-    public enum Relation: String, Hashable, Codable {
+    public enum Relation {
         /**
          The type identified on the left-hand side is equivalent to
          the type identified on the right-hand side of the generic requirement.
@@ -70,11 +71,11 @@ public struct GenericRequirement: Hashable, Codable {
     /// The relation between the two identified types.
     public let relation: Relation
 
-    /// The identifier for the left-hand side type.
-    public let leftTypeIdentifier: String
+    /// The left-hand side type.
+	public var leftType: TypeRef
 
-    /// The identifier for the right-hand side type.
-    public let rightTypeIdentifier: String
+    /// The right-hand side type.
+    public var rightType: TypeRef
 
     /**
      Creates and returns generic requirements initialized from a
@@ -91,16 +92,21 @@ public struct GenericRequirement: Hashable, Codable {
     private init?(_ node: GenericRequirementSyntax) {
         if let node = SameTypeRequirementSyntax(node.body) {
             self.relation = .sameType
-            self.leftTypeIdentifier = node.leftTypeIdentifier.description.trim()
-            self.rightTypeIdentifier = node.rightTypeIdentifier.description.trim()
+            self.leftType = TypeRef.parse(node.leftTypeIdentifier)
+            self.rightType = TypeRef.parse(node.rightTypeIdentifier)
         } else if let node = ConformanceRequirementSyntax(node.body) {
             self.relation = .conformance
-            self.leftTypeIdentifier = node.leftTypeIdentifier.description.trim()
-            self.rightTypeIdentifier = node.rightTypeIdentifier.description.trim()
+            self.leftType = TypeRef.parse(node.leftTypeIdentifier)
+            self.rightType = TypeRef.parse(node.rightTypeIdentifier)
         } else {
             return nil
         }
     }
+
+	public mutating func resolveTypes(_ resolve: (TypeRef) -> TypeRef) {
+		leftType = resolve(leftType)
+		rightType = resolve(rightType)
+	}
 }
 
 // MARK: - CustomStringConvertible
@@ -109,9 +115,9 @@ extension GenericRequirement: CustomStringConvertible {
     public var description: String {
         switch relation {
         case .sameType:
-            return "\(leftTypeIdentifier) == \(rightTypeIdentifier)"
+            return "\(leftType) == \(rightType)"
         case .conformance:
-            return "\(leftTypeIdentifier): \(rightTypeIdentifier)"
+            return "\(leftType): \(rightType)"
         }
     }
 }

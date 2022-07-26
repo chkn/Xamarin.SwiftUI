@@ -33,12 +33,17 @@ extension AttributeSyntax {
 	var name: String { attributeName.text.trim() }
 }
 
+extension CustomAttributeSyntax {
+	var name: String { attributeName.name.trim() }
+}
+
+
 extension TypeInheritanceClauseSyntax {
 	var inheritedTypeNames: [String] { inheritedTypeCollection.map { $0.typeName.name } }
 
-	func inheritedTypes(in context: Decl?) -> [TypeDecl]
+	func inheritedTypes(in context: Decl?) -> [TypeRef]
 	{
-		self.inheritedTypeNames.map({ UnresolvedTypeDecl(in: context, name: $0) })
+		self.inheritedTypeNames.map({ .unresolved(name: $0) })
 	}
 }
 

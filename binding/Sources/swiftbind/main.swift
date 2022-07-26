@@ -49,12 +49,6 @@ for sdk in SDK.allCases {
 		continue
 	}
 	for binding in result {
-	/*
-		if let ty = b as? TypeBinding {
-			write(ty, as: csharp)
-		}
-		*/
-
 		var list = bindings[binding.id] ?? []
 		list.append((sdk, binding))
 		bindings.updateValue(list, forKey: binding.id)
@@ -62,13 +56,19 @@ for sdk in SDK.allCases {
 }
 
 let cw = ConditionalWriter(sdks)
+let csharp = CSharpState()
 
 for kv in bindings {
 	let binding = kv.value.first!.1
 	switch binding {
 	case let tb as TypeBinding:
 		if let writer = csharp(tb.name) {
-			cw.write(bindings: kv.value, to: writer)
+			cw.write(bindings: kv.value.compactMap({
+				if let writable = $0.1 as? CSharpWritable {
+					return ($0.0, Writable(id: $0.1.id, write: { writer in writable.write(to: writer, csharp: csharp) }))
+				}
+				return nil
+			} ), to: writer)
 		} else {
 			binder.diagnose(Diagnostic.Message(.error, "Cannot open file for writing"))
 		}

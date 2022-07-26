@@ -24,7 +24,7 @@ import SwiftSyntax
 
 /// A protocol declaration.
 public class ProtocolDecl: TypeDecl, Derivable {
-	public var inheritance: [TypeDecl]
+	public var inheritance: [TypeRef]
 
 	/// Creates an instance initialized with the given syntax node.
 	public init(in context: Decl?, _ node: ProtocolDeclSyntax)

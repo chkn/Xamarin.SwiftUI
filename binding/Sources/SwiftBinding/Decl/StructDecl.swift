@@ -24,7 +24,7 @@ import SwiftSyntax
 
 /// A structure declaration.
 public class StructDecl: GenericTypeDecl, Derivable {
-	public var inheritance: [TypeDecl] = []
+	public var inheritance: [TypeRef] = []
 
 	public override var typeCode: Character? { "V" }
 
@@ -34,7 +34,7 @@ public class StructDecl: GenericTypeDecl, Derivable {
 		super.init(in: context, node.attributes, node.modifiers, node.identifier.text.trim(), node.genericParameterClause, node.genericWhereClause)
 	}
 
-	public override func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?)
+	public override func resolveTypes(_ resolve: (TypeRef) -> TypeRef)
 	{
 		super.resolveTypes(resolve)
 		inheritance = inheritance.compactMap(resolve)

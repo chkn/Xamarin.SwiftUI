@@ -3,15 +3,15 @@ import Darwin
 import SwiftSyntax
 
 public protocol HasTypesToResolve {
-	mutating func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?)
+	mutating func resolveTypes(_ resolve: (TypeRef) -> TypeRef)
 }
 
 public protocol Derivable: HasTypesToResolve {
-	var inheritance: [TypeDecl] { get set }
+	var inheritance: [TypeRef] { get set }
 }
 
 public extension Derivable {
-	mutating func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?)
+	mutating func resolveTypes(_ resolve: (TypeRef) -> TypeRef)
 	{
 		inheritance = inheritance.compactMap(resolve)
 	}
@@ -38,7 +38,7 @@ public protocol HasMembers: HasTypesToResolve {
 }
 
 public extension HasMembers {
-	mutating func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?)
+	mutating func resolveTypes(_ resolve: (TypeRef) -> TypeRef)
 	{
 		for member in members {
 			member.resolveTypes(resolve)
@@ -78,9 +78,12 @@ open class NominalTypeDecl: TypeDecl, HasMembers, Extendable {
 	public var members: [MemberDecl] = []
 	public var extensions: [ExtensionDecl] = []
 
-	open func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?) {
+	open func resolveTypes(_ resolve: (TypeRef) -> TypeRef) {
 		for member in members {
 			member.resolveTypes(resolve)
+		}
+		for ext in extensions {
+			ext.resolveTypes(resolve)
 		}
 	}
 }
@@ -90,11 +93,11 @@ open class GenericTypeDecl: NominalTypeDecl {
 
 	public init(in context: Decl?, _ attributes: AttributeListSyntax?, _ modifiers: ModifierListSyntax?, _ name: String, _ genericParameterClause: GenericParameterClauseSyntax?, _ genericWhereClause: GenericWhereClauseSyntax?)
 	{
-		genericParameters = genericParameterClause?.genericParameterList.map { GenericParameter(in: context, $0, genericWhereClause) } ?? []
+		genericParameters = genericParameterClause?.genericParameterList.map { GenericParameter($0, genericWhereClause) } ?? []
 		super.init(in: context, attributes, modifiers, name)
 	}
 
-	open override func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?) {
+	open override func resolveTypes(_ resolve: (TypeRef) -> TypeRef) {
 		super.resolveTypes(resolve)
 		for i in 0..<genericParameters.count {
 			var gp = genericParameters[i]

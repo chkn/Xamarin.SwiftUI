@@ -1,13 +1,13 @@
 
 /// A struct bound as a managed value type implementing ISwiftBlittableStruct
-public class BlittableStructBinding: TypeBinding {
+open class BlittableStructBinding: TypeBinding {
 
 	public init(_ type: StructDecl)
 	{
 		super.init(type)
 	}
 
-	override public func writeType(_ writer: Writer)
+	override open func writeType(to writer: Writer, csharp: CSharpState)
 	{
 		writer.write("""
 [StructLayout (LayoutKind.Sequential)]

@@ -19,9 +19,9 @@ let header = """
 
 // Functions to create generated source files
 
-func write(_ binding: Binding, as lang: (String) -> Writer?)
+func write(_ writable: Writable, as lang: (String) -> Writer?)
 {
-	lang(binding.id).flatMap({ $0.write(child: binding) })
+	lang(writable.id).flatMap(writable.write)
 }
 
 func csharp(_ name: String) -> Writer?

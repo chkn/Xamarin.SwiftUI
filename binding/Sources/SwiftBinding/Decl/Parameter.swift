@@ -65,7 +65,7 @@ public struct Parameter: HasTypesToResolve {
 	 func greet(_ person: Person, with phrases: String...)
 	 ```
 	*/
-	public var type: TypeDecl?
+	public var type: TypeRef?
 
 	/**
 	 Whether the parameter accepts a variadic argument.
@@ -89,25 +89,23 @@ public struct Parameter: HasTypesToResolve {
 	 */
 	public let defaultArgument: String?
 
-	public init(_ node: FunctionParameterSyntax)
+	public init(_ context: MemberDecl, _ node: FunctionParameterSyntax)
 	{
         self.attributes = node.attributes?.compactMap(DeclAttribute.parse) ?? []
         firstName = node.firstName?.text.trim()
         secondName = node.secondName?.text.trim()
         if let nty = node.type {
-			// SwiftSyntax doesn't treat @escaping as an attribute, but we want to
-			var name = nty.name
-			if name.hasPrefix("@escaping ") {
-				self.attributes.append(.escaping)
-				name = String(name.suffix(from: name.index(name.startIndex, offsetBy: 10)))
+			type = TypeRef.parse(nty)
+			// If it's unresolved and has the same name as a generic parameter from our context, assume it's that
+			if case let .unresolved(nm) = type, context.genericParameters.contains(where: { $0.name == nm }) {
+				type = .generic(nm)
 			}
-			type = UnresolvedTypeDecl(in: nil, name: name)
 		}
         variadic = node.ellipsis != nil
         defaultArgument = node.defaultArgument?.value.description.trim()
     }
 
-	public mutating func resolveTypes(_ resolve: (TypeDecl) -> TypeDecl?) {
+	public mutating func resolveTypes(_ resolve: (TypeRef) -> TypeRef) {
 		if let ty = type {
 			type = resolve(ty)
 		}

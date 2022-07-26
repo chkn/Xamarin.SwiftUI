@@ -1,9 +1,18 @@
-import Foundation
 
-public class PrimaryCtorBinding: MethodBinding {
-	public override func write(_ writer: Writer)
+open class PrimaryCtorBinding: MethodBinding {
+
+	public init(_ decl: InitializerDecl)
 	{
-		writeParameterList(writer)
+		super.init(decl)
+	}
+
+	override open func write(to writer: Writer, csharp state: CSharpState)
+	{
+		writeParameterList(to: writer, state)
+	}
+
+	override open func write(to writer: Writer, fsharp state: FSharpState)
+	{
+		writeParameterList(to: writer, state)
 	}
 }
-

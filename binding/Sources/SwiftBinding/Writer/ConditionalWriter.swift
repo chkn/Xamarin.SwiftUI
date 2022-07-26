@@ -7,14 +7,14 @@ public struct ConditionalWriter {
 
 	enum WriterAction: Hashable {
 		case writeText(String)
-		case writeChild(Binding)
+		case writeChild(Writable)
 		indirect case conditional(Set<SDK>, WriterAction)
 
 		func hash(into hasher: inout Hasher)
 		{
 			switch self {
 			case .writeText(let str): hasher.combine(str)
-			case .writeChild(let binding): hasher.combine(binding.id)
+			case .writeChild(let child): hasher.combine(child.id)
 			case .conditional(_, let action):
 				// purposefully ignore the SDKs
 				hasher.combine(action)
@@ -45,7 +45,7 @@ public struct ConditionalWriter {
 			actions.append(.writeText(text))
 		}
 
-		public func write(child: Binding)
+		public func write(child: Writable)
 		{
 			actions.append(.writeChild(child))
 		}
@@ -55,14 +55,14 @@ public struct ConditionalWriter {
 		self.allSdks = allSdks
 	}
 
-	static func actions(for binding: Binding) -> [WriterAction]
+	static func actions(for writable: Writable) -> [WriterAction]
 	{
 		let writer = SdkWriter()
-		binding.write(writer)
+		writable.write(writer)
 		return writer.actions
 	}
 
-	public func write(bindings: [(SDK,Binding)], to writer: Writer)
+	public func write(bindings: [(SDK,Writable)], to writer: Writer)
 	{
 		//convert this to lists of conditional actions by SDK
 		let actions: [[WriterAction]] = bindings.map {[ .conditional([$0.0], .writeChild($0.1)) ]}
