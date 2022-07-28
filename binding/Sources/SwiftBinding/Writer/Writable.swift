@@ -25,6 +25,7 @@ public struct CSharpState: LanguageState {
 		case .nint: return "nint"
 		case .nuint: return "nuint"
 		case .erased: return nil
+		case .generic(let name): return name
 		case .optional(let wrapped):
 			guard let wrappedStr = string(for: wrapped) else { return nil }
 			return "\(wrappedStr)?"
@@ -61,7 +62,36 @@ public struct FSharpState: LanguageState {
 
 	public func string(for type: TypeRef) -> String?
 	{
-		type.qualifiedName!
+		switch type {
+		case .erased: return nil
+		case .nint: return "nativeint"
+		case .nuint: return "unativeint"
+		case .generic(let name): return "'\(name)"
+		case .optional(let wrapped):
+			guard let wrappedStr = string(for: wrapped) else { return nil }
+			return "\(wrappedStr) voption"
+		case .array(let elementType):
+			guard let elementTypeStr = string(for: elementType) else { return nil }
+			return "\(elementTypeStr)[]"
+		case .tuple(let types):
+			if types.count == 1 { return string(for: types[0]) }
+			let mappedTypes = types.compactMap(string(for:))
+			guard mappedTypes.count == types.count else { return nil }
+			return "struct (\(mappedTypes.joined(separator: " * ")))"
+		case .function(_, let args, let returnType):
+			let name = returnType.isVoid ? "Action" : "Func"
+			let genericArgs = returnType.isVoid ? args : args + [returnType]
+			return string(for: .managed("System", name, genericArgs))
+
+		case .managed(let ns, let name, let genericArgs):
+			// FIXME: respect usings
+			let mappedTypes = genericArgs.compactMap(string(for:))
+			guard mappedTypes.count == genericArgs.count else { return nil }
+			let genericArgsStr = mappedTypes.isEmpty ? "" : "<\(mappedTypes.joined(separator: ", "))>"
+			return "\(ns?.appending(".") ?? "")\(name)\(genericArgsStr)"
+
+		default: return type.qualifiedName!
+		}
 	}
 }
 
