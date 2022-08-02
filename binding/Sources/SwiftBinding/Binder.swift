@@ -169,13 +169,13 @@ open class Binder: SyntaxVisitor {
 		return bindings
 	}
 
-	func tryBind(struct type: StructDecl, as baseClass: String) -> SwiftStructBinding?
+	func tryBind<S: SwiftStructBinding>(struct type: StructDecl, as baseClass: String) -> S?
 	{
-		var binding: SwiftStructBinding? = nil
+		var binding: S? = nil
 		if type.inherits(from: baseClass) {
-			binding = SwiftStructBinding(type, baseClass)
+			binding = S(type, baseClass)
 		} else if let ext = type.extensionInherits(from: baseClass) {
-			let b = SwiftStructBinding(type, baseClass)
+			let b = S(type, baseClass)
 			b.apply(ext)
 			binding = b
 		}
@@ -198,9 +198,9 @@ open class Binder: SyntaxVisitor {
 		if let sty = type as? StructDecl {
 			// try to bind some known SwiftStruct types first
 			//  must do "SwiftUI.Shape" first becuase it derives from View
-			if let swiftStruct = tryBind(struct: sty, as: "SwiftUI.Shape") ?? tryBind(struct: sty, as: "SwiftUI.View") {
-				typeBinding = swiftStruct
-				bindings.append(swiftStruct)
+			if let v: SwiftUIViewBinding = tryBind(struct: sty, as: "SwiftUI.Shape") ?? tryBind(struct: sty, as: "SwiftUI.View") {
+				typeBinding = v
+				bindings.append(v)
 			}
 
 			else if let _ = tryBind(struct: sty, as: "SwiftUI.ViewModifier") {

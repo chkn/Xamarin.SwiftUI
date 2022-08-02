@@ -2,11 +2,14 @@
 open class MethodBinding: Binding, CSharpWritable, FSharpWritable {
 	public let decl: FunctionDecl
 
+	public var parameters: [Parameter]
+
 	public var id: String { decl.qualifiedName }
 
 	public init(_ decl: FunctionDecl)
 	{
 		self.decl = decl
+		self.parameters = decl.parameters
 	}
 
 	open func writeAccessibilityAndName(to writer: Writer, csharp: CSharpState)
@@ -34,7 +37,7 @@ open class MethodBinding: Binding, CSharpWritable, FSharpWritable {
 	open func writeParameterList<S: LanguageState>(to writer: Writer, _ state: S)
 	{
 		var hadPrev = false
-		for p in decl.parameters {
+		for p in parameters {
 			var maybeStr: String? = nil
 			if let csharp = state as? CSharpState {
 				maybeStr = parameterString(p, csharp: csharp)

@@ -4,7 +4,7 @@ open class SwiftStructBinding: TypeBinding {
 	public let baseClass: String
 	public var primaryCtor: PrimaryCtorBinding? = nil
 
-	public init(_ type: StructDecl, _ baseClass: String)
+	public required init(_ type: StructDecl, _ baseClass: String)
 	{
 		self.baseClass = baseClass
 		super.init(type)

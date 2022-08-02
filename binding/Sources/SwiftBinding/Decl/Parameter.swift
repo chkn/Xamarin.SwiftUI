@@ -105,6 +105,16 @@ public struct Parameter: HasTypesToResolve {
         defaultArgument = node.defaultArgument?.value.description.trim()
     }
 
+	init(attributes: [DeclAttribute], firstName: String?, secondName: String?, type: TypeRef?, variadic: Bool, defaultArgument: String?)
+	{
+		self.attributes = attributes
+		self.firstName = firstName
+		self.secondName = secondName
+		self.type = type
+		self.variadic = variadic
+		self.defaultArgument = defaultArgument
+	}
+
 	public mutating func resolveTypes(_ resolve: (TypeRef) -> TypeRef) {
 		if let ty = type {
 			type = resolve(ty)
