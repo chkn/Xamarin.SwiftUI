@@ -8,6 +8,7 @@ public struct ConditionalWriter {
 	enum WriterAction: Hashable {
 		case writeText(String)
 		case writeChild(Writable)
+		case writeEnclosed(String, String, Writable)
 		indirect case conditional(Set<SDK>, WriterAction)
 
 		func hash(into hasher: inout Hasher)
@@ -15,6 +16,10 @@ public struct ConditionalWriter {
 			switch self {
 			case .writeText(let str): hasher.combine(str)
 			case .writeChild(let child): hasher.combine(child.id)
+			case .writeEnclosed(let opening, let closing, let writable):
+				hasher.combine(opening)
+				hasher.combine(closing)
+				hasher.combine(writable.id)
 			case .conditional(_, let action):
 				// purposefully ignore the SDKs
 				hasher.combine(action)
@@ -28,6 +33,9 @@ public struct ConditionalWriter {
 			}
 			if case .writeChild(let child1) = lhs, case .writeChild(let child2) = rhs {
 				return child1.id == child2.id
+			}
+			if case .writeEnclosed(let opening1, let closing1, let writable1) = lhs, case .writeEnclosed(let opening2, let closing2, let writable2) = rhs {
+				return opening1 == opening2 && closing1 == closing2 && writable1.id == writable2.id
 			}
 			if case .conditional(_, let action1) = lhs, case .conditional(_, let action2) = rhs {
 				// purposefully ignore the SDKs
@@ -48,6 +56,11 @@ public struct ConditionalWriter {
 		public func write(child: Writable)
 		{
 			actions.append(.writeChild(child))
+		}
+
+		public func write(enclosed: String, _ closing: String, _ writable: Writable)
+		{
+			actions.append(.writeEnclosed(enclosed, closing, writable))
 		}
 	}
 
@@ -133,6 +146,10 @@ public struct ConditionalWriter {
 		for action in acts {
 			switch action {
 			case .writeChild(let binding) where expandAllChildren: result.append(contentsOf: expand(actions(for: binding), expandAllChildren: true))
+			case .writeEnclosed(let opening, let closing, let wr):
+				result.append(.writeText(opening))
+				result.append(contentsOf: expand(actions(for: wr), expandAllChildren: expandAllChildren))
+				result.append(.writeText(closing))
 			case .conditional(let sdks, .writeChild(let binding)):
 				let expandedActions: [WriterAction] = expand(actions(for: binding), expandAllChildren: expandAllChildren).map { .conditional(sdks, $0) }
 				result.append(contentsOf: expandedActions)
@@ -172,6 +189,10 @@ public struct ConditionalWriter {
 			writer.write("\n#if \(defines)\n")
 			write(action: conditionalAction, to: writer)
 			writer.write("\n#endif\n")
+		case .writeEnclosed(let opening, let closing, let child):
+			writer.write(opening)
+			writer.write(child: child)
+			writer.write(closing)
 		}
 	}
 }
